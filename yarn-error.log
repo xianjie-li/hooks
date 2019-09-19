@@ -1,0 +1,56 @@
+Arguments: 
+  C:\Program Files\nodejs\node.exe C:\Users\Administrator\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js
+
+PATH: 
+  C:\Program Files\JetBrains\WebStorm 2019.1.1\jbr\\bin;C:\Program Files\JetBrains\WebStorm 2019.1.1\jbr\\bin\server;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\Program Files\TortoiseSVN\bin;C:\wamp64\bin\php\php7.0.10;C:\Program Files\Git\cmd;C:\Program Files\Microsoft VS Code\bin;C:\Users\Administrator\AppData\Local\Yarn\bin;C:\Users\Administrator\AppData\Roaming\nvm;C:\Program Files\nodejs;%JAVA_HOME%\bin;C:\WINDOWS\System32\OpenSSH\;C:\cmder;C:\flutter\bin;C:\Program Files\Microsoft VS Code\bin;C:\wamp64\bin\php\php7.0.10;C:\Users\Administrator\AppData\Roaming\npm;C:\Users\Administrator\AppData\Roaming\nvm;C:\Program Files\nodejs;C:\Users\Administrator\AppData\Local\Microsoft\WindowsApps;;C:\Program Files\JetBrains\WebStorm 2019.1.1\bin;;D:\Program Files\Microsoft VS Code\bin;C:\Program Files\JetBrains\IntelliJ IDEA 2019.1.2\bin;
+
+Yarn version: 
+  1.12.3
+
+Node version: 
+  10.15.0
+
+Platform: 
+  win32 x64
+
+Trace: 
+  SyntaxError: C:\Users\Administrator\Desktop\hooks\package.json: Unexpected token } in JSON at position 429
+      at JSON.parse (<anonymous>)
+      at C:\Users\Administrator\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:1631:59
+      at Generator.next (<anonymous>)
+      at step (C:\Users\Administrator\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:304:30)
+      at C:\Users\Administrator\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:315:13
+
+npm manifest: 
+  {
+    "name": "@lxjx/hooks",
+    "version": "0.1.0",
+    "description": "React hooks",
+    "main": "dist/index.umd.js",
+    "module": "dist/index.esm.js",
+    "authors": {
+      "name": "lixianjie",
+      "email": "1073830130@qq.com"
+    },
+    "repository": "",
+    "scripts": {
+      "dev": "father doc dev",
+      "build:doc": "father doc build",
+      "build": "father build"
+    },
+    "browserslist": {},
+    "devDependencies": {
+      "father": "^2.14.0",
+    },
+    "peerDependencies": {},
+    "dependencies": {
+      "react": "*"
+    },
+    "license": "MIT"
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

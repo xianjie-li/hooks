@@ -1,0 +1,28 @@
+{
+  "name": "@lxjx/hooks",
+  "version": "0.1.0",
+  "description": "React hooks",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.esm.js",
+  "typings": "./dist/index.d.ts",
+  "authors": {
+    "name": "lixianjie",
+    "email": "1073830130@qq.com"
+  },
+  "repository": "https://github.com/Iixianjie/hooks",
+  "scripts": {
+    "dev": "father doc dev",
+    "build:doc": "father doc build",
+    "build": "father build"
+  },
+  "browserslist": {},
+  "devDependencies": {
+    "father": "^2.14.0"
+  },
+  "peerDependencies": {},
+  "dependencies": {
+    "@babel/runtime": "^7.6.0",
+    "react": "*"
+  },
+  "license": "MIT"
+}
