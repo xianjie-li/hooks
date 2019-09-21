@@ -6,13 +6,9 @@ type AnyObject = {
 }
 
 /** 返回类似类组件的this的实例属性 */
-export function useSelf<T>(init: T | AnyObject) {
-  let _init: AnyObject = init;
-  if(init === undefined) {
-    _init = {};
-  }
-  const self = useRef<AnyObject>(_init);
-  return self.current as T | AnyObject;
+export function useSelf<T>(init?: T) {
+  const self = useRef<AnyObject>(init || {});
+  return self.current as T;
 }
 
 /** 与useEffect参数一致，区别是不会在初次渲染时触发 */

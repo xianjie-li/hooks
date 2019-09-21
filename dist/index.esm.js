@@ -11,13 +11,7 @@ var useRef = React.useRef,
 /** 返回类似类组件的this的实例属性 */
 
 function useSelf(init) {
-  var _init = init;
-
-  if (init === undefined) {
-    _init = {};
-  }
-
-  var self = useRef(_init);
+  var self = useRef(init || {});
   return self.current;
 }
 /** 与useEffect参数一致，区别是不会在初次渲染时触发 */
