@@ -6,16 +6,20 @@ type AnyObject = {
 }
 
 /** 返回类似类组件的this的实例属性 */
-export function useSelf<T>() {
-  const self = useRef<AnyObject>({});
-  return self.current as T;
+export function useSelf<T>(init: T | AnyObject) {
+  let _init: AnyObject = init;
+  if(init === undefined) {
+    _init = {};
+  }
+  const self = useRef<AnyObject>(_init);
+  return self.current as T | AnyObject;
 }
 
 /** 与useEffect参数一致，区别是不会在初次渲染时触发 */
 export function useUpdate(didUpdate: () => (void | (() => (void | undefined))), source?: any[]): void {
   const self = useSelf<{
     updated: boolean
-  }>();
+  }>({ updated: false });
 
   useEffect(() => {
     if(self.updated) {

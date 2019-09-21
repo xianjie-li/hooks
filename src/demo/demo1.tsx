@@ -7,7 +7,9 @@ type Temp = {
 }
 
 const Demo1 = () => {
-  const self = useSelf<Temp>();
+  const self = useSelf<Temp>({
+    // name: 'lxj'
+  });
   const [count, setCount] = useLegacyState({
     count: 123
   });
