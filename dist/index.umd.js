@@ -43,7 +43,7 @@
     function _setState(SetStateAction) {
       if (typeof SetStateAction === 'function') {
         setState(function (prev) {
-          return SetStateAction(prev);
+          return _objectSpread({}, prev, {}, SetStateAction(prev));
         });
       } else {
         setState(function (prev) {

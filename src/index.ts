@@ -1,6 +1,8 @@
 import React from 'react';
 const { useRef, useEffect, useState } = React;
 
+import { Optional } from 'utility-types';
+
 type AnyObject = {
   [key: string]: any;
 }
@@ -27,9 +29,12 @@ export function useUpdate(didUpdate: () => (void | (() => (void | undefined))), 
 
 export function useLegacyState<T>(init: T & object) {
   const [state, setState] = useState<T>(init);
-  function _setState(SetStateAction: ((prev: T) => T) | T): void {
+  function _setState(SetStateAction: ((prev: T) => Optional<T & object>) | T): void {
     if(typeof SetStateAction === 'function') {
-      setState((prev: T) => (SetStateAction as ((prev: T) => T))(prev));
+      setState((prev: T) => ({
+        ...prev,
+        ...(SetStateAction as ((prev: T) => Optional<T & object>))(prev),
+      }));
     } else {
       setState((prev: T) => ({...prev, ...SetStateAction}));
     }
