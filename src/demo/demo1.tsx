@@ -1,17 +1,28 @@
 import React, { useState } from 'react';
 
-import { useSelf, useUpdate, useLegacyState } from '../index';
+import { useSelf, useSyncState } from '../index';
 
 const Demo1 = () => {
-  const [data, setData] = useLegacyState({
-    count: 123,
-    name: 'lxj'
+  const self = useSelf({
+    name: 'lxj',
+    age: 18,
+  });
+
+  const [state, setState] = useSyncState({
+    count: 0,
   });
 
   return (
     <div>
-      <div>{JSON.stringify(data)}</div>
-      <button onClick={() => setData((prev) => ({ count: prev.count + 1 }))}>count</button>
+      <button onClick={() => {
+        self.age++;
+        console.log(self);
+      }}>useSelf</button>
+      <button onClick={() => {
+        setState(({ count }) => ({
+          count: count + 1,
+        }));
+      }}>count {state.count}</button>
     </div>
   );
 };
