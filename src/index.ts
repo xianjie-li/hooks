@@ -65,7 +65,6 @@ interface UseFetchOptions {
   onTimeout?: () => void;
 }
 
-
 interface UseFetchReturns<Params, Data, ExtraData> {
   data: Data;
   loading: boolean;
@@ -78,7 +77,6 @@ interface UseFetchReturns<Params, Data, ExtraData> {
   extraData: ExtraData;
   setExtraData: (patch: Partial<ExtraData> | ((prevState: ExtraData) => Partial<ExtraData>)) => void;
 }
-
 
 export const useFetch = <Params extends AnyObject, Data, ExtraData extends AnyObject>(
   method: (...arg: any[]) => Promise<Data>,
