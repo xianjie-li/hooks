@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useFetch } from '../index';
+import { useFetch, fetchTrigger } from '../index';
 
 function mock<D>(success: boolean, data: D, ms = 1800) {
   return (arg: any) => {
@@ -24,15 +24,34 @@ const UseFetch = () => {
     age: number;
   }
 
+  const [dep, setDep] = React.useState(0);
+
   const res = useFetch<P, D, any>(
-    mock(true, { name: 'lxj', age: 18 }),
+    mock(true, { name: 'lxj', age: 18 }, 1500),
     // @ts-ignore
     // mock(false, { code: 110, msg: '发生错误啦！' }),
     { page: 1, sort: 5 },
     true,
+    {
+      inputs: [dep],
+      extraData: {
+        meta: 123
+      },
+      key: 'test1',
+      onSuccess(res, isUpdate) {
+        console.log('onSuccess', res, isUpdate);
+      },
+      onError(err) {
+        console.log('onError', err);
+      },
+      onComplete() {
+        console.log('onComplete');
+      },
+      onTimeout() {
+        console.log('onTimeout');
+      }
+    }
   );
-
-  console.log(res);
 
   return (
     <div>
@@ -65,6 +84,15 @@ const UseFetch = () => {
             address: 'china',
           });
         }}>setExtraData</button>
+        <button onClick={() => {
+          setDep(prev => prev + 1);
+        }}>dep change</button>
+        <button onClick={() => {
+          fetchTrigger('test1', {
+            page: 10086,
+            sort: 12345,
+          });
+        }}>fetchTrigger</button>
       </div>
     </div>
   );

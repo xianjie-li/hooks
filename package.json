@@ -26,9 +26,9 @@
     "react": ">= 16.8.0"
   },
   "dependencies": {
-    "@babel/runtime": "*",
+    "@babel/runtime": "^7.6.3",
     "@lxjx/utils": "^1.0.9",
-    "react": "*",
+    "react": "^16.11.0",
     "react-use": "^13.6.3"
   },
   "license": "MIT"
