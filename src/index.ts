@@ -5,7 +5,6 @@ import { isFunction } from '@lxjx/utils';
 const { useRef, useEffect, useState } = React;
 
 import { Optional } from 'utility-types';
-import { isArray } from 'util';
 
 /* -----------------------------------工具---------------------------------- */
 
@@ -93,7 +92,6 @@ interface UseFetchMetas {
     flag: number;
   }[]
 }
-
 
 /* 对传递key的useFetch的update进行绑定，使其能在任何地方进行更新 */
 const useFetchMetas: UseFetchMetas = {};
