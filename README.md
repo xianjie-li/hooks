@@ -67,13 +67,9 @@ return (
 )
 ```
 
+<br>
 
-
-
-
-## effect
-
-
+<br>
 
 ## fetch
 
@@ -85,36 +81,44 @@ return (
 
 **bonus**：
 
-  	**data** - when requestMethod resolve，data is the resolve value
- 	 **loading** - boolean, when fetching. `mutually exclusive`
- 	 **error** -  when requestMethod reject，data is the reject value. `mutually exclusive`
-  	**timeout** - boolean, when timeout. `mutually exclusive`
- 	 **params**: - object, current params
-	  **setParams** - set params and fetch again, api like class component setState()
-	  **setData** - manually set data, api like class component setState()
- 	 **update** - trigger fetch with current params
-	  **extraData**: - extra state，save data other than data。
-  	**setExtraData** - set extraData,  api like class component setState()
+| key              | desc                                                         |
+| ---------------- | ------------------------------------------------------------ |
+| **data**         | when requestMethod resolve，data is the resolve value        |
+| **loading**      | boolean, when fetching. `mutually exclusive`                 |
+| **error**        | when requestMethod reject，data is the reject value. `mutually exclusive |
+| **timeout**      | boolean, when timeout. `mutually exclusive`                  |
+| **params**       | object, current params                                       |
+| **setParams**    | set params and fetch again, api like class component setState() |
+| **setData**      | manually set data, api like class component setState()       |
+| **update**       | trigger fetch with current params                            |
+| **extraData**    | extra state，save data other than data                       |
+| **setExtraData** | set extraData,  api like class component setState()          |
+
+
 
 **options:**
 
-​	  **inputs**? -  any[],  // like effect(fn, inputs)，when inputs item change，update fetch, ensure that the length does not change, reference type need memo before.
- 	 **extraData**? - object = {}, init extraData
-​	  **key**? - string,  used to globally trigger updates via fetchTrigger()
-  	**timeout**? - number = 8000, 超时时间(ms)
-  	**onSuccess**? -  (res: Data, isUpdate: boolean) => void, success callback, second parameter is true when the request is triggered for update () or fetchTrigger(key)
-  	**onError**? - (err: any) => void, error callback
-  	**onComplete**? - fetch finish callback. note that when an old request is overwritten by a new request, it is not triggered
- 	 **onTimeout**? - timeout callback.
+| option         | desc                                                         |
+| -------------- | ------------------------------------------------------------ |
+| **inputs**     | any[],  like effect(fn, inputs)，when inputs item change，update fetch, ensure that the length does not change, reference type need memo before. |
+| **extraData**  | object = {}, init extraData                                  |
+| **key**        | string,  used to globally trigger updates via fetchTrigger() |
+| **timeout**    | number = 8000, 超时时间(ms)                                  |
+| **onSuccess**  | (res: Data, isUpdate: boolean) => void, success callback, second parameter is true when the request is triggered for update () or fetchTrigger(key) |
+| **onError**    | (err: any) => void, error callback                           |
+| **onComplete** | fetch finish callback. note that when an old request is overwritten by a new request, it is not triggered |
+| **onTimeout**  | timeout callback.                                            |
 
 
+
+使用:
 
 ```jsx
 // declare request function
 function getGoodsList(params) {
     return new Promise((resolve, reject) => {
-        xx(params)
-          .then((res) => resolve(res))
+        fetch(params)
+          .then((res) => resolve(res.json()))
           .catch((err) => reject(err));
     })
 }
@@ -159,9 +163,9 @@ fetchTrigger('GOODS_LIST');
 fetchTrigger('GOODS_LIST', ({ page }) => ({ page: page + 1 }));
 ```
 
+<br>
 
-
-
+<br>
 
 ## lifecycles
 
