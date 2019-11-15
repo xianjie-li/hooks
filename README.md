@@ -2,15 +2,23 @@
 
 <h1 align="center" style="font-size: 80px;color:#61dafb">📌</h1>
 
-<p align="center">一些不与react-use功能重叠的hooks</p>
 
-<p align="center">some hooks that don't overlap with the react use function</p>
+<p align="center">Use Your Imagination</p>
 
+<br>
+<br>
+<!-- TOC -->
 
+- [state](#state)
+  - [`useSelf`](#useself)
+  - [`useSyncState`](#usesyncstate)
+- [fetch](#fetch)
+  - [`useFetch`](#usefetch)
+- [awesome hooks](#awesome-hooks)
 
-> Use Your Imagination
-
-
+<!-- /TOC -->
+<br>
+<br>
 
 ## state
 
@@ -163,9 +171,11 @@ fetchTrigger('GOODS_LIST');
 fetchTrigger('GOODS_LIST', ({ page }) => ({ page: page + 1 }));
 ```
 
-<br>
 
 <br>
+<br>
 
-## lifecycles
+## awesome hooks
+[react-use](https://github.com/streamich/react-use) React Hooks — 👍
+
 
