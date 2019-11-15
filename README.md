@@ -18,7 +18,7 @@
 
 > function component of 'this'
 
-`const self = useSelf(init = {})`
+`const self = useSelf(init?})`
 
 ```js
 const self = useSelf({
@@ -39,7 +39,7 @@ useEffect(() => {
 
 > like useSelf, but it can synchronize views。
 
-`const [state, setState] = useSyncState(initState = {})`
+`const [state, setState] = useSyncState(initState?)`
 
 setState: `((state) => Partial<state> | Partial<state>) => void`
 
@@ -84,9 +84,9 @@ return (
 | key              | desc                                                         |
 | ---------------- | ------------------------------------------------------------ |
 | **data**         | when requestMethod resolve，data is the resolve value        |
-| **loading**      | boolean, when fetching. `mutually exclusive`                 |
-| **error**        | when requestMethod reject，data is the reject value. `mutually exclusive |
-| **timeout**      | boolean, when timeout. `mutually exclusive`                  |
+| **loading**      | boolean, when fetching                                       |
+| **error**        | when requestMethod reject，data is the reject value.         |
+| **timeout**      | boolean, when timeout.                                       |
 | **params**       | object, current params                                       |
 | **setParams**    | set params and fetch again, api like class component setState() |
 | **setData**      | manually set data, api like class component setState()       |
