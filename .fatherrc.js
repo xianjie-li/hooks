@@ -1,8 +1,8 @@
 export default {
   entry: ['src/index.ts'],
   esm: 'rollup',
-  // cjs: 'rollup',
-  umd: true,
+  cjs: 'rollup',
+  // umd: true,
   runtimeHelpers: true,   // 一定要在 dependencies 里有 @babel/runtime 依赖
 
   // extractCSS: true,
