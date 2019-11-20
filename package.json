@@ -1,9 +1,10 @@
 {
   "name": "@lxjx/hooks",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "some hooks that don't overlap with the react use function",
   "main": "./dist/index.js",
   "module": "./dist/index.esm.js",
+  "typings": "./dist",
   "authors": {
     "name": "lixianjie",
     "email": "1073830130@qq.com"
