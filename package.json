@@ -1,6 +1,6 @@
 {
   "name": "@lxjx/hooks",
-  "version": "0.2.4",
+  "version": "0.3.1",
   "description": "some hooks that don't overlap with the react use function",
   "main": "./dist/index.js",
   "module": "./dist/index.esm.js",
