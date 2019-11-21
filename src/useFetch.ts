@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import useSelf from './useSelf';
-import useSetState from './useSetState';
+import { useSelf } from './useSelf';
+import { useSetState } from './useSetState';
+import { useIsInit } from './useIsInit';
 
 import { AnyObject, placeHolderFn } from './util';
 
@@ -113,10 +114,9 @@ export const useFetch = <Payload extends AnyObject, Data, ExtraData extends AnyO
 
   const self = useSelf({
     isUpdate: false,
-    fetchCount: 0, // 每次处罚fetch handle时递增
   });
 
-  const isFirst = self.fetchCount === 0;
+  const isInit = useIsInit();
 
   const [force, forceUpdate] = useState(0);
 
@@ -143,9 +143,8 @@ export const useFetch = <Payload extends AnyObject, Data, ExtraData extends AnyO
   }, [...inputs]);
 
   useEffect(function fetchHandle() {
-    self.fetchCount++;
     // 初始化时，如果initFetch为false则跳过
-    if (isFirst && !initFetch) {
+    if (isInit && !initFetch) {
       return;
     }
 
@@ -258,6 +257,5 @@ export const useFetch = <Payload extends AnyObject, Data, ExtraData extends AnyO
     send,
     setData: _setState,
     setExtraData: _setExtraData,
-    firstFetch: isFirst,
   } as UseFetchReturns<Payload, Data, ExtraData>;
 };

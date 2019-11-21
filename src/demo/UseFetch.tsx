@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { useFetch, fetchTrigger } from '../index';
+import { useFetch, fetchTrigger, useCustomEvent, customEventEmit } from '../index';
 
 function mock<D>(success: boolean, data: D, ms = 1800) {
   return (arg: any) => {
-    console.log('arg:::', arg);
+    // console.log('arg:::', arg);
     return new Promise<D>((resolve, reject) => {
       setTimeout(() => {
         success ? resolve(data) : reject(data);
@@ -54,6 +54,13 @@ const UseFetch = () => {
     }
   );
 
+  useCustomEvent('update', () => {
+    res.update();
+  }, []);
+
+
+  console.log(res);
+
   return (
     <div>
       <div>loading: {res.loading ? 'loading...' : 'false'}</div>
@@ -95,10 +102,13 @@ const UseFetch = () => {
           setDep(prev => prev + 1);
         }}>dep change</button>
         <button onClick={() => {
-          fetchTrigger('test1', {
-            xxx: 123213
-          });
-        }}>fetchTrigger</button>
+        fetchTrigger('test1', {
+          xxx: 123213
+        });
+      }}>fetchTrigger</button>
+      <button onClick={() => {
+        customEventEmit('update');
+      }}>trigger</button>
       </div>
     </div>
   );
