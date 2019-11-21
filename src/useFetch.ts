@@ -16,8 +16,6 @@ interface UseFetchOptions<Data> {
   initFetch?: boolean;
   /** 指定extraData的初始值. */
   extraData?: object;
-  /** 用于通过fetchTrigger全局触发更新, 只能在初始化时绑定，任何后续的变动都会被忽略 */
-  readonly key?: string;
   /** 超时时间，默认8000ms */
   timeout?: number;
   /** 成功回调, 第二个参数在当次请求是在payload没有改变的情况下触发时为true */
@@ -41,8 +39,6 @@ interface UseFetchReturns<Payload, Data, ExtraData> {
   error: any;
   /** 当请求超时会将它设置为true。该状态为互斥状态 */
   timeout: boolean;
-  /** 是否在初次加载时自动进行请求, 默认true */
-  firstFetch: boolean;
   /** 当前用于请求的payload */
   payload: Payload;
   /** 设置payload并触发请求, 使用方式同类组件的setState() */
@@ -51,7 +47,7 @@ interface UseFetchReturns<Payload, Data, ExtraData> {
   setOverPayload: (patch: Partial<Payload> | ((payload: Payload) => Partial<Payload>)) => void;
   /** 使用当前的payload更新请求 */
   update: () => void;
-  /** 以指定Payload发起请求，如果Payload未传，则与update()等效 */
+  /** 以指定Payload覆盖并发起请求，如果Payload未传，则与update()等效 */
   send: (patch: Partial<Payload> | ((payload: Payload) => Partial<Payload>)) => void;
   /** 存放额外数据，用于实现分页等功能 */
   extraData: ExtraData;
@@ -60,29 +56,6 @@ interface UseFetchReturns<Payload, Data, ExtraData> {
   /** 设置extraData, 使用方式同类组件的setState() */
   setExtraData: (patch: Partial<ExtraData> | ((prevState: ExtraData) => Partial<ExtraData>)) => void;
 }
-
-
-interface UseFetchMetas {
-  [key: string]: {
-    update: () => void;
-    setPayload: any;
-    flag: number;
-  }[]
-}
-
-
-/* 对传递key的useFetch的update进行绑定，使其能在任何地方进行更新 */
-const useFetchMetas: UseFetchMetas = {};
-
-/* 可在注册useFetch的组件外对配置了option.key的useFetch进行一次更新请求，传递payload时，使用传入的payload合并后进行更新请求 */
-export const fetchTrigger = (key: string, payload?: AnyObject) => {
-  const triggers = useFetchMetas[key];
-  if (!triggers || !Array.isArray(triggers)) return;
-  if (triggers.length === 0) return;
-  triggers.forEach(meta => {
-    payload ? meta.setPayload(payload) : meta.update();
-  });
-};
 
 export const useFetch = <Payload extends AnyObject, Data, ExtraData extends AnyObject>(
   method: (...arg: any[]) => Promise<Data>, // 一个Promise return函数或async函数，resolve的结果会作为data，失败时会将reject的值设置为error, timeout 由 useFetch 内部进行处理
@@ -99,7 +72,6 @@ export const useFetch = <Payload extends AnyObject, Data, ExtraData extends AnyO
     onError = placeHolderFn,
     onComplete = placeHolderFn,
     onTimeout = placeHolderFn,
-    key,
   } = options;
 
   /* pass规则：为函数时取返回值，函数内部报错时取false，否则直接取pass的值 */
@@ -188,29 +160,6 @@ export const useFetch = <Payload extends AnyObject, Data, ExtraData extends AnyO
       clearTimeout(timer);
     };
   }, [payload, isPass, force, ...inputs]);
-
-  /* 当存在key时，存储update和setPayload到meta对象中, 用于实现trigger */
-  useEffect(() => {
-    const flag = Math.random(); // 用于移除
-
-    if (key) {
-      if (!Array.isArray(useFetchMetas[key])) {
-        useFetchMetas[key] = [];
-      }
-      useFetchMetas[key].push({
-        update,
-        setPayload,
-        flag,
-      });
-    }
-
-    return () => {
-      /* 移除meta数据 */
-      if (!key) return;
-      const index = useFetchMetas[key].findIndex(item => item.flag === flag);
-      useFetchMetas[key].splice(index, 1);
-    };
-  }, []);
 
   /* 返回一个将互斥的状态还原的对象，并通过键值设置某个值 */
   function getResetState(key: string, value: any) {

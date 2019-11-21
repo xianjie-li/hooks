@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useFetch, fetchTrigger, useCustomEvent, customEventEmit } from '../index';
+import { useFetch, useCustomEvent, customEventEmit } from '../index';
 
 function mock<D>(success: boolean, data: D, ms = 1800) {
   return (arg: any) => {
@@ -38,7 +38,6 @@ const UseFetch = () => {
       extraData: {
         meta: 123
       },
-      key: 'test1',
       onSuccess(res, isUpdate) {
         console.log('onSuccess', res, isUpdate);
       },
@@ -57,7 +56,6 @@ const UseFetch = () => {
   useCustomEvent('update', () => {
     res.update();
   }, []);
-
 
   console.log(res);
 
@@ -102,13 +100,8 @@ const UseFetch = () => {
           setDep(prev => prev + 1);
         }}>dep change</button>
         <button onClick={() => {
-        fetchTrigger('test1', {
-          xxx: 123213
-        });
-      }}>fetchTrigger</button>
-      <button onClick={() => {
-        customEventEmit('update');
-      }}>trigger</button>
+          customEventEmit('update');
+        }}>trigger</button>
       </div>
     </div>
   );
