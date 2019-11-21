@@ -4,7 +4,7 @@ import { useFetch, fetchTrigger } from '../index';
 
 function mock<D>(success: boolean, data: D, ms = 1800) {
   return (arg: any) => {
-    // console.log('arg:::', arg);
+    console.log('arg:::', arg);
     return new Promise<D>((resolve, reject) => {
       setTimeout(() => {
         success ? resolve(data) : reject(data);
@@ -31,8 +31,9 @@ const UseFetch = () => {
     // @ts-ignore
     // mock(false, { code: 110, msg: '发生错误啦！' }),
     { page: 1, sort: 5 },
-    true,
     {
+      pass: true,
+      // initFetch: false,
       inputs: [dep],
       extraData: {
         meta: 123
@@ -59,19 +60,25 @@ const UseFetch = () => {
       <div>timeout: {res.timeout ? 'timeout' : 'false'}</div>
       <div>error: {JSON.stringify(res.error)}</div>
       <div>data: {JSON.stringify(res.data)}</div>
-      <div>params: {JSON.stringify(res.params)}</div>
+      <div>payload: {JSON.stringify(res.payload)}</div>
       <div>extraData: {JSON.stringify(res.extraData)}</div>
 
       <div>method:</div>
       <div>
         <button onClick={() => {
-          res.setParams((arg: P) => ({
+          res.setPayload((arg: P) => ({
             page: arg.page + 1
           }));
-        }}>setParams</button>
+        }}>setPayload</button>
         <button onClick={() => {
           res.update();
         }}>update</button>
+        <button onClick={() => {
+          res.send({
+            page: 123123,
+            // sort: 4321432,
+          });
+        }}>send</button>
         <button onClick={() => {
           res.setData({
             name: 'lxj',
@@ -89,8 +96,7 @@ const UseFetch = () => {
         }}>dep change</button>
         <button onClick={() => {
           fetchTrigger('test1', {
-            page: 10086,
-            sort: 12345,
+            xxx: 123213
           });
         }}>fetchTrigger</button>
       </div>
