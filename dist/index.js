@@ -2,11 +2,16 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var React = _interopDefault(require('react'));
-var reactUse = require('react-use');
+var react = require('react');
 var utils = require('@lxjx/utils');
+
+/** 返回类似类组件的this的实例属性 */
+
+function useSelf() {
+  var init = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  var self = react.useRef(init);
+  return self.current;
+}
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
   try {
@@ -155,24 +160,23 @@ function _nonIterableRest() {
   throw new TypeError("Invalid attempt to destructure non-iterable instance");
 }
 
-var useRef = React.useRef,
-    useEffect = React.useEffect,
-    useState = React.useState;
+/* 与react-use的useSetState一样, 但是额外返回了一个setOverState用于覆盖状态 */
 
-var placeHolderFn = function placeHolderFn() {
-  return undefined;
+var useSetState = function useSetState() {
+  var initialState = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  var _useState = react.useState(initialState),
+      _useState2 = _slicedToArray(_useState, 2),
+      state = _useState2[0],
+      set = _useState2[1];
+
+  var setState = react.useCallback(function (patch) {
+    set(function (prevState) {
+      return Object.assign({}, prevState, patch instanceof Function ? patch(prevState) : patch);
+    });
+  }, [set]);
+  return [state, setState, set];
 };
-/* ------------------------------------------------------------------------ */
-
-/** 返回类似类组件的this的实例属性 */
-
-
-function useSelf() {
-  var init = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  var self = useRef(init);
-  return self.current;
-}
-/* ------------------------------------------------------------------------ */
 
 /**
  * 可以把它理解为类组件setState API风格的useSelf，但它包含以下特点
@@ -184,7 +188,7 @@ function useSelf() {
 function useSyncState() {
   var init = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-  var _useState = useState(0),
+  var _useState = react.useState(0),
       _useState2 = _slicedToArray(_useState, 2),
       count = _useState2[0],
       update = _useState2[1];
@@ -217,25 +221,29 @@ function useSyncState() {
 
   return [self, setSelf];
 }
-/* 对传递key的useFetch的update进行绑定，使其能在任何地方进行更新 */
 
-var useFetchMetas = {};
-/* 可在注册useFetch的组件外对配置了option.key的useFetch进行一次更新请求，传递params时，使用传入的params合并后进行更新请求 */
+function useIsInit() {
+  var count = react.useRef(0);
+  var isInit = count.current === 0;
+  react.useEffect(function () {
+    count.current++;
+  }, []);
+  return isInit;
+}
 
-var fetchTrigger = function fetchTrigger(key, params) {
-  var triggers = useFetchMetas[key];
-  if (!triggers || !Array.isArray(triggers)) return;
-  if (triggers.length === 0) return;
-  triggers.forEach(function (meta) {
-    params ? meta.setParams(params) : meta.update();
-  });
+var placeHolderFn = function placeHolderFn() {
+  return undefined;
 };
-var useFetch = function useFetch(method, // 一个Promise return函数或async函数，resolve的结果会作为data，失败时会将reject的值设置为error, timeout 由 useFetch 内部进行处理
-defaultParams) {
-  var pass = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-  var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-  var _options$inputs = options.inputs,
+
+var useFetch = function useFetch(method) {
+  var initPayload = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  var _options$pass = options.pass,
+      pass = _options$pass === void 0 ? true : _options$pass,
+      _options$inputs = options.inputs,
       inputs = _options$inputs === void 0 ? [] : _options$inputs,
+      _options$initFetch = options.initFetch,
+      initFetch = _options$initFetch === void 0 ? true : _options$initFetch,
       _options$extraData = options.extraData,
       extraData = _options$extraData === void 0 ? {} : _options$extraData,
       _options$timeout = options.timeout,
@@ -247,11 +255,10 @@ defaultParams) {
       _options$onComplete = options.onComplete,
       onComplete = _options$onComplete === void 0 ? placeHolderFn : _options$onComplete,
       _options$onTimeout = options.onTimeout,
-      onTimeout = _options$onTimeout === void 0 ? placeHolderFn : _options$onTimeout,
-      key = options.key;
+      onTimeout = _options$onTimeout === void 0 ? placeHolderFn : _options$onTimeout;
   /* pass规则：为函数时取返回值，函数内部报错时取false，否则直接取pass的值 */
 
-  var isPass = false;
+  var isPass = pass;
 
   if (utils.isFunction(pass)) {
     try {
@@ -259,26 +266,27 @@ defaultParams) {
     } catch (err) {
       isPass = false;
     }
-  } else {
-    isPass = pass;
   }
-
-  var _useState3 = useState(0),
-      _useState4 = _slicedToArray(_useState3, 2),
-      force = _useState4[0],
-      forceUpdate = _useState4[1];
-
-  var _useSetState = reactUse.useSetState(defaultParams),
-      _useSetState2 = _slicedToArray(_useSetState, 2),
-      params = _useSetState2[0],
-      setParams = _useSetState2[1];
 
   var self = useSelf({
     isUpdate: false
   });
+  var isInit = useIsInit();
+
+  var _useState = react.useState(0),
+      _useState2 = _slicedToArray(_useState, 2),
+      force = _useState2[0],
+      forceUpdate = _useState2[1];
+
+  var _useSetState = useSetState(initPayload),
+      _useSetState2 = _slicedToArray(_useSetState, 3),
+      payload = _useSetState2[0],
+      setPayload = _useSetState2[1],
+      setOverPayload = _useSetState2[2];
   /* 关联值存一个state减少更新 */
 
-  var _useSetState3 = reactUse.useSetState({
+
+  var _useSetState3 = useSetState({
     data: undefined,
     loading: false,
     error: undefined,
@@ -288,10 +296,18 @@ defaultParams) {
       _useSetState4 = _slicedToArray(_useSetState3, 2),
       state = _useSetState4[0],
       setState = _useSetState4[1];
-  /* fetch handle */
+  /* 将inputs改变标记为isUpdate*/
 
 
-  useEffect(function () {
+  react.useEffect(function flagUpdate() {
+    self.isUpdate = true;
+  }, _toConsumableArray(inputs));
+  react.useEffect(function fetchHandle() {
+    // 初始化时，如果initFetch为false则跳过
+    if (isInit && !initFetch) {
+      return;
+    }
+
     var ignore = false;
     var timer;
     var _isUpdate = self.isUpdate; // 缓存,使状态只作用于当前effect周期
@@ -317,7 +333,7 @@ defaultParams) {
                 }, timeout);
                 _context.prev = 2;
                 _context.next = 5;
-                return method(params);
+                return method(payload);
 
               case 5:
                 response = _context.sent;
@@ -367,38 +383,17 @@ defaultParams) {
       return _fetcher.apply(this, arguments);
     }
 
-    isPass && fetcher();
+    if (isPass) {
+      fetcher().then();
+    } else {
+      self.isUpdate = false;
+    }
+
     return function () {
       ignore = true;
       clearTimeout(timer);
     };
-  }, [params, isPass, force].concat(_toConsumableArray(inputs)));
-  /* 当存在key时，存储update和setParams到meta对象中, 用于实现trigger */
-
-  useEffect(function () {
-    var flag = Math.random(); // 用于移除
-
-    if (key) {
-      if (!Array.isArray(useFetchMetas[key])) {
-        useFetchMetas[key] = [];
-      }
-
-      useFetchMetas[key].push({
-        update: update,
-        setParams: setParams,
-        flag: flag
-      });
-    }
-
-    return function () {
-      /* 移除meta数据 */
-      if (!key) return;
-      var index = useFetchMetas[key].findIndex(function (item) {
-        return item.flag === flag;
-      });
-      useFetchMetas[key].splice(index, 1);
-    };
-  }, []);
+  }, [payload, isPass, force].concat(_toConsumableArray(inputs)));
   /* 返回一个将互斥的状态还原的对象，并通过键值设置某个值 */
 
   function getResetState(key, value) {
@@ -433,6 +428,10 @@ defaultParams) {
     });
   }
 
+  function send(payload) {
+    payload ? setOverPayload(payload) : update();
+  }
+
   function update() {
     if (!isPass) return;
     self.isUpdate = true;
@@ -442,16 +441,80 @@ defaultParams) {
   }
 
   return _objectSpread2({}, state, {
-    params: params,
-    setParams: setParams,
-    setData: _setState,
+    payload: payload,
+    setPayload: setPayload,
+    setOverPayload: setOverPayload,
     update: update,
+    send: send,
+    setData: _setState,
     setExtraData: _setExtraData
   });
 };
-/* ------------------------------------------------------------------------ */
 
-exports.fetchTrigger = fetchTrigger;
+var eventStore = {};
+/**
+ * 触发一个自定义事件
+ * eventKey: 事件名
+ * payload: 参数
+ * */
+
+function customEventEmit(eventKey, payload) {
+  var events = eventStore[eventKey];
+  if (!events || !Array.isArray(events)) return;
+  if (events.length === 0) return;
+  events.forEach(function (event) {
+    event.handle(payload);
+  });
+}
+/**
+ * 绑定一个自定义事件，可以在任意组件内触发它, 每个事件可以多次绑定不同的处理函数
+ * eventKey? - 事件名
+ * handle? - 事件处理程序
+ * inputs? - 依赖数组，默认会在每一次更新时替换handle，当handle中不依赖或部分依赖其他状态时，可通过此项指定(!不要通过inputs传入未memo的引用对象!)
+ * */
+
+function useCustomEvent(eventKey, handle, inputs) {
+  var flag = react.useRef(Math.random()); // 防止重复添加
+
+  var key = eventKey;
+  react.useEffect(function () {
+    if (key && handle) {
+      if (!Array.isArray(eventStore[key])) {
+        eventStore[key] = [];
+      }
+
+      var existInd = eventStore[key].findIndex(function (item) {
+        return item.flag === flag.current;
+      });
+      var nowEvent = {
+        handle: handle,
+        flag: flag.current
+      }; // 事件存在时覆盖原有事件
+
+      if (existInd !== -1) {
+        eventStore[key][existInd] = nowEvent;
+      } else {
+        eventStore[key].push(nowEvent);
+      }
+    } // 移除事件
+
+
+    return function () {
+      var events = eventStore[key];
+      if (!key || !handle || !events) return;
+      if (events.length === 0) return;
+      var index = events.findIndex(function (item) {
+        return item.flag === flag.current;
+      });
+      eventStore[key].splice(index, 1);
+    };
+  }, inputs);
+  return customEventEmit;
+}
+
+exports.customEventEmit = customEventEmit;
+exports.useCustomEvent = useCustomEvent;
 exports.useFetch = useFetch;
 exports.useSelf = useSelf;
+exports.useSetState = useSetState;
 exports.useSyncState = useSyncState;
