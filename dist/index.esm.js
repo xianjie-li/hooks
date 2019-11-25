@@ -5,6 +5,7 @@ import _defineProperty from '@babel/runtime/helpers/esm/defineProperty';
 import _asyncToGenerator from '@babel/runtime/helpers/esm/asyncToGenerator';
 import _toConsumableArray from '@babel/runtime/helpers/esm/toConsumableArray';
 import { isFunction } from '@lxjx/utils';
+import { createBreakpoint } from 'react-use';
 
 /** 返回类似类组件的this的实例属性 */
 
@@ -369,4 +370,12 @@ function useCustomEvent(eventKey, handle, inputs) {
   return customEventEmit;
 }
 
-export { customEventEmit, useCustomEvent, useFetch, useSelf, useSetState, useSyncState };
+var useBreakPoint = createBreakpoint({
+  'xs': 0,
+  'sm': 576,
+  'md': 768,
+  'lg': 992,
+  'xl': 1200
+});
+
+export { customEventEmit, useBreakPoint, useCustomEvent, useFetch, useSelf, useSetState, useSyncState };

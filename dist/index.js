@@ -4,6 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var react = require('react');
 var utils = require('@lxjx/utils');
+var reactUse = require('react-use');
 
 /** 返回类似类组件的this的实例属性 */
 
@@ -512,7 +513,16 @@ function useCustomEvent(eventKey, handle, inputs) {
   return customEventEmit;
 }
 
+var useBreakPoint = reactUse.createBreakpoint({
+  'xs': 0,
+  'sm': 576,
+  'md': 768,
+  'lg': 992,
+  'xl': 1200
+});
+
 exports.customEventEmit = customEventEmit;
+exports.useBreakPoint = useBreakPoint;
 exports.useCustomEvent = useCustomEvent;
 exports.useFetch = useFetch;
 exports.useSelf = useSelf;

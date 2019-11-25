@@ -16,7 +16,6 @@
   
   - [`useFetch`](#usefetch)
   
-  
 - [awesome hooks](#awesome-hooks)
 
 <!-- /TOC -->
@@ -77,6 +76,14 @@ return (
 	<div>{syncState.name}</div>
 )
 ```
+
+<br>
+
+<br>
+
+## `effect`
+
+> no data
 
 <br>
 
@@ -222,6 +229,41 @@ function submitHandle() {
 ```
 
 
+
+<br>
+<br>
+
+## UI
+
+`useBreakPoint`
+
+> reference to react-use createBreakpoint
+
+```jsx
+const bp = {
+  'xs': 0,
+  'sm': 576,
+  'md': 768,
+  'lg': 992,
+  'xl': 1200,
+}
+
+const Demo = () => {
+  const breakpoint = useBreakpoint();
+
+  if (breakpoint === "xl") return <div> XL </div>;
+  else if (breakpoint == "lg") return <div> LoL</div>;
+  else if (breakpoint == "sm") return <div> Sexyy</div>;
+  else return <div> Wth</div>;
+};
+```
+
+<br>
+<br>
+
+### `lifecycles`
+
+> no data
 
 <br>
 <br>
