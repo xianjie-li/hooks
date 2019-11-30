@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSelf } from './useSelf';
 import { useSetState } from './useSetState';
-import { useIsInit } from './useIsInit';
+import { useIsInitMount } from './useIsInitMount';
 
 import { AnyObject, placeHolderFn } from './util';
 
@@ -88,7 +88,7 @@ export const useFetch = <Payload extends AnyObject, Data, ExtraData extends AnyO
     isUpdate: false,
   });
 
-  const isInit = useIsInit();
+  const isInit = useIsInitMount();
 
   const [force, forceUpdate] = useState(0);
 
@@ -185,16 +185,18 @@ export const useFetch = <Payload extends AnyObject, Data, ExtraData extends AnyO
     });
   }
 
-  function send(payload?: Payload) {
-    payload
-      ? setOverPayload(payload)
-      : update();
-  }
-
-  function update() {
+  const update = useCallback(_update, [isPass]);
+  function _update() {
     if (!isPass) return;
     self.isUpdate = true;
     forceUpdate((p) => ++p);
+  }
+
+  const send = useCallback(_send, [update]);
+  function _send(payload?: Payload) {
+    payload
+      ? setOverPayload(payload)
+      : update();
   }
 
   return {
