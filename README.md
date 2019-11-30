@@ -12,10 +12,17 @@
 - [state](#state)
   - [`useSelf`](#useself)
   - [`useSyncState`](#usesyncstate)
+  - [`useSetState`](#usesetstate)
+  - [`useFormState`](#useformstate)
+  - [`useIsInitMount`](#useisinitmount)
+- [`effect`](#effect)
 - [fetch](#fetch)
-  
   - [`useFetch`](#usefetch)
-  
+- [UI](#ui)
+  - [`useBreakPoint`](#usebreakpoint)
+  - [`lifecycles`](#lifecycles)
+- [other](#other)
+  - [`useCustomEvent`](#usecustomevent)
 - [awesome hooks](#awesome-hooks)
 
 <!-- /TOC -->
