@@ -223,7 +223,7 @@ function useSyncState() {
   return [self, setSelf];
 }
 
-function useIsInit() {
+function useIsInitMount() {
   var count = react.useRef(0);
   var isInit = count.current === 0;
   react.useEffect(function () {
@@ -272,7 +272,7 @@ var useFetch = function useFetch(method) {
   var self = useSelf({
     isUpdate: false
   });
-  var isInit = useIsInit();
+  var isInit = useIsInitMount();
 
   var _useState = react.useState(0),
       _useState2 = _slicedToArray(_useState, 2),
@@ -429,16 +429,20 @@ var useFetch = function useFetch(method) {
     });
   }
 
-  function send(payload) {
-    payload ? setOverPayload(payload) : update();
-  }
+  var update = react.useCallback(_update, [isPass]);
 
-  function update() {
+  function _update() {
     if (!isPass) return;
     self.isUpdate = true;
     forceUpdate(function (p) {
       return ++p;
     });
+  }
+
+  var send = react.useCallback(_send, [update]);
+
+  function _send(payload) {
+    payload ? setOverPayload(payload) : update();
   }
 
   return _objectSpread2({}, state, {
@@ -521,10 +525,58 @@ var useBreakPoint = reactUse.createBreakpoint({
   'xl': 1200
 });
 
+var VALUE = 'value';
+var DEFAULT_VALUE = 'defaultValue';
+/**
+ * @param props - 透传消费组件的props，包含FormLike中的任意属性
+ * @param defaultValue - 默认值，会被value与defaultValue覆盖
+ * @interface <T> - value类型
+ * @interface <Ext> - onChange接收的额外参数的类型
+ * */
+
+function useFormState(props, defaultValue) {
+  var value = props.value,
+      onChange = props.onChange,
+      propDefaultValue = props.defaultValue;
+
+  var _useState = react.useState(function () {
+    if (VALUE in props) {
+      return value;
+    }
+
+    if (DEFAULT_VALUE in props) {
+      return propDefaultValue;
+    }
+
+    return defaultValue;
+  }),
+      _useState2 = _slicedToArray(_useState, 2),
+      state = _useState2[0],
+      setState = _useState2[1];
+
+  reactUse.useUpdateEffect(function () {
+    if (VALUE in props) {
+      setState(value);
+    }
+  }, [value]);
+
+  var setFormState = function setFormState(value, extra) {
+    if (!(VALUE in props)) {
+      setState(value);
+    }
+
+    onChange && onChange(value, extra);
+  };
+
+  return [state, setFormState];
+}
+
 exports.customEventEmit = customEventEmit;
 exports.useBreakPoint = useBreakPoint;
 exports.useCustomEvent = useCustomEvent;
 exports.useFetch = useFetch;
+exports.useFormState = useFormState;
+exports.useIsInitMount = useIsInitMount;
 exports.useSelf = useSelf;
 exports.useSetState = useSetState;
 exports.useSyncState = useSyncState;
