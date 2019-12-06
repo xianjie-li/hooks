@@ -5,7 +5,7 @@ import _defineProperty from '@babel/runtime/helpers/esm/defineProperty';
 import _asyncToGenerator from '@babel/runtime/helpers/esm/asyncToGenerator';
 import _toConsumableArray from '@babel/runtime/helpers/esm/toConsumableArray';
 import { isFunction } from '@lxjx/utils';
-import { createBreakpoint } from 'react-use';
+import { createBreakpoint, useUpdateEffect } from 'react-use';
 
 /** 返回类似类组件的this的实例属性 */
 
@@ -77,7 +77,7 @@ function useSyncState() {
   return [self, setSelf];
 }
 
-function useIsInit() {
+function useIsInitMount() {
   var count = useRef(0);
   var isInit = count.current === 0;
   useEffect(function () {
@@ -129,7 +129,7 @@ var useFetch = function useFetch(method) {
   var self = useSelf({
     isUpdate: false
   });
-  var isInit = useIsInit();
+  var isInit = useIsInitMount();
 
   var _useState = useState(0),
       _useState2 = _slicedToArray(_useState, 2),
@@ -286,16 +286,20 @@ var useFetch = function useFetch(method) {
     });
   }
 
-  function send(payload) {
-    payload ? setOverPayload(payload) : update();
-  }
+  var update = useCallback(_update, [isPass]);
 
-  function update() {
+  function _update() {
     if (!isPass) return;
     self.isUpdate = true;
     forceUpdate(function (p) {
       return ++p;
     });
+  }
+
+  var send = useCallback(_send, [update]);
+
+  function _send(payload) {
+    payload ? setOverPayload(payload) : update();
   }
 
   return _objectSpread({}, state, {
@@ -378,4 +382,50 @@ var useBreakPoint = createBreakpoint({
   'xl': 1200
 });
 
-export { customEventEmit, useBreakPoint, useCustomEvent, useFetch, useSelf, useSetState, useSyncState };
+var VALUE = 'value';
+var DEFAULT_VALUE = 'defaultValue';
+/**
+ * @param props - 透传消费组件的props，包含FormLike中的任意属性
+ * @param defaultValue - 默认值，会被value与defaultValue覆盖
+ * @interface <T> - value类型
+ * @interface <Ext> - onChange接收的额外参数的类型
+ * */
+
+function useFormState(props, defaultValue) {
+  var value = props.value,
+      onChange = props.onChange,
+      propDefaultValue = props.defaultValue;
+
+  var _useState = useState(function () {
+    if (VALUE in props) {
+      return value;
+    }
+
+    if (DEFAULT_VALUE in props) {
+      return propDefaultValue;
+    }
+
+    return defaultValue;
+  }),
+      _useState2 = _slicedToArray(_useState, 2),
+      state = _useState2[0],
+      setState = _useState2[1];
+
+  useUpdateEffect(function () {
+    if (VALUE in props) {
+      setState(value);
+    }
+  }, [value]);
+
+  var setFormState = function setFormState(value, extra) {
+    if (!(VALUE in props)) {
+      setState(value);
+    }
+
+    onChange && onChange(value, extra);
+  };
+
+  return [state, setFormState];
+}
+
+export { customEventEmit, useBreakPoint, useCustomEvent, useFetch, useFormState, useIsInitMount, useSelf, useSetState, useSyncState };
