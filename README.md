@@ -113,7 +113,7 @@ return (
 
 `const [state, setState] = useFormState(props, defaultValue?)`
 
-* 如果组件接收value，组件的状态在value更改时实时同步
+* 如果组件接收value，组件的状态在value更改时实时同步，同步value时不会触发onChange，与原生表单组件表现一致
 * 如果接收defaultValue，则将状态转为内部管理, 并在state改变时通过onChange进行通知
 * setState调用时，如果有defaultValue直接在内部设置状态，如果有value则不会更新内部状态而是使用onChange对调用组件进行通知, onChange会在每次setState时调用，无论它是什么类型的表单
 

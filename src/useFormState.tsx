@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useUpdateEffect } from 'react-use';
+import { useState, useRef } from 'react';
+import { useUpdateEffect, usePrevious } from 'react-use';
+import { isFunction } from '@lxjx/utils';
 
 import { AnyObject } from './util';
 
@@ -14,6 +15,10 @@ export interface FormLike<T, Ext = any> {
   defaultValue?: T;
 }
 
+interface SetFormState<T, Ext = any> {
+  (patch: T | ((prev: T) => T), extra?: Ext): void
+}
+
 const VALUE = 'value';
 const DEFAULT_VALUE = 'defaultValue';
 /**
@@ -21,6 +26,7 @@ const DEFAULT_VALUE = 'defaultValue';
  * @param defaultValue - 默认值，会被value与defaultValue覆盖
  * @interface <T> - value类型
  * @interface <Ext> - onChange接收的额外参数的类型
+ * @returns [state, setFormState] - 表单状态与更新表单状态的方法，接口与useState相似
  * */
 export function useFormState<T, Ext = any>(
   props: AnyObject & FormLike<T, Ext>,
@@ -32,29 +38,45 @@ export function useFormState<T, Ext = any>(
     defaultValue: propDefaultValue,
   } = props;
 
-
+  // 用于在一些特定的位置能立即获取到state
+  const stateRef = useRef<T>(); 
+  // 设置表单状态
   const [state, setState] = useState(() => {
+    let val = defaultValue;
     if (VALUE in props) {
-      return value;
+      val = value;
     }
     if (DEFAULT_VALUE in props) {
-      return propDefaultValue;
+      val =  propDefaultValue;
     }
-    return defaultValue;
+    return (stateRef.current = val);
   });
 
+  /* 为受控组件同步状态 */
   useUpdateEffect(() => {
     if (VALUE in props) {
-      setState(value);
+      // 如果两次值显式相等则跳过
+      value !== stateRef.current && setState(stateRef.current = value);
     }
   }, [value]);
 
-  const setFormState: FormLike<T, Ext>['onChange'] = (value, extra) => {
-    if (!(VALUE in props)) {
-      setState(value);
+  /* 处理修改表单值 */
+  const setFormState: SetFormState<T, Ext> = (patch, extra) => {
+    /* 是受控组件则将新值通过onChange回传即可，非受控组件设置本地状态并通过onChange通知 */
+    const hasValue = VALUE in props;
+    if (isFunction(patch)) {
+      const patchResult = patch(stateRef.current!);
+      onChange && onChange(patchResult, extra);
+      if (!hasValue) {
+        setState(patchResult);
+      }
+    } else {
+      onChange && onChange(patch, extra);
+      if (!hasValue) {
+        setState(patch);
+      }
     }
-    onChange && onChange(value, extra);
-  };
+  }
 
   return [state, setFormState] as const;
 }
