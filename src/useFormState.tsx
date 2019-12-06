@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useUpdateEffect, usePrevious } from 'react-use';
+import { useUpdateEffect } from 'react-use';
 import { isFunction } from '@lxjx/utils';
 
 import { AnyObject } from './util';
