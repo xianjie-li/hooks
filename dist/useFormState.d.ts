@@ -9,10 +9,15 @@ export interface FormLike<T, Ext = any> {
     onChange?: (value: T, extra?: Ext) => void;
     defaultValue?: T;
 }
+interface SetFormState<T, Ext = any> {
+    (patch: T | ((prev: T) => T), extra?: Ext): void;
+}
 /**
  * @param props - 透传消费组件的props，包含FormLike中的任意属性
  * @param defaultValue - 默认值，会被value与defaultValue覆盖
  * @interface <T> - value类型
  * @interface <Ext> - onChange接收的额外参数的类型
+ * @returns [state, setFormState] - 表单状态与更新表单状态的方法，接口与useState相似
  * */
-export declare function useFormState<T, Ext = any>(props: AnyObject & FormLike<T, Ext>, defaultValue?: T): readonly [T | undefined, (value: T, extra?: Ext | undefined) => void];
+export declare function useFormState<T, Ext = any>(props: AnyObject & FormLike<T, Ext>, defaultValue?: T): readonly [T | undefined, SetFormState<T, Ext>];
+export {};

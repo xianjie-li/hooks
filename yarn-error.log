@@ -2,7 +2,7 @@ Arguments:
   C:\Program Files\nodejs\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js publish --access public
 
 PATH: 
-  C:\Users\Administrator\Desktop\gits\hooks\node_modules\.bin;C:\Program Files\JetBrains\WebStorm 2019.1.1\jbr\\bin;C:\Program Files\JetBrains\WebStorm 2019.1.1\jbr\\bin\server;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\Program Files\TortoiseSVN\bin;C:\wamp64\bin\php\php7.0.10;C:\Program Files\Git\cmd;C:\Program Files\Microsoft VS Code\bin;C:\Users\Administrator\AppData\Local\Yarn\bin;C:\Users\Administrator\AppData\Roaming\nvm;C:\Program Files\nodejs;%JAVA_HOME%\bin;C:\WINDOWS\System32\OpenSSH\;C:\cmder;C:\flutter\bin;C:\Program Files (x86)\Yarn\bin\;C:\Program Files\Microsoft VS Code\bin;C:\wamp64\bin\php\php7.0.10;C:\Users\Administrator\AppData\Roaming\npm;C:\Users\Administrator\AppData\Roaming\nvm;C:\Program Files\nodejs;C:\Users\Administrator\AppData\Local\Microsoft\WindowsApps;;C:\Program Files\JetBrains\WebStorm 2019.1.1\bin;;D:\Program Files\Microsoft VS Code\bin;C:\Program Files\JetBrains\IntelliJ IDEA 2019.1.2\bin;;C:\Users\Administrator\AppData\Local\Yarn\bin
+  C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\Program Files\TortoiseSVN\bin;C:\wamp64\bin\php\php7.0.10;C:\Program Files\Git\cmd;C:\Program Files\Microsoft VS Code\bin;C:\Users\Administrator\AppData\Local\Yarn\bin;C:\Users\Administrator\AppData\Roaming\nvm;C:\Program Files\nodejs;%JAVA_HOME%\bin;C:\WINDOWS\System32\OpenSSH\;C:\cmder;C:\flutter\bin;C:\Program Files (x86)\Yarn\bin\;C:\Program Files\Microsoft VS Code\bin;C:\wamp64\bin\php\php7.0.10;C:\Users\Administrator\AppData\Roaming\npm;C:\Users\Administrator\AppData\Roaming\nvm;C:\Program Files\nodejs;C:\Users\Administrator\AppData\Local\Microsoft\WindowsApps;;C:\Program Files\JetBrains\WebStorm 2019.1.1\bin;;D:\Program Files\Microsoft VS Code\bin;C:\Program Files\JetBrains\IntelliJ IDEA 2019.1.2\bin;;C:\Users\Administrator\AppData\Local\Yarn\bin
 
 Yarn version: 
   1.19.1
@@ -29,8 +29,8 @@ Trace:
 npm manifest: 
   {
     "name": "@lxjx/hooks",
-    "version": "0.2.6",
-    "description": "some hooks that don't overlap with the react use function",
+    "version": "0.5.0",
+    "description": "Use Your Imagination",
     "main": "./dist/index.js",
     "module": "./dist/index.esm.js",
     "typings": "./dist",
@@ -49,7 +49,8 @@ npm manifest:
       "@types/node": "^12.12.7",
       "@types/react": "^16.9.11",
       "father": "^2.24.0",
-      "react": "^16.11.0"
+      "react": "^16.11.0",
+      "typescript": "^3.7.2"
     },
     "peerDependencies": {
       "react": ">= 16.8.0"
@@ -18701,6 +18702,11 @@ Lockfile:
     version "3.6.3"
     resolved "https://registry.npmjs.org/typescript/-/typescript-3.6.3.tgz#fea942fabb20f7e1ca7164ff626f1a9f3f70b4da"
     integrity sha512-N7bceJL1CtRQ2RiG0AQME13ksR7DiuQh/QehubYcghzv20tnh+MQnQIuJddTmsbqYj+dztchykemz0zFzlvdQw==
+  
+  typescript@^3.7.2:
+    version "3.7.3"
+    resolved "https://registry.npmjs.org/typescript/-/typescript-3.7.3.tgz#b36840668a16458a7025b9eabfad11b66ab85c69"
+    integrity sha512-Mcr/Qk7hXqFBXMN7p7Lusj1ktCBydylfQM/FZCk5glCNQJrCUKPkMHdo9R0MTFWsC/4kPFvDS0fDPvukfCkFsw==
   
   ua-parser-js@^0.7.18:
     version "0.7.20"

@@ -389,40 +389,61 @@ var DEFAULT_VALUE = 'defaultValue';
  * @param defaultValue - 默认值，会被value与defaultValue覆盖
  * @interface <T> - value类型
  * @interface <Ext> - onChange接收的额外参数的类型
+ * @returns [state, setFormState] - 表单状态与更新表单状态的方法，接口与useState相似
  * */
 
 function useFormState(props, defaultValue) {
   var value = props.value,
       onChange = props.onChange,
-      propDefaultValue = props.defaultValue;
+      propDefaultValue = props.defaultValue; // 用于在一些特定的位置能立即获取到state
+
+  var stateRef = useRef(); // 设置表单状态
 
   var _useState = useState(function () {
+    var val = defaultValue;
+
     if (VALUE in props) {
-      return value;
+      val = value;
     }
 
     if (DEFAULT_VALUE in props) {
-      return propDefaultValue;
+      val = propDefaultValue;
     }
 
-    return defaultValue;
+    return stateRef.current = val;
   }),
       _useState2 = _slicedToArray(_useState, 2),
       state = _useState2[0],
       setState = _useState2[1];
+  /* 为受控组件同步状态 */
+
 
   useUpdateEffect(function () {
     if (VALUE in props) {
-      setState(value);
+      // 如果两次值显式相等则跳过
+      value !== stateRef.current && setState(stateRef.current = value);
     }
   }, [value]);
+  /* 处理修改表单值 */
 
-  var setFormState = function setFormState(value, extra) {
-    if (!(VALUE in props)) {
-      setState(value);
+  var setFormState = function setFormState(patch, extra) {
+    /* 是受控组件则将新值通过onChange回传即可，非受控组件设置本地状态并通过onChange通知 */
+    var hasValue = VALUE in props;
+
+    if (isFunction(patch)) {
+      var patchResult = patch(stateRef.current);
+      onChange && onChange(patchResult, extra);
+
+      if (!hasValue) {
+        setState(patchResult);
+      }
+    } else {
+      onChange && onChange(patch, extra);
+
+      if (!hasValue) {
+        setState(patch);
+      }
     }
-
-    onChange && onChange(value, extra);
   };
 
   return [state, setFormState];
