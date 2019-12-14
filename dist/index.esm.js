@@ -382,8 +382,39 @@ var useBreakPoint = createBreakpoint({
   'xl': 1200
 });
 
+function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$1(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$1(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 var VALUE = 'value';
 var DEFAULT_VALUE = 'defaultValue';
+var TRIGGER = 'onChange';
+/**
+ * 当useFormState传入props的key与预设的不一致时，通过此函数进行映射
+ * props - 透传给useFormState
+ * maps - 将props中的指定key映射为value、defaultValue、onChange
+ * */
+
+function formStateMap(props, _ref) {
+  var value = _ref.value,
+      defaultValue = _ref.defaultValue,
+      trigger = _ref.trigger;
+
+  var _props = _objectSpread$1({}, props);
+
+  if (value && value in props) {
+    _props[VALUE] = props[value];
+  }
+
+  if (defaultValue && defaultValue in props) {
+    _props[DEFAULT_VALUE] = props[defaultValue];
+  }
+
+  if (trigger && trigger in props) {
+    _props[TRIGGER] = props[trigger];
+  }
+
+  return _props;
+}
 /**
  * @param props - 透传消费组件的props，包含FormLike中的任意属性
  * @param defaultValue - 默认值，会被value与defaultValue覆盖
@@ -449,4 +480,4 @@ function useFormState(props, defaultValue) {
   return [state, setFormState];
 }
 
-export { customEventEmit, useBreakPoint, useCustomEvent, useFetch, useFormState, useIsInitMount, useSelf, useSetState, useSyncState };
+export { customEventEmit, formStateMap, useBreakPoint, useCustomEvent, useFetch, useFormState, useIsInitMount, useSelf, useSetState, useSyncState };

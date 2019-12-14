@@ -13,6 +13,16 @@ interface SetFormState<T, Ext = any> {
     (patch: T | ((prev: T) => T), extra?: Ext): void;
 }
 /**
+ * 当useFormState传入props的key与预设的不一致时，通过此函数进行映射
+ * props - 透传给useFormState
+ * maps - 将props中的指定key映射为value、defaultValue、onChange
+ * */
+export declare function formStateMap<T extends any>(props: T, { value, defaultValue, trigger }: {
+    value?: string;
+    defaultValue?: string;
+    trigger?: string;
+}): T;
+/**
  * @param props - 透传消费组件的props，包含FormLike中的任意属性
  * @param defaultValue - 默认值，会被value与defaultValue覆盖
  * @interface <T> - value类型
