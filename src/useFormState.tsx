@@ -7,11 +7,21 @@ import { AnyObject } from './util';
 /**
  * 表单组件的统一接口
  * @interface <T> - value类型
+ * */
+export interface FormLike<T> {
+  value?: T;
+  onChange?: (value: T) => void;
+  defaultValue?: T;
+}
+
+/**
+ * 表单组件的统一接口， 包含额外参数
+ * @interface <T> - value类型
  * @interface <Ext> - onChange接收的额外参数的类型
  * */
-export interface FormLike<T, Ext = any> {
+export interface FormLikeWithExtra<T, Ext = any> {
   value?: T;
-  onChange?: (value: T, extra?: Ext) => void;
+  onChange?: (value: T, extra: Ext) => void;
   defaultValue?: T;
 }
 
@@ -50,7 +60,7 @@ export function formStateMap<T extends any>(props: T, { value, defaultValue, tri
  * @returns [state, setFormState] - 表单状态与更新表单状态的方法，接口与useState相似
  * */
 export function useFormState<T, Ext = any>(
-  props: AnyObject & FormLike<T, Ext>,
+  props: AnyObject,
   defaultValue: T,
 ) {
   const {

@@ -84,13 +84,13 @@ function _objectSpread2(target) {
     var source = arguments[i] != null ? arguments[i] : {};
 
     if (i % 2) {
-      ownKeys(source, true).forEach(function (key) {
+      ownKeys(Object(source), true).forEach(function (key) {
         _defineProperty(target, key, source[key]);
       });
     } else if (Object.getOwnPropertyDescriptors) {
       Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
     } else {
-      ownKeys(source).forEach(function (key) {
+      ownKeys(Object(source)).forEach(function (key) {
         Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
       });
     }
@@ -602,11 +602,15 @@ function useFormState(props, defaultValue) {
     var hasValue = VALUE in props;
 
     if (utils.isFunction(patch)) {
-      var patchResult = patch(stateRef.current);
-      onChange && onChange(patchResult, extra);
-
       if (!hasValue) {
-        setState(patchResult);
+        setState(function (prev) {
+          var patchResult = patch(prev);
+          onChange && onChange(patchResult, extra);
+          return patchResult;
+        });
+      } else {
+        var patchResult = patch(stateRef.current);
+        onChange && onChange(patchResult, extra);
       }
     } else {
       onChange && onChange(patch, extra);
