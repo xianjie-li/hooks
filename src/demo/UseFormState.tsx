@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useFormState, FormLike } from '../useFormState';
 
 const Inp: React.FC<FormLike<string>> = (props) => {
-  const [state, setState] = useFormState(props);
+  const [state, setState] = useFormState(props, '');
 
   return (
     <input type="text" value={state} onChange={({ target }) => {

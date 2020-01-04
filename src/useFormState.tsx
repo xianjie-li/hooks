@@ -51,7 +51,7 @@ export function formStateMap<T extends any>(props: T, { value, defaultValue, tri
  * */
 export function useFormState<T, Ext = any>(
   props: AnyObject & FormLike<T, Ext>,
-  defaultValue?: T,
+  defaultValue: T,
 ) {
   const {
     value,
@@ -65,10 +65,10 @@ export function useFormState<T, Ext = any>(
   const [state, setState] = useState(() => {
     let val = defaultValue;
     if (VALUE in props) {
-      val = value;
+      val = value!;
     }
     if (DEFAULT_VALUE in props) {
-      val =  propDefaultValue;
+      val =  propDefaultValue!;
     }
     return (stateRef.current = val);
   });
@@ -77,7 +77,7 @@ export function useFormState<T, Ext = any>(
   useUpdateEffect(() => {
     if (VALUE in props) {
       // 如果两次值显式相等则跳过
-      value !== stateRef.current && setState(stateRef.current = value);
+      value !== stateRef.current && setState(stateRef.current = value!);
     }
   }, [value]);
 
@@ -97,7 +97,7 @@ export function useFormState<T, Ext = any>(
         setState(patch);
       }
     }
-  }
+  };
 
   return [state, setFormState] as const;
 }
