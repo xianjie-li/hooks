@@ -21,7 +21,7 @@ const UseFormState = () => {
   return (
     <div>
       <div>UseFormState {value}</div>
-      <Inp value={value} onChange={(value, extra) => {
+      <Inp onChange={(value, extra) => {
         // console.log(value, extra);
         setValue(value);
       }} />

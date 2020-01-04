@@ -86,10 +86,15 @@ export function useFormState<T, Ext = any>(
     /* 是受控组件则将新值通过onChange回传即可，非受控组件设置本地状态并通过onChange通知 */
     const hasValue = VALUE in props;
     if (isFunction(patch)) {
-      const patchResult = patch(stateRef.current!);
-      onChange && onChange(patchResult, extra);
       if (!hasValue) {
-        setState(patchResult);
+        setState(prev => {
+          const patchResult = patch(prev);
+          onChange && onChange(patchResult, extra);
+          return patchResult;
+        });
+      } else {
+        const patchResult = patch(stateRef.current!);
+        onChange && onChange(patchResult, extra);
       }
     } else {
       onChange && onChange(patch, extra);
