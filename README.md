@@ -1,10 +1,7 @@
 <h1 align="center" style="color: #61dafb;">hooks</h1>
-
 <h1 align="center" style="font-size: 80px;color:#61dafb">📌</h1>
 
-
 <p align="center">Use Your Imagination</p>
-
 <br>
 <br>
 <!-- TOC -->
@@ -133,13 +130,17 @@ return (
 
 <br>
 
-## `effect`
+## effect
 
 > no data
 
 <br>
 
 <br>
+
+## lifecycles
+
+
 
 ## fetch
 
@@ -289,33 +290,66 @@ function submitHandle() {
 
 ### `useBreakPoint`
 
-> 使用 react-use 的 createBreakpoint预设的一组断点，与bootstrap的断点配置相同
+> 使用 react-use 的 createBreakpoint预设的一组断点，断点值参考antd 与 bootstrap
 
 ```jsx
 const bp = {
-  'xs': 0,
+  'xs': 0, // xs的命中范围为0 - 575, 后面的断点以此类推
   'sm': 576,
   'md': 768,
   'lg': 992,
   'xl': 1200,
+  'xxl': 1600,
 }
 
 const Demo = () => {
-  const breakpoint = useBreakpoint();
+  const bp = useBreakpoint();
 
-  if (breakpoint === "xl") return <div> XL </div>;
-  else if (breakpoint == "lg") return <div> LoL</div>;
-  else if (breakpoint == "sm") return <div> Sexyy</div>;
-  else return <div> Wth</div>;
+  if (bp.xl) return <div> XL </div>;
+  else if (bp.lg) return <div> LoL</div>;
+  else if (bp.sm) return <div> Sexyy</div>;
+  else return <div> xs</div>;
 };
 ```
 
 <br>
 <br>
 
-### `lifecycles`
+## 
+
+
 
 > no data
+
+<br>
+<br>
+
+## Router
+
+### `useQuery`
+
+> 于便捷的获取或设置react-router v5的query string
+
+```ts
+// location.search = '?name=lxj';
+const { search, queryObject, set, coverSet } = useQuery<{ 
+    name: string; 
+    age: string;
+}>();
+
+log(search); // ?name=lxj
+
+log(queryObject); // { name: 'lxj' }
+
+// 设置查询值
+set({ name: 'jxl', age: '18' }) // ?name=jxl&age=18
+
+// 只设置某个值
+set({ name: 'lxj'}) // ?name=lxj&age=18
+
+// 覆盖掉其它所有查询并设置a
+coverSet({ name: 'a' }); // ?name=a
+```
 
 <br>
 <br>
@@ -324,7 +358,7 @@ const Demo = () => {
 
 ### `useCustomEvent`
 
-> 为组件绑定一个自定义事件，可以在任何地方触发它
+> 为组件绑定一个自定义事件，可以在组件外的任何地方触发它
 
 ```ts
 import { useCustomEvent, customEventEmit } from '@lxjx/hooks';
