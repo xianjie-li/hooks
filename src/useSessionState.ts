@@ -15,7 +15,7 @@ function getSessionState(key: string) {
 }
 
 /**
- * 与useState一直，区别是会在缓存和加载对值进行sessionStorage存取
+ * 与useState一致，区别是会在缓存和加载对值进行sessionStorage存取
  * */
 function useSessionState<S = undefined>(key: string): [S | undefined, Dispatch<SetStateAction<S | undefined>>];
 function useSessionState<S>(key: string, initialState: S | (() => S)): [S, Dispatch<SetStateAction<S>>];

@@ -6,7 +6,7 @@ export interface SetState<T> {
 
 /* 与react-use的useSetState一样, 但是额外返回了一个setOverState用于覆盖状态 */
 export const useSetState = <T extends object>(
-  initialState = {} as T,
+  initialState = {} as (() => T) | T,
 ): [T, SetState<T>, SetState<T>] => {
   const [state, set] = useState<T>(initialState);
   const setState = useCallback(

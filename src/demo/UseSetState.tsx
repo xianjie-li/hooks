@@ -12,12 +12,12 @@ const UseSetState = () => {
     <div>
       <div>UseSyncState</div>
       <button onClick={() => {
-        // setState({
-        //   age: Math.round(Math.random() * 18),
+        setState({
+          age: Math.round(Math.random() * 18),
+        });
+        // set({
+        //   name: 'lxj',
         // });
-        //   set({
-        //       name: 'lxj',
-        //   })
       }}
       >click
       </button>

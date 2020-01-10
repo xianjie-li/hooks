@@ -8,7 +8,7 @@ import { useSelf } from './useSelf';
  * 3. 总之，它使用useSelf这样的可以在函数组件内任何地方使用的实例属性，又能在setState后触发组件的更新
  * */
 export function useSyncState<T extends object>(init = {} as T) {
-  const [count, update] = useState(0);
+  const [, update] = useState(0);
   const self = useSelf<T>(init);
 
   function setSelf(patch: Partial<T> | ((prevState: T) => Partial<T>)): void {

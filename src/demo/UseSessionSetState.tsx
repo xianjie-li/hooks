@@ -3,10 +3,12 @@ import React from 'react';
 import { useSessionSetState } from '../useSessionSetState';
 
 const UseSessionSetState = () => {
-  const [state, setSate] = useSessionSetState('test2', {
-    name: 'lxj',
-    age: 17,
-  });
+  const [state, setSate] = useSessionSetState('test2', () => (
+    {
+      name: 'lxj',
+      age: 17,
+    }
+  ));
 
   return (
     <div>
