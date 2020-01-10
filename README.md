@@ -3,38 +3,13 @@
 <p align="center">Use Your Imagination</p>
 <br>
 <br>
-[TOC]
-<br>
-<br>
+<!-- TOC -->autoauto- [state](#state)auto  - [`useSelf`](#useself)auto  - [`useSyncState`](#usesyncstate)auto  - [`useSetState`](#usesetstate)auto  - [`useFormState`](#useformstate)auto  - [`useIsInitMount`](#useisinitmount)auto  - [`useSessionState`](#usesessionstate)auto  - [`useSessionSetState`](#usesessionsetstate)auto  - [`useSessionSetState`](#usesessionsetstate-1)auto- [effect](#effect)auto- [lifecycles](#lifecycles)auto- [fetch](#fetch)auto  - [`useFetch`](#usefetch)auto- [UI](#ui)auto  - [`useBreakPoint`](#usebreakpoint)auto- [Router](#router)auto  - [`useQuery`](#usequery)auto- [other](#other)auto  - [`useCustomEvent`](#usecustomevent)auto- [awesome hooks](#awesome-hooks)autoauto<!-- /TOC -->
 
-<!-- TOC -->
 
-- [state](#state)
-  - [`useSelf`](#useself)
-  - [`useSyncState`](#usesyncstate)
-  - [`useSetState`](#usesetstate)
-  - [`useFormState`](#useformstate)
-  - [`useIsInitMount`](#useisinitmount)
-  - [`useSessionState`](#usesessionstate)
-  - [`useSessionSetState`](#usesessionsetstate)
-  - [`useSessionSetState`](#usesessionsetstate)
-- [effect](#effect)
-- [lifecycles](#lifecycles)
-- [fetch](#fetch)
-  - [`useFetch`](#usefetch)
-- [UI](#ui)
-  - [`useBreakPoint`](#usebreakpoint)
-- [Router](#router)
-  - [`useQuery`](#usequery)
-- [other](#other)
-  - [`useCustomEvent`](#usecustomevent)
-- [awesome hooks](#awesome-hooks)
 
-<!-- /TOC -->
+## state
 
-## .1. state
-
-### .1.1. `useSelf`
+### `useSelf`
 
 > 用于函数组件的 "this"
 
@@ -59,7 +34,7 @@ useEffect(() => {
 
 <br>
 
-### .1.2. `useSyncState`
+### `useSyncState`
 
 > 与类组件的this.setState用法类似，不支持更新完成的回调，但是可以在setState后立即同步获取到变更(类似useSelf)
 
@@ -98,7 +73,7 @@ return (
 
 <br>
 
-### .1.3. `useSetState`
+### `useSetState`
 
 > 与类组件的this.setState用法类似，不支持更新完成的回调
 
@@ -110,7 +85,7 @@ return (
 
 <br>
 
-### .1.4. `useFormState`
+### `useFormState`
 
 > 快捷的实现统一接口的受控、非受控组件
 
@@ -165,7 +140,7 @@ const [value, setValue] = useState();
 
 <br>
 
-### .1.5. `useIsInitMount`
+### `useIsInitMount`
 
 > 当组件是初次mount时，返回true
 
@@ -175,7 +150,7 @@ const [value, setValue] = useState();
 
 <br>
 
-### .1.6. `useSessionState`
+### `useSessionState`
 
 > 与useState表现一致，但是它会将state缓存到Session中，页面刷新或组件重载时使用缓存值作为初始值
 
@@ -199,7 +174,7 @@ getSessionState('cache-key');
 
 
 
-### .1.7. `useSessionSetState`
+### `useSessionSetState`
 
 > 同useSessionState，但是其维护一个对象，与useSetState用法一致
 
@@ -209,13 +184,13 @@ getSessionState('cache-key');
 
 <br>
 
-### .1.8. `useSessionSetState`
+### `useSessionSetState`
 
 <br>
 
 <br>
 
-## .2. effect
+## effect
 
 > no data
 
@@ -223,13 +198,13 @@ getSessionState('cache-key');
 
 <br>
 
-## .3. lifecycles
+## lifecycles
 
 
 
-## .4. fetch
+## fetch
 
-### .4.1. `useFetch`
+### `useFetch`
 
 > 非常符合hooks风格的API请求方式
 
@@ -369,9 +344,9 @@ function submitHandle() {
 <br>
 <br>
 
-## .5. UI
+## UI
 
-### .5.1. `useBreakPoint`
+### `useBreakPoint`
 
 > 使用 react-use 的 createBreakpoint预设的一组断点，断点值参考antd 与 bootstrap
 
@@ -398,9 +373,9 @@ const Demo = () => {
 <br>
 <br>
 
-## .6. Router
+## Router
 
-### .6.1. `useQuery`
+### `useQuery`
 
 > 于便捷的获取或设置react-router v5的query string
 
@@ -433,9 +408,9 @@ coverSet({ name: 'a' }); // ?name=a
 <br>
 <br>
 
-## .7. other
+## other
 
-### .7.1. `useCustomEvent`
+### `useCustomEvent`
 
 > 为组件绑定一个自定义事件，可以在组件外的任何地方触发它
 
@@ -456,7 +431,7 @@ emit('event1', { param1: 'xxxx' });
 <br>
 <br>
 
-## .8. awesome hooks
+## awesome hooks
 [react-use](https://github.com/streamich/react-use) React Hooks — 👍
 
 [@umijs/hooks](https://hooks.umijs.org/zh-cn) React Hooks Libraryts
