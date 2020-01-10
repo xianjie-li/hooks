@@ -1,9 +1,12 @@
 <h1 align="center" style="color: #61dafb;">hooks</h1>
 <h1 align="center" style="font-size: 80px;color:#61dafb">📌</h1>
-
 <p align="center">Use Your Imagination</p>
 <br>
 <br>
+[TOC]
+<br>
+<br>
+
 <!-- TOC -->
 
 - [state](#state)
@@ -12,25 +15,28 @@
   - [`useSetState`](#usesetstate)
   - [`useFormState`](#useformstate)
   - [`useIsInitMount`](#useisinitmount)
-- [`effect`](#effect)
+  - [`useSessionState`](#usesessionstate)
+  - [`useSessionSetState`](#usesessionsetstate)
+  - [`useSessionSetState`](#usesessionsetstate)
+- [effect](#effect)
+- [lifecycles](#lifecycles)
 - [fetch](#fetch)
   - [`useFetch`](#usefetch)
 - [UI](#ui)
   - [`useBreakPoint`](#usebreakpoint)
-  - [`lifecycles`](#lifecycles)
+- [Router](#router)
+  - [`useQuery`](#usequery)
 - [other](#other)
   - [`useCustomEvent`](#usecustomevent)
 - [awesome hooks](#awesome-hooks)
 
 <!-- /TOC -->
-<br>
-<br>
 
-## state
+## .1. state
 
-### `useSelf`
+### .1.1. `useSelf`
 
-> 函数组件的 "this"
+> 用于函数组件的 "this"
 
 `const self = useSelf(init?)`
 
@@ -44,7 +50,7 @@ const self = useSelf({
 
 useEffect(() => {
     self.name = self.name.split('').reverse().join('');
-    // get changes now
+    // 值变更后马上获取变更
     console.log(self.name);
 }, []);
 ```
@@ -53,9 +59,9 @@ useEffect(() => {
 
 <br>
 
-### `useSyncState`
+### .1.2. `useSyncState`
 
-> 使用this.setState的useSelf, 与self的另一个区别是，变更可以同步到视图。
+> 与类组件的this.setState用法类似，不支持更新完成的回调，但是可以在setState后立即同步获取到变更(类似useSelf)
 
 `const [state, setState] = useSyncState(init?)`
 
@@ -73,12 +79,12 @@ useEffect(() => {
     setState(({ age }) => ({
         age: age + 1,
     }));
-    // 由于它类似实例的特性，变更后的state可以马上获取到
+    // 由于它类似this的特性，变更后的state可以马上获取到
     console.log(syncState.name);
 }, []);
 
 useEffect(() => {
-    // 即使deps为[]获取到的状态也是实时的
+    // 即使deps为[]获取到的状态也是最新的
     console.log(syncState.name);
 }, []);
 
@@ -92,35 +98,74 @@ return (
 
 <br>
 
-### `useSetState`
+### .1.3. `useSetState`
 
-> 实现类型this.setState的api
+> 与类组件的this.setState用法类似，不支持更新完成的回调
 
 `const [state, setState, setOverState] = useSetState(init?);`
 
-需要额外说明的是setOverState，它会使用传入的state覆盖当前的state而不是合并
+需要额外说明的是setOverState，它会使用传入的state覆盖当前的state而不是合并，与useState的set表现一致
 
 <br>
 
 <br>
 
-### `useFormState`
+### .1.4. `useFormState`
 
-用于便捷的实现受控/非受控组件。
+> 快捷的实现统一接口的受控、非受控组件
 
-`const [state, setState] = useFormState(props, defaultValue?)`
+`const [state, setState] = useFormState(props, defaultValue)`
 
-* 如果组件接收value，组件的状态在value更改时实时同步，同步value时不会触发onChange，与原生表单组件表现一致
-* 如果接收defaultValue，则将状态转为内部管理, 并在state改变时通过onChange进行通知
-* setState调用时，如果有defaultValue直接在内部设置状态，如果有value则不会更新内部状态而是使用onChange对调用组件进行通知, onChange会在每次setState时调用，无论它是什么类型的表单
+* 如果组件接收value，则该组件为受控组件，需要在onChange中同步value的值
+* 如果接收defaultValue，则将状态转为内部管理,  并在state改变时通过onChange进行通知
+* value和defaultValue都不存在时，组件使用useFormState的defaultValue参数并且在内部管理状态
 
+一个input组件的简单示例
 
+```tsx
+interface FormLike<T> {
+  value?: T;
+  onChange?: (value: T) => void;
+  defaultValue?: T;
+}
+
+const CustomInput: React.FC<FormLike<string>> = (props) => {
+  const [state, setState] = useFormState(props, '');
+
+  return (
+    <input
+      type="text"
+      value={state}
+      onChange={({ target }) => {
+        setState(prev => {
+          console.log(prev, target.value);
+          return target.value;
+        });
+      }}
+    />
+  );
+};
+```
+
+使用方式
+
+```tsx
+// 受控
+const [value, setValue] = useState();
+
+<CustomInput value={value} onChang={v => setValue(value)} />
+
+// 非受控
+<CustomInput defaultValue="123" onChang={v => console.log(v)} />
+
+<CustomInput onChang={v => console.log(v)} />
+```
 
 <br>
 
 <br>
 
-### `useIsInitMount`
+### .1.5. `useIsInitMount`
 
 > 当组件是初次mount时，返回true
 
@@ -130,7 +175,47 @@ return (
 
 <br>
 
-## effect
+### .1.6. `useSessionState`
+
+> 与useState表现一致，但是它会将state缓存到Session中，页面刷新或组件重载时使用缓存值作为初始值
+
+```ts
+const [value, setValue] = useSessionState('cache-key', 123);
+```
+
+
+
+^ 当需要在组件外更新缓存值时，可以使用额外的工具函数(该方法也可用于useSessionSetState)
+
+```ts
+import {
+  setSessionState,
+  getSessionState,
+} from '@lxjx/hooks';
+
+setSessionState('cache-key', 345);
+getSessionState('cache-key');
+```
+
+
+
+### .1.7. `useSessionSetState`
+
+> 同useSessionState，但是其维护一个对象，与useSetState用法一致
+
+
+
+<br>
+
+<br>
+
+### .1.8. `useSessionSetState`
+
+<br>
+
+<br>
+
+## .2. effect
 
 > no data
 
@@ -138,13 +223,13 @@ return (
 
 <br>
 
-## lifecycles
+## .3. lifecycles
 
 
 
-## fetch
+## .4. fetch
 
-### `useFetch`
+### .4.1. `useFetch`
 
 > 非常符合hooks风格的API请求方式
 
@@ -281,14 +366,12 @@ function submitHandle() {
 }
 ```
 
-
-
 <br>
 <br>
 
-## UI
+## .5. UI
 
-### `useBreakPoint`
+### .5.1. `useBreakPoint`
 
 > 使用 react-use 的 createBreakpoint预设的一组断点，断点值参考antd 与 bootstrap
 
@@ -315,20 +398,16 @@ const Demo = () => {
 <br>
 <br>
 
-## 
+## .6. Router
 
-
-
-> no data
-
-<br>
-<br>
-
-## Router
-
-### `useQuery`
+### .6.1. `useQuery`
 
 > 于便捷的获取或设置react-router v5的query string
+
+使用场景：
+
+1. 需要获取query对象时
+2. 需要将state同步到url用于分享时
 
 ```ts
 // location.search = '?name=lxj';
@@ -354,9 +433,9 @@ coverSet({ name: 'a' }); // ?name=a
 <br>
 <br>
 
-## other
+## .7. other
 
-### `useCustomEvent`
+### .7.1. `useCustomEvent`
 
 > 为组件绑定一个自定义事件，可以在组件外的任何地方触发它
 
@@ -377,7 +456,7 @@ emit('event1', { param1: 'xxxx' });
 <br>
 <br>
 
-## awesome hooks
+## .8. awesome hooks
 [react-use](https://github.com/streamich/react-use) React Hooks — 👍
 
-[@umijs/hooks](https://hooks.umijs.org/zh-cn) React Hooks Library
+[@umijs/hooks](https://hooks.umijs.org/zh-cn) React Hooks Libraryts

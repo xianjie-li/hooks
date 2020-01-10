@@ -1,1 +1,5 @@
-export declare const useSetState: <T extends object>(initialState?: T) => [T, (patch: Partial<T> | ((prevState: T) => Partial<T>)) => void, (state: T | ((prevState: T) => T)) => void];
+interface SetState<T> {
+    (patch: Partial<T> | ((prevState: T) => Partial<T>)): void;
+}
+export declare const useSetState: <T>(initialState?: T) => [T, SetState<T>, SetState<T>];
+export {};

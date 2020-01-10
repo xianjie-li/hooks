@@ -94,6 +94,7 @@ module.exports = {
     'no-undef': 'off', // 与可选连接冲突
     'no-restricted-globals': 'off',
     'camelcase': 'off',
+    'import/extensions': 'off',
 
     /* ========== React ========== */
 

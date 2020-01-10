@@ -11,14 +11,15 @@ const UseSetState = () => {
   return (
     <div>
       <div>UseSyncState</div>
-      <button onClick={ () => {
+      <button onClick={() => {
         // setState({
         //   age: Math.round(Math.random() * 18),
         // });
         //   set({
         //       name: 'lxj',
         //   })
-      } }>click
+      }}
+      >click
       </button>
       <div>{ JSON.stringify(state) }</div>
     </div>

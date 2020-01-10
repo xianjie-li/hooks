@@ -1,5 +1,5 @@
 import { AnyObject } from './util';
-interface UseFetchOptions<Data> {
+export interface UseFetchOptions<Data> {
     /** 一个boolean或function，为false时，会阻止请求，为function时，取它的返回值，当函数内部抛出错误时，pass会被设置为false。可以用来实现串行请求。(即使阻止请求依然会设置payload) */
     pass?: boolean | (() => boolean);
     /** 类似effect(fn, inputs)，当依赖数组内的值发生改变时，重新进行请求, 确保长度不会发生改变，传入引用类型时请先memo */
@@ -19,7 +19,7 @@ interface UseFetchOptions<Data> {
     /** 请求超时的回调 */
     onTimeout?: () => void;
 }
-interface UseFetchReturns<Payload, Data, ExtraData> {
+export interface UseFetchReturns<Payload, Data, ExtraData> {
     /** method方法resolve时，data为它resolve的值 */
     data: Data;
     /** 正在进行请求。该状态为互斥状态 */
@@ -46,4 +46,3 @@ interface UseFetchReturns<Payload, Data, ExtraData> {
     setExtraData: (patch: Partial<ExtraData> | ((prevState: ExtraData) => Partial<ExtraData>)) => void;
 }
 export declare const useFetch: <Payload extends AnyObject, Data, ExtraData extends AnyObject>(method: (...arg: any[]) => Promise<Data>, initPayload?: Payload, options?: UseFetchOptions<Data>) => UseFetchReturns<Payload, Data, ExtraData>;
-export {};

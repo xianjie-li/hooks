@@ -15,7 +15,7 @@ interface UseQuerySet<Query> {
  * @return result.set - 将包含一个或多个查询值的对象覆盖到当前url查询上
  * @return result.coverSet - 同set，区别是会重置掉所有search并设置为传入的查询对象
  * */
-function useQuery<Query extends object = any>() {
+export function useQuery<Query extends object = any>() {
   const { replace } = useHistory();
   const { search, pathname, hash } = useLocation();
   const queryObject = qs.parse(search);

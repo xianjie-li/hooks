@@ -6,6 +6,8 @@ import _asyncToGenerator from '@babel/runtime/helpers/esm/asyncToGenerator';
 import _toConsumableArray from '@babel/runtime/helpers/esm/toConsumableArray';
 import { isFunction } from '@lxjx/utils';
 import { createBreakpoint, useUpdateEffect } from 'react-use';
+import { useHistory, useLocation } from 'react-router-dom';
+import qs from 'query-string';
 
 /** 返回类似类组件的this的实例属性 */
 
@@ -374,13 +376,26 @@ function useCustomEvent(eventKey, handle, inputs) {
   return customEventEmit;
 }
 
-var useBreakPoint = createBreakpoint({
+var useBreakPointBase = createBreakpoint({
   'xs': 0,
   'sm': 576,
   'md': 768,
   'lg': 992,
-  'xl': 1200
+  'xl': 1200,
+  'xxl': 1600
 });
+
+var useBreakPoint = function useBreakPoint() {
+  var bp = useBreakPointBase();
+  return {
+    'xs': bp === 'xs',
+    'sm': bp === 'sm',
+    'md': bp === 'md',
+    'lg': bp === 'lg',
+    'xl': bp === 'xl',
+    'xxl': bp === 'xxl'
+  };
+};
 
 function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -484,4 +499,48 @@ function useFormState(props, defaultValue) {
   return [state, setFormState];
 }
 
-export { customEventEmit, formStateMap, useBreakPoint, useCustomEvent, useFetch, useFormState, useIsInitMount, useSelf, useSetState, useSyncState };
+function ownKeys$2(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread$2(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$2(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$2(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+/**
+ * 用于便捷的获取或设置react-router v5的query string
+ * @interface <Query> - any | 查询对象的接口格式
+ * @return result
+ * @return result.search - 原始查询字符串
+ * @return result.queryObject - 根据search解析得到的对象
+ * @return result.set - 将包含一个或多个查询值的对象覆盖到当前url查询上
+ * @return result.coverSet - 同set，区别是会重置掉所有search并设置为传入的查询对象
+ * */
+
+function useQuery() {
+  var _useHistory = useHistory(),
+      replace = _useHistory.replace;
+
+  var _useLocation = useLocation(),
+      search = _useLocation.search,
+      pathname = _useLocation.pathname,
+      hash = _useLocation.hash;
+
+  var queryObject = qs.parse(search);
+
+  function navWidthNewSearch(newQO) {
+    replace("".concat(pathname, "?").concat(qs.stringify(newQO)).concat(hash));
+  }
+
+  var set = useCallback(function (queryItem) {
+    var newQueryObject = _objectSpread$2({}, queryObject, {}, queryItem);
+
+    navWidthNewSearch(newQueryObject); // eslint-disable-next-line
+  }, [search]);
+  var coverSet = useCallback(function (queryItem) {
+    navWidthNewSearch(queryItem); // eslint-disable-next-line
+  }, [search]);
+  return {
+    search: search,
+    queryObject: queryObject,
+    set: set,
+    coverSet: coverSet
+  };
+}
+
+export { customEventEmit, formStateMap, useBreakPoint, useCustomEvent, useFetch, useFormState, useIsInitMount, useQuery, useSelf, useSetState, useSyncState };

@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { useSelf } from './useSelf';
 
 export function useIsInitMount(): boolean {
   const count = useRef(0);

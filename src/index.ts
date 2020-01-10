@@ -14,3 +14,5 @@ export * from './useBreakPoint';
 export * from './useIsInitMount';
 
 export * from './useFormState';
+
+export * from './useQuery';
