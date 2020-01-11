@@ -1,6 +1,6 @@
 {
   "name": "@lxjx/hooks",
-  "version": "0.5.8",
+  "version": "0.5.9",
   "description": "Use Your Imagination",
   "main": "./dist/index.js",
   "module": "./dist/index.esm.js",
