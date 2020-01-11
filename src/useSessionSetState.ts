@@ -1,5 +1,8 @@
 import { useCallback } from 'react';
-import { useSessionState } from './useSessionState';
+import {
+  useSessionState,
+  UseSessionStateOptions,
+} from './useSessionState';
 
 import { SetState } from './useSetState';
 
@@ -7,8 +10,9 @@ import { SetState } from './useSetState';
 export const useSessionSetState = <T extends object = any>(
   key: string,
   initialState = {} as (() => T) | T,
+  options?: UseSessionStateOptions,
 ): [T, SetState<T>, SetState<T>] => {
-  const [state, set] = useSessionState<T>(key, initialState);
+  const [state, set] = useSessionState<T>(key, initialState, options);
   const setState = useCallback(
     patch => {
       set(prevState => ({ ...prevState, ...(patch instanceof Function ? patch(prevState) : patch) }));

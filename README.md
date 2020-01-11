@@ -174,17 +174,17 @@ getSessionState('cache-key');
 
 
 
+根据条件决定是否启用缓存，关闭后，与普通useState用法一样
+
+```ts
+useSessionState('cache-key', 123, { disable: false });
+```
+
+
+
 ### `useSessionSetState`
 
 > 同useSessionState，但是其维护一个对象，与useSetState用法一致
-
-
-
-<br>
-
-<br>
-
-### `useSessionSetState`
 
 <br>
 
@@ -206,57 +206,83 @@ getSessionState('cache-key');
 
 ### `useFetch`
 
-> 非常符合hooks风格的API请求方式
+> 通过hooks来进行颠覆性的数据请求
 
-`const bonus = useFetch(requestMethod, initPayload?, options?);`
+`const bonus = useFetch(requestMethod, options?);`
 
 **requestMethod**: 
 
-一个Promise返回函数或async函数, 用于请求异步数据，该函数的执行结果决定了bonus的结果。
+一个Promise返回函数或async函数, 用于请求异步数据，该函数的执行结果决定了返回的结果。
 
 
 
-**initPayload**:
+**options**：
 
-初始化载荷
-
-
-
-**bonus**：
-
-| key                | desc                                                         | default  |
-| ------------------ | ------------------------------------------------------------ | -------- |
-| **data**           | 当requestMethod resolve后，data 会被赋值给resolve的值        | undefind |
-| **loading**        | `boolean`  正在请求                                          | false    |
-| **error**          | 当requestMethod reject后，error 会被赋值给reject的值         | undefind |
-| **timeout**        | `boolean` 是否超时, false                                    | false    |
-| **payload**        | `object`  当前用于请求的payload                              | {}       |
-| **setPayload**     | 设置payload并重新触发请求，api与this.setState相似            |          |
-| **setOverPayload** | 覆盖设置payload并重新触发请求                                |          |
-| **setData**        | 手动设置data，api与this.setState相似                         |          |
-| **update**         | 使用当前的payload重新发起一次请求                            |          |
-| **extraData**      | data之外的另一个数据源                                       |          |
-| **setExtraData**   | 设置extraData，api与this.setState相似                        |          |
-| **send**           | 使用传入的payload覆盖当前payload并发起请求. 如果参数为空则与update等效 |          |
-
-
-
-**options:**
-
-| option         | desc                                                         | default |
-| -------------- | ------------------------------------------------------------ | ------- |
-| **pass**       | `boolan | function` 当它为true时才会发起请求.如果是一个函数，取函数返回值，当该函数抛出错误时，取false | true    |
-| **inputs**     | `any[]`,  类似useEffect(fn, de)，当它的内部元素发生改变时会重新进行请求， 确保运行时长度不会发生改变，传入引用类型的数据前先memo | []      |
-| **extraData**  | `object`, 初始化extraData                                    | {}      |
-| **timeout**    | `number`,  超时时间(ms)                                      | 8000    |
-| **onSuccess**  | (res: Data, isUpdate: boolean) => void,  成功回调，当该次请求是通过update ()或inputs更变触发时，第二个参数为true |         |
-| **onError**    | (err: any) => void, 错误回调                                 |         |
-| **onComplete** | 请求结束回调                                                 |         |
-| **onTimeout**  | 超时回调                                                     |         |
+```ts
+export interface UseFetchOptions<Payload, Data, ExtraData> {
+  /** true | 一个boolean或function，为false时，会阻止请求，为function时，取它的返回值，当函数内部抛出错误时，pass会被设置为false。可以用来实现串行请求。(不会阻止手动设置data等或payload操作) */
+  pass?: boolean | (() => boolean);
+  /** [] | 类似useEffect(fn, inputs)，当依赖数组内的值发生改变时，重新进行请求, 确保长度不会发生改变，传入引用类型时请先memo */
+  inputs?: any[];
+  /** {} | data的初始值, 可用于搭配redux来获取初始状态, 当存在有效缓存时，缓存会覆盖此项(使用redux也就没用理由使用缓存了) */
+  initData?: Data | (() => Data);
+  /** true | 是否初始化时进行请求 */
+  initFetch?: boolean;
+  /** {} | 初始化载荷, 当存在有效缓存时，缓存会覆盖此项 */
+  initPayload?: Payload;
+  /** {} | 指定extraData的初始值, 当存在有效缓存时，缓存会覆盖此项 */
+  initExtraData?: ExtraData;
+  /** 8000 | 超时时间(ms) */
+  timeout?: number;
+  /** 用于缓存的key，传递后，会将状态缓存到session中，下次加载时将读取缓存数据作为初始值 */
+  cacheKey?: string;
+  /** 成功回调, 第二个参数在当次请求是在payload没有改变的情况下触发时为true(即通过update等操作执行更新请求时) */
+  onSuccess?: (result: Data, isUpdate: boolean) => void;
+  /** 错误回调 */
+  onError?: (error: any) => void;
+  /** 无论成功与否都会调用。注意，在旧的请求被新的请求覆盖掉时，不会触发。 */
+  onComplete?: () => void;
+  /** 请求超时的回调 */
+  onTimeout?: () => void;
+}
+```
 
 
 
-fetch data
+**returns**： (互斥状态表示，同类型状态中只能同时有一个为存在)
+
+```ts
+export interface UseFetchReturns<Payload, Data, ExtraData> {
+  /** undefined | method方法resolve时，data为它resolve的值 */
+  data: Data;
+  /** 正在进行请求。该状态为互斥状态 */
+  loading: boolean;
+  /** method方法reject时，error为它reject的值。该状态为互斥状态 */
+  error: any;
+  /** 当请求超时会将它设置为true。该状态为互斥状态 */
+  timeout: boolean;
+  /** 当前用于请求的payload */
+  payload: Payload;
+  /** 设置payload并触发请求, 使用方式同类组件的setState() */
+  setPayload: (patch: Partial<Payload> | ((payload: Payload) => Partial<Payload>)) => void;
+  /** 设置payload并触发请求, 它会覆盖掉原有状态 */
+  setOverPayload: (patch: Partial<Payload> | ((payload: Payload) => Partial<Payload>)) => void;
+  /** 使用当前的payload更新请求 */
+  update: () => void;
+  /** 以指定Payload覆盖并发起请求，如果Payload未传，则与update()等效 */
+  send: (patch: Partial<Payload> | ((payload: Payload) => Partial<Payload>)) => void;
+  /** 存放额外数据，用于实现分页等功能 */
+  extraData: ExtraData;
+  /** 手动设置当前的data, 使用方式同类组件的setState() */
+  setData: (patch: Partial<Data> | ((data: Data) => Partial<Data>)) => void;
+  /** 设置extraData, 使用方式同类组件的setState() */
+  setExtraData: (patch: Partial<ExtraData> | ((prevState: ExtraData) => Partial<ExtraData>)) => void;
+}
+```
+
+
+
+**fetch data**
 
 ```jsx
 // 创建requestMethod, 可以使用任何你喜欢的请求库
@@ -268,24 +294,21 @@ function getGoodsList(params) {
     })
 }
 
-import { useFetch, fetchTrigger, useCustomEvent, customEventEmit } from '@lxjx/hooks';
+import { useFetch, fetchTrigger } from '@lxjx/hooks';
 
 function Test() {
     const { match } = props;
-    const defaultParam =  page: 1, id: match.id };
+    const initPayload = { page: 1, id: match.id };
     const { data, loading, error, timeout, update, setParams } = 
-        useFetch(getGoodsList, defaultParam, {
-            pass: !!match.id, // 只有存在match.id时发起请求
-            inputs: [match.id], // match.
+        useFetch(getGoodsList, {
+            initPayload,
+            pass: !!match.id, // 只有存在match.id时才发起请求
+            inputs: [match.id], // match.id改变时重新发起请求
+            cacheKey: 'GOOD_LIST', // 对状态进行缓存，增强用户体验
         })
-    
-    // 当需要在组件外发更新请求时，可以通过自定义事件
-    useCustomEvent('update', () => {
-    	res.update();
-  	}, []);
-
     return (
         <div>
+            {/* 处理请求的各种状态，实际使用时，可以单独提出一个处理这些状态的组件来简化流程处理 */}
             {loading && 'loading...'}
             {timeout && <div>
                 timeout
@@ -297,13 +320,13 @@ function Test() {
             </div>}
             {data && JSON.stringify(data)}
             <div>
-                {/* 设置setPayload并发起请求  */}
+                {/* 设置setPayload并发起更新请求  */}
                 <button onClick={() => {
                   res.setPayload((arg: P) => ({
                     page: arg.page + 1
                   }));
                 }}>setPayload</button>
-                {/* 更新 */}
+                {/* 单纯的以当前状态发起更新 */}
                 <button onClick={() => {
                   update();
                 }}>update</button>
@@ -311,17 +334,14 @@ function Test() {
         <div>
     )
 }
-            
-//  update fetch anywhere via cutstom event
-customEventEmit('update');
 ```
 
 <br>
 
-post
+**post**
 
 ```jsx
-const { data, loading, error, send } = useFetch(getGoodsList, {}, {
+const { data, loading, error, send } = useFetch(getGoodsList, {
     initFetch: false, // 使用post请求的关键是设置initFetch为false，使useFetch完全手动触发
     onSuccess(res, isUpdate) {
         console.log('onSuccess', res, isUpdate);

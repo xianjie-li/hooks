@@ -7,10 +7,10 @@ function mock<D>(success: boolean, data: D, ms = 1800) {
     // console.log('arg:::', arg);
     return new Promise<D>((resolve, reject) => {
       setTimeout(() => {
-        success ? resolve(data) : reject(data);
+        success ? resolve(data) : reject(new Error('发生错误了!!!'));
       }, ms);
-    })
-  }
+    });
+  };
 }
 
 const UseFetch = () => {
@@ -26,20 +26,22 @@ const UseFetch = () => {
 
   const [dep, setDep] = React.useState(0);
 
-  const res = useFetch<P, D, any>(
-    mock(true, { name: 'lxj', age: 18 }, 1500),
+  const res = useFetch(
+    mock(true, { name: 'lxj', age: Math.random() }, 1000),
     // @ts-ignore
     // mock(false, { code: 110, msg: '发生错误啦！' }),
-    { page: 1, sort: 5 },
     {
       pass: true,
-      // initFetch: false,
       inputs: [dep],
-      extraData: {
-        meta: 123
+      cacheKey: 'test1',
+      initData: ({ name: 'xxx' }),
+      initPayload: { page: 1, sort: 5 },
+      initExtraData: {
+        meta: 123,
       },
-      onSuccess(res, isUpdate) {
-        console.log('onSuccess', res, isUpdate);
+      pollingInterval: null,
+      onSuccess(result, isUpdate) {
+        console.log('onSuccess', result, isUpdate);
       },
       onError(err) {
         console.log('onError', err);
@@ -49,15 +51,13 @@ const UseFetch = () => {
       },
       onTimeout() {
         console.log('onTimeout');
-      }
-    }
+      },
+    },
   );
 
   useCustomEvent('update', () => {
     res.update();
   }, []);
-
-  console.log(res);
 
   return (
     <div>
@@ -70,38 +70,65 @@ const UseFetch = () => {
 
       <div>method:</div>
       <div>
-        <button onClick={() => {
-          res.setPayload((arg: P) => ({
-            page: arg.page + 1
-          }));
-        }}>setPayload</button>
-        <button onClick={() => {
-          res.update();
-        }}>update</button>
-        <button onClick={() => {
-          res.send({
-            page: 123123,
+        <button
+          type="button"
+          onClick={() => {
+            res.setPayload((arg: P) => ({
+              page: arg.page + 1,
+            }));
+          }}
+        >setPayload
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            res.update();
+          }}
+        >update
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            res.send({
+              page: 123123,
             // sort: 4321432,
-          });
-        }}>send</button>
-        <button onClick={() => {
-          res.setData({
-            name: 'lxj',
-            age: Math.floor(Math.random() * 18),
-          });
-        }}>setData</button>
-        <button onClick={() => {
-          res.setExtraData({
-            phone: Math.random(),
-            address: 'china',
-          });
-        }}>setExtraData</button>
-        <button onClick={() => {
-          setDep(prev => prev + 1);
-        }}>dep change</button>
-        <button onClick={() => {
-          customEventEmit('update');
-        }}>trigger</button>
+            });
+          }}
+        >send
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            res.setData({
+              name: 'lxj',
+              age: Math.floor(Math.random() * 18),
+            });
+          }}
+        >setData
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            res.setExtraData({
+              meta: Math.random(),
+            });
+          }}
+        >setExtraData
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setDep(prev => prev + 1);
+          }}
+        >dep change
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            customEventEmit('update');
+          }}
+        >trigger
+        </button>
       </div>
     </div>
   );
