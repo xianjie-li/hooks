@@ -34,14 +34,15 @@ const UseFetch = () => {
       pass: true,
       inputs: [dep],
       cacheKey: 'test1',
+      isPost: true,
       initData: ({ name: 'xxx' }),
       initPayload: { page: 1, sort: 5 },
       initExtraData: {
         meta: 123,
       },
-      pollingInterval: null,
+      // pollingInterval: 2000,
       onSuccess(result, isUpdate) {
-        console.log('onSuccess', result, isUpdate);
+        // console.log('onSuccess', result, isUpdate);
       },
       onError(err) {
         console.log('onError', err);
