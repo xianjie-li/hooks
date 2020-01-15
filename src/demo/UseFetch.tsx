@@ -4,7 +4,6 @@ import { useFetch, useCustomEvent, customEventEmit } from '../index';
 
 function mock<D>(success: boolean, data: D, ms = 1800) {
   return (arg: any) => {
-    // console.log('arg:::', arg);
     return new Promise<D>((resolve, reject) => {
       setTimeout(() => {
         success ? resolve(data) : reject(new Error('发生错误了!!!'));

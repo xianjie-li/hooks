@@ -5,8 +5,8 @@ export interface UseFetchOptions<Payload, Data, ExtraData> {
     inputs?: any[];
     /** {} | data的初始值, 可用于搭配redux来获取初始状态, 当存在有效缓存时，缓存会覆盖此项(使用redux也就没用理由使用缓存了) */
     initData?: Data | (() => Data);
-    /** true | 是否初始化时进行请求 */
-    initFetch?: boolean;
+    /** true | 标记为post请求，将会跳过初始化时的请求、缓存 */
+    isPost?: boolean;
     /** {} | 初始化载荷, 当存在有效缓存时，缓存会覆盖此项 */
     initPayload?: Payload;
     /** {} | 指定extraData的初始值, 当存在有效缓存时，缓存会覆盖此项 */

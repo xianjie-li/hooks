@@ -88,13 +88,13 @@ function _objectSpread2(target) {
     var source = arguments[i] != null ? arguments[i] : {};
 
     if (i % 2) {
-      ownKeys(Object(source), true).forEach(function (key) {
+      ownKeys(source, true).forEach(function (key) {
         _defineProperty(target, key, source[key]);
       });
     } else if (Object.getOwnPropertyDescriptors) {
       Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
     } else {
-      ownKeys(Object(source)).forEach(function (key) {
+      ownKeys(source).forEach(function (key) {
         Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
       });
     }
@@ -317,8 +317,8 @@ var useFetch = function useFetch(method) {
       pass = _options$pass === void 0 ? true : _options$pass,
       _options$inputs = options.inputs,
       inputs = _options$inputs === void 0 ? [] : _options$inputs,
-      _options$initFetch = options.initFetch,
-      initFetch = _options$initFetch === void 0 ? true : _options$initFetch,
+      _options$isPost = options.isPost,
+      isPost = _options$isPost === void 0 ? false : _options$isPost,
       initData = options.initData,
       initPayload = options.initPayload,
       initExtraData = options.initExtraData,
@@ -334,7 +334,8 @@ var useFetch = function useFetch(method) {
       onComplete = _options$onComplete === void 0 ? placeHolderFn : _options$onComplete,
       _options$onTimeout = options.onTimeout,
       onTimeout = _options$onTimeout === void 0 ? placeHolderFn : _options$onTimeout;
-  var isCache = !!cacheKey;
+  var isCache = !!cacheKey && !isPost; // 包含用于缓存的key并且非isPost时，缓存才会生效
+
   /* pass规则：为函数时取返回值，函数内部报错时取false，否则直接取pass的值 */
 
   var isPass = pass;
@@ -390,10 +391,10 @@ var useFetch = function useFetch(method) {
 
 
   react.useEffect(function intervalHandle() {
-    var timter;
+    var timer;
 
     if (pollingInterval && pollingInterval > 500) {
-      timter = window.setInterval(function () {
+      timer = window.setInterval(function () {
         var now = Date.now();
         var last = self.lastFetch;
         var reFetch = now - last >= pollingInterval;
@@ -402,7 +403,7 @@ var useFetch = function useFetch(method) {
     }
 
     return function () {
-      timter && clearInterval(timter);
+      timer && clearInterval(timer);
     }; // eslint-disable-next-line
   }, [pollingInterval]);
   /* 将inputs改变标记为isUpdate */
@@ -414,15 +415,14 @@ var useFetch = function useFetch(method) {
 
   }, _toConsumableArray(inputs));
   react.useEffect(function fetchHandle() {
-    // 初始化时，如果initFetch为false则跳过
-    if (isInit && !initFetch) {
-      return;
-    }
-
     var ignore = false;
     var timer;
     var _isUpdate = self.isUpdate;
-    self.isUpdate = false;
+    self.isUpdate = false; // 初始化时，如果isPost则跳过
+
+    if (isInit && isPost) {
+      return;
+    }
 
     function fetcher() {
       return _fetcher.apply(this, arguments);
@@ -503,7 +503,7 @@ var useFetch = function useFetch(method) {
 
     return function () {
       ignore = true;
-      clearTimeout(timer);
+      timer && clearTimeout(timer);
     }; // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [payload, isPass, force].concat(_toConsumableArray(inputs)));
   /* 返回一个将互斥的状态还原的对象，并通过键值设置某个值 */
