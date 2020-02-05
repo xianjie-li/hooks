@@ -4,7 +4,6 @@ import { useFetch, useCustomEvent, customEventEmit } from '../index';
 
 function mock<D>(success: boolean, data: D, ms = 1800) {
   return (arg: any) => {
-    // console.log('arg:::', arg);
     return new Promise<D>((resolve, reject) => {
       setTimeout(() => {
         success ? resolve(data) : reject(new Error('发生错误了!!!'));
@@ -34,14 +33,15 @@ const UseFetch = () => {
       pass: true,
       inputs: [dep],
       cacheKey: 'test1',
+      isPost: true,
       initData: ({ name: 'xxx' }),
       initPayload: { page: 1, sort: 5 },
       initExtraData: {
         meta: 123,
       },
-      pollingInterval: null,
+      // pollingInterval: 2000,
       onSuccess(result, isUpdate) {
-        console.log('onSuccess', result, isUpdate);
+        // console.log('onSuccess', result, isUpdate);
       },
       onError(err) {
         console.log('onError', err);

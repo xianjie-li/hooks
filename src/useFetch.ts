@@ -14,8 +14,8 @@ export interface UseFetchOptions<Payload, Data, ExtraData> {
   inputs?: any[];
   /** {} | data的初始值, 可用于搭配redux来获取初始状态, 当存在有效缓存时，缓存会覆盖此项(使用redux也就没用理由使用缓存了) */
   initData?: Data | (() => Data);
-  /** true | 是否初始化时进行请求 */
-  initFetch?: boolean;
+  /** true | 标记为post请求，将会跳过初始化时的请求、缓存 */
+  isPost?: boolean;
   /** {} | 初始化载荷, 当存在有效缓存时，缓存会覆盖此项 */
   initPayload?: Payload;
   /** {} | 指定extraData的初始值, 当存在有效缓存时，缓存会覆盖此项 */
@@ -75,7 +75,7 @@ export const useFetch = <
   const {
     pass = true,
     inputs = [],
-    initFetch = true,
+    isPost = false,
     initData,
     initPayload,
     initExtraData,
@@ -88,7 +88,7 @@ export const useFetch = <
     onTimeout = placeHolderFn,
   } = options;
 
-  const isCache = !!cacheKey;
+  const isCache = !!cacheKey && !isPost; // 包含用于缓存的key并且非isPost时，缓存才会生效
 
   /* pass规则：为函数时取返回值，函数内部报错时取false，否则直接取pass的值 */
   let isPass = pass;
@@ -128,10 +128,10 @@ export const useFetch = <
 
   /* 轮询处理 */
   useEffect(function intervalHandle() {
-    let timter: number;
+    let timer: number;
 
     if (pollingInterval && pollingInterval > 500) {
-      timter = window.setInterval(() => {
+      timer = window.setInterval(() => {
         const now = Date.now();
         const last = self.lastFetch;
         const reFetch = (now - last) >= pollingInterval;
@@ -140,7 +140,7 @@ export const useFetch = <
     }
 
     return () => {
-      timter && clearInterval(timter);
+      timer && clearInterval(timer);
     };
     // eslint-disable-next-line
   }, [pollingInterval]);
@@ -154,16 +154,15 @@ export const useFetch = <
   }, [...inputs]);
 
   useEffect(function fetchHandle() {
-    // 初始化时，如果initFetch为false则跳过
-    if (isInit && !initFetch) {
-      return;
-    }
-
     let ignore = false;
     let timer: any;
-
     const _isUpdate = self.isUpdate;
     self.isUpdate = false;
+
+    // 初始化时，如果isPost则跳过
+    if (isInit && isPost) {
+      return;
+    }
 
     async function fetcher() {
       setState({ ...getResetState('loading', true) });
@@ -198,7 +197,7 @@ export const useFetch = <
 
     return () => {
       ignore = true;
-      clearTimeout(timer);
+      timer && clearTimeout(timer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [payload, isPass, force, ...inputs]);
