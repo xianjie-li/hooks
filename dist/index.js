@@ -4,18 +4,93 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
+var reactUse = require('react-use');
 var react = require('react');
 var utils = require('@lxjx/utils');
-var reactUse = require('react-use');
 var reactRouterDom = require('react-router-dom');
 var qs = _interopDefault(require('query-string'));
 
-/** 返回类似类组件的this的实例属性 */
+var useBreakPointBase = reactUse.createBreakpoint({
+  xs: 0,
+  sm: 576,
+  md: 768,
+  lg: 992,
+  xl: 1200,
+  xxl: 1600
+});
 
-function useSelf() {
-  var init = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  var self = react.useRef(init);
-  return self.current;
+var useBreakPoint = function useBreakPoint() {
+  var bp = useBreakPointBase();
+  return {
+    xs: bp === 'xs',
+    sm: bp === 'sm',
+    md: bp === 'md',
+    lg: bp === 'lg',
+    xl: bp === 'xl',
+    xxl: bp === 'xxl'
+  };
+};
+
+var eventStore = {};
+/**
+ * 触发一个自定义事件
+ * eventKey: 事件名
+ * payload: 参数
+ * */
+
+function customEventEmit(eventKey, payload) {
+  var events = eventStore[eventKey];
+  if (!events || !Array.isArray(events)) return;
+  if (events.length === 0) return;
+  events.forEach(function (event) {
+    event.handle(payload);
+  });
+}
+/**
+ * 绑定一个自定义事件，可以在任意组件任意位置触发它, 每个事件可以多次绑定不同的处理函数
+ * eventKey? - 事件名
+ * handle? - 事件处理程序
+ * inputs? - 依赖数组，默认会在每一次更新时替换handle，当handle中不依赖或部分依赖其他状态时，可通过此项指定(!不要通过inputs传入未memo的引用对象!)
+ * */
+
+function useCustomEvent(eventKey, handle, inputs) {
+  var flag = react.useRef(Math.random()); // 防止重复添加
+
+  var key = eventKey;
+  react.useEffect(function () {
+    if (key && handle) {
+      if (!Array.isArray(eventStore[key])) {
+        eventStore[key] = [];
+      }
+
+      var existInd = eventStore[key].findIndex(function (item) {
+        return item.flag === flag.current;
+      });
+      var nowEvent = {
+        handle: handle,
+        flag: flag.current
+      }; // 事件存在时覆盖原有事件
+
+      if (existInd !== -1) {
+        eventStore[key][existInd] = nowEvent;
+      } else {
+        eventStore[key].push(nowEvent);
+      }
+    } // 移除事件
+
+
+    return function () {
+      var events = eventStore[key];
+      if (!key || !handle || !events) return;
+      if (events.length === 0) return; // eslint-disable-next-line react-hooks/exhaustive-deps
+
+      var index = events.findIndex(function (item) {
+        return item.flag === flag.current;
+      });
+      eventStore[key].splice(index, 1);
+    }; // eslint-disable-next-line
+  }, inputs || [handle, key]);
+  return customEventEmit;
 }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
@@ -165,65 +240,12 @@ function _nonIterableRest() {
   throw new TypeError("Invalid attempt to destructure non-iterable instance");
 }
 
-/* 与react-use的useSetState一样, 但是额外返回了一个setOverState用于覆盖状态 */
+/** 返回类似类组件的this的实例属性 */
 
-var useSetState = function useSetState() {
-  var initialState = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-  var _useState = react.useState(initialState),
-      _useState2 = _slicedToArray(_useState, 2),
-      state = _useState2[0],
-      set = _useState2[1];
-
-  var setState = react.useCallback(function (patch) {
-    set(function (prevState) {
-      return _objectSpread2({}, prevState, {}, patch instanceof Function ? patch(prevState) : patch);
-    });
-  }, [set]);
-  return [state, setState, set];
-};
-
-/**
- * 可以把它理解为类组件setState API风格的useSelf，但它包含以下特点
- * 1. 在setState之后，可以立即通过`state.xx`获取新的值
- * 2. 在一些被memo的回调中，即使没有设置更新数组，依然可以通过state获取到最新的值
- * 3. 总之，它使用useSelf这样的可以在函数组件内任何地方使用的实例属性，又能在setState后触发组件的更新
- * */
-
-function useSyncState() {
+function useSelf() {
   var init = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-  var _useState = react.useState(0),
-      _useState2 = _slicedToArray(_useState, 2),
-      update = _useState2[1];
-
-  var self = useSelf(init);
-
-  function setSelf(patch) {
-    if (typeof patch === 'function') {
-      setHandle(patch(self));
-    } else {
-      setHandle(patch);
-    }
-  }
-
-  function setHandle(patch) {
-    // 编译设置新值
-    for (var _i = 0, _Object$entries = Object.entries(patch); _i < _Object$entries.length; _i++) {
-      var _Object$entries$_i = _slicedToArray(_Object$entries[_i], 2),
-          key = _Object$entries$_i[0],
-          value = _Object$entries$_i[1];
-
-      self[key] = value;
-    } // 触发更新
-
-
-    update(function (prev) {
-      return prev + 1;
-    });
-  }
-
-  return [self, setSelf];
+  var self = react.useRef(init);
+  return self.current;
 }
 
 function useIsInitMount() {
@@ -238,7 +260,9 @@ function useIsInitMount() {
 var BASE_KEY = 'USE_SESSION_STATE_CACHE';
 
 function setSessionState(key, beCache) {
-  window.sessionStorage.setItem("".concat(BASE_KEY, "_").concat(key.toUpperCase()), JSON.stringify(beCache));
+  if (beCache || beCache === 0) {
+    window.sessionStorage.setItem("".concat(BASE_KEY, "_").concat(key.toUpperCase()), JSON.stringify(beCache));
+  }
 }
 
 function getSessionState(key) {
@@ -322,6 +346,7 @@ var useFetch = function useFetch(method) {
       initData = options.initData,
       initPayload = options.initPayload,
       initExtraData = options.initExtraData,
+      _search = options.search,
       _options$timeout = options.timeout,
       timeout = _options$timeout === void 0 ? 8000 : _options$timeout,
       pollingInterval = options.pollingInterval,
@@ -373,8 +398,19 @@ var useFetch = function useFetch(method) {
       _useSessionSetState4 = _slicedToArray(_useSessionSetState3, 2),
       extraData = _useSessionSetState4[0],
       setExtraData = _useSessionSetState4[1];
-  /* 常用关联值存一个state减少更新 */
 
+  var _useSessionState = useSessionState("".concat(cacheKey, "_FETCH_SEARCH"), _search, {
+    disable: !isCache
+  }),
+      _useSessionState2 = _slicedToArray(_useSessionState, 2),
+      search = _useSessionState2[0],
+      setSearch = _useSessionState2[1]; // 同步props _search 到 state search
+
+
+  react.useEffect(function () {
+    setSearch(_search); // eslint-disable-next-line
+  }, [_search]);
+  /* 常用关联值存一个state减少更新 */
 
   var _useSessionSetState5 = useSessionSetState("".concat(cacheKey, "_FETCH_STATES"), {
     data: initData instanceof Function ? initData() : initData,
@@ -446,7 +482,7 @@ var useFetch = function useFetch(method) {
                 }, timeout);
                 _context.prev = 3;
                 _context.next = 6;
-                return method(payload);
+                return method(search !== undefined && search ? search : payload);
 
               case 6:
                 response = _context.sent;
@@ -505,7 +541,7 @@ var useFetch = function useFetch(method) {
       ignore = true;
       timer && clearTimeout(timer);
     }; // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [payload, isPass, force].concat(_toConsumableArray(inputs)));
+  }, [payload, search, isPass, force].concat(_toConsumableArray(inputs)));
   /* 返回一个将互斥的状态还原的对象，并通过键值设置某个值 */
 
   function getResetState(key, value) {
@@ -557,89 +593,6 @@ var useFetch = function useFetch(method) {
     extraData: extraData,
     setExtraData: setExtraData
   });
-};
-
-var eventStore = {};
-/**
- * 触发一个自定义事件
- * eventKey: 事件名
- * payload: 参数
- * */
-
-function customEventEmit(eventKey, payload) {
-  var events = eventStore[eventKey];
-  if (!events || !Array.isArray(events)) return;
-  if (events.length === 0) return;
-  events.forEach(function (event) {
-    event.handle(payload);
-  });
-}
-/**
- * 绑定一个自定义事件，可以在任意组件任意位置触发它, 每个事件可以多次绑定不同的处理函数
- * eventKey? - 事件名
- * handle? - 事件处理程序
- * inputs? - 依赖数组，默认会在每一次更新时替换handle，当handle中不依赖或部分依赖其他状态时，可通过此项指定(!不要通过inputs传入未memo的引用对象!)
- * */
-
-function useCustomEvent(eventKey, handle, inputs) {
-  var flag = react.useRef(Math.random()); // 防止重复添加
-
-  var key = eventKey;
-  react.useEffect(function () {
-    if (key && handle) {
-      if (!Array.isArray(eventStore[key])) {
-        eventStore[key] = [];
-      }
-
-      var existInd = eventStore[key].findIndex(function (item) {
-        return item.flag === flag.current;
-      });
-      var nowEvent = {
-        handle: handle,
-        flag: flag.current
-      }; // 事件存在时覆盖原有事件
-
-      if (existInd !== -1) {
-        eventStore[key][existInd] = nowEvent;
-      } else {
-        eventStore[key].push(nowEvent);
-      }
-    } // 移除事件
-
-
-    return function () {
-      var events = eventStore[key];
-      if (!key || !handle || !events) return;
-      if (events.length === 0) return; // eslint-disable-next-line react-hooks/exhaustive-deps
-
-      var index = events.findIndex(function (item) {
-        return item.flag === flag.current;
-      });
-      eventStore[key].splice(index, 1);
-    }; // eslint-disable-next-line
-  }, inputs || [handle, key]);
-  return customEventEmit;
-}
-
-var useBreakPointBase = reactUse.createBreakpoint({
-  xs: 0,
-  sm: 576,
-  md: 768,
-  lg: 992,
-  xl: 1200,
-  xxl: 1600
-});
-
-var useBreakPoint = function useBreakPoint() {
-  var bp = useBreakPointBase();
-  return {
-    xs: bp === 'xs',
-    sm: bp === 'sm',
-    md: bp === 'md',
-    lg: bp === 'lg',
-    xl: bp === 'xl',
-    xxl: bp === 'xxl'
-  };
 };
 
 var VALUE = 'value';
@@ -745,6 +698,71 @@ function useFormState(props, defaultValue) {
   return [state, setFormState];
 }
 
+/* 获取滚动条宽度 */
+
+function getScrollBarWidth() {
+  // Create the measurement node
+  var scrollDiv = document.createElement('div');
+  scrollDiv.style.overflow = 'scroll';
+  document.body.appendChild(scrollDiv); // Get the scrollbar width
+
+  var scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth; // Delete the DIV
+
+  document.body.removeChild(scrollDiv);
+  return scrollbarWidth;
+}
+/* 是否包含滚动条 */
+
+
+function hasScrollBar(el) {
+  var docScrollH = el.scrollHeight;
+  var docH = el.offsetHeight;
+  return docScrollH > docH;
+}
+
+var scrollBarWidth = getScrollBarWidth();
+var lockCount = 0; // 当前锁定的数量
+
+var firstWidth = ''; // 保留第一个锁定是的style用于还原
+
+/** 基于react-use的useLockBodyScroll，隐藏时会对滚动条所占位置进行修正，防止页面抖动 */
+
+var useLockBodyScroll = function useLockBodyScroll(locked, elementRef) {
+  var firstMount = reactUse.useFirstMountState();
+  react.useEffect(function () {
+    // 是否包含滚动条
+    var hasScroll = hasScrollBar(document.documentElement); // 是否需要进行处理 包含滚动条 + locked为true + 非初始化
+
+    var doHandle = hasScroll && locked && !firstMount;
+
+    if (doHandle) {
+      if (lockCount === 0) {
+        var bodyStyleWidth = document.body.style.width;
+
+        if (!firstWidth) {
+          firstWidth = bodyStyleWidth;
+        }
+
+        document.body.style.width = "calc(".concat(bodyStyleWidth || '100%', " - ").concat(scrollBarWidth, "px)");
+      }
+
+      lockCount++;
+    }
+
+    return function () {
+      if (doHandle) {
+        lockCount--;
+
+        if (lockCount === 0) {
+          document.body.style.width = firstWidth;
+          firstWidth = '';
+        }
+      }
+    };
+  }, [firstMount, locked]);
+  return reactUse.useLockBodyScroll(locked, elementRef);
+};
+
 /**
  * 用于便捷的获取或设置react-router v5的query string
  * @interface <Query> - any | 查询对象的接口格式
@@ -786,14 +804,80 @@ function useQuery() {
   };
 }
 
+/* 与react-use的useSetState一样, 但是额外返回了一个setOverState用于覆盖状态 */
+
+var useSetState = function useSetState() {
+  var initialState = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  var _useState = react.useState(initialState),
+      _useState2 = _slicedToArray(_useState, 2),
+      state = _useState2[0],
+      set = _useState2[1];
+
+  var setState = react.useCallback(function (patch) {
+    set(function (prevState) {
+      return _objectSpread2({}, prevState, {}, patch instanceof Function ? patch(prevState) : patch);
+    });
+  }, [set]);
+  return [state, setState, set];
+};
+
+/**
+ * 可以把它理解为类组件setState API风格的useSelf，但它包含以下特点
+ * 1. 在setState之后，可以立即通过`state.xx`获取新的值
+ * 2. 在一些被memo的回调中，即使没有设置更新数组，依然可以通过state获取到最新的值
+ * 3. 总之，它使用useSelf这样的可以在函数组件内任何地方使用的实例属性，又能在setState后触发组件的更新
+ * */
+
+function useSyncState() {
+  var init = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  var _useState = react.useState(0),
+      _useState2 = _slicedToArray(_useState, 2),
+      update = _useState2[1];
+
+  var self = useSelf(init);
+
+  function setSelf(patch) {
+    if (typeof patch === 'function') {
+      setHandle(patch(self));
+    } else {
+      setHandle(patch);
+    }
+  }
+
+  function setHandle(patch) {
+    // 编译设置新值
+    for (var _i = 0, _Object$entries = Object.entries(patch); _i < _Object$entries.length; _i++) {
+      var _Object$entries$_i = _slicedToArray(_Object$entries[_i], 2),
+          key = _Object$entries$_i[0],
+          value = _Object$entries$_i[1];
+
+      self[key] = value;
+    } // 触发更新
+
+
+    update(function (prev) {
+      return prev + 1;
+    });
+  }
+
+  return [self, setSelf];
+}
+
 exports.customEventEmit = customEventEmit;
 exports.formStateMap = formStateMap;
+exports.getSessionState = getSessionState;
+exports.setSessionState = setSessionState;
 exports.useBreakPoint = useBreakPoint;
 exports.useCustomEvent = useCustomEvent;
 exports.useFetch = useFetch;
 exports.useFormState = useFormState;
 exports.useIsInitMount = useIsInitMount;
+exports.useLockBodyScroll = useLockBodyScroll;
 exports.useQuery = useQuery;
 exports.useSelf = useSelf;
+exports.useSessionSetState = useSessionSetState;
+exports.useSessionState = useSessionState;
 exports.useSetState = useSetState;
 exports.useSyncState = useSyncState;

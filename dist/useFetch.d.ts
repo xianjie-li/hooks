@@ -11,6 +11,8 @@ export interface UseFetchOptions<Payload, Data, ExtraData> {
     initPayload?: Payload;
     /** {} | 指定extraData的初始值, 当存在有效缓存时，缓存会覆盖此项 */
     initExtraData?: ExtraData;
+    /** 传递给请求方法的查询，传递此项时，Payload会被忽略, 并且每次search发生改变时都会自动发起更新请求 */
+    search?: string;
     /** 8000 | 超时时间(ms) */
     timeout?: number;
     /** 轮询间隔，传递后会开启轮询并以指定的ms进行轮询(ms必须大于500才会生效, 需要进行轮询开关是，可以传递小于500的值或null) */

@@ -1,10 +1,6 @@
 <h1 align="center" style="color: #61dafb;">hooks</h1>
 <h1 align="center" style="font-size: 80px;color:#61dafb">📌</h1>
 <p align="center">Use Your Imagination</p>
-<br>
-<br>
-<!-- TOC -->autoauto- [state](#state)auto  - [`useSelf`](#useself)auto  - [`useSyncState`](#usesyncstate)auto  - [`useSetState`](#usesetstate)auto  - [`useFormState`](#useformstate)auto  - [`useIsInitMount`](#useisinitmount)auto  - [`useSessionState`](#usesessionstate)auto  - [`useSessionSetState`](#usesessionsetstate)auto  - [`useSessionSetState`](#usesessionsetstate-1)auto- [effect](#effect)auto- [lifecycles](#lifecycles)auto- [fetch](#fetch)auto  - [`useFetch`](#usefetch)auto- [UI](#ui)auto  - [`useBreakPoint`](#usebreakpoint)auto- [Router](#router)auto  - [`useQuery`](#usequery)auto- [other](#other)auto  - [`useCustomEvent`](#usecustomevent)auto- [awesome hooks](#awesome-hooks)autoauto<!-- /TOC -->
-
 
 
 ## state
@@ -160,7 +156,7 @@ const [value, setValue] = useSessionState('cache-key', 123);
 
 
 
-^ 当需要在组件外更新缓存值时，可以使用额外的工具函数(该方法也可用于useSessionSetState)
+💡 当需要在组件外更新缓存值时，可以使用额外的工具函数(该方法也可用于useSessionSetState)
 
 ```ts
 import {
@@ -389,6 +385,21 @@ const Demo = () => {
   else return <div> xs</div>;
 };
 ```
+
+<br>
+<br>
+
+### `useLockBodyScroll`
+
+> 基于react-use的useLockBodyScroll，隐藏时会对body滚动条所占位置进行修正，防止页面抖动
+
+```js
+const [bool, set] = useToggle(false);
+
+useLockBodyScroll(bool);
+```
+
+函数签名与react-use完全相同
 
 <br>
 <br>

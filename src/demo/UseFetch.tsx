@@ -24,6 +24,7 @@ const UseFetch = () => {
   }
 
   const [dep, setDep] = React.useState(0);
+  const [name, setName] = React.useState('lxj');
 
   const res = useFetch(
     mock(true, { name: 'lxj', age: Math.random() }, 1000),
@@ -35,6 +36,7 @@ const UseFetch = () => {
       cacheKey: 'test1',
       isPost: true,
       initData: ({ name: 'xxx' }),
+      search: '?name=' + name,
       initPayload: { page: 1, sort: 5 },
       initExtraData: {
         meta: 123,
@@ -67,6 +69,7 @@ const UseFetch = () => {
       <div>data: {JSON.stringify(res.data)}</div>
       <div>payload: {JSON.stringify(res.payload)}</div>
       <div>extraData: {JSON.stringify(res.extraData)}</div>
+      <div>search: {'?name=' + name}</div>
 
       <div>method:</div>
       <div>
@@ -78,6 +81,13 @@ const UseFetch = () => {
             }));
           }}
         >setPayload
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setName(Math.random().toFixed(5));
+          }}
+        >setSearch
         </button>
         <button
           type="button"

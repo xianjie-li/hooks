@@ -1,33 +1,19 @@
 import React from 'react';
-
-import { useSelf } from '../index';
+import { useToggle } from 'react-use';
+import { useLockBodyScroll } from '../index';
 
 const UseSelfDemo = () => {
-  /* 使用类型推导(常用) */
-  const self = useSelf({
-    name: 'lxj',
-    age: 18
-  });
-  /* 使用泛型声明 */
-  const self2 = useSelf<{
-    name: string;
-    age: number;
-  }>();
+  const [bool, set] = useToggle(false);
+  const [bool2, set2] = useToggle(false);
 
-  React.useEffect(() => {
-    // TS2322: Type '123' is not assignable to type 'string'.
-    // self.name = 123;
-    // TS2322: Type '123' is not assignable to type 'string'.
-    // self2.name = 123;
-    // success
-    self.name = self.name.split('').reverse().join('');
-    // 立即获取变更
-    // console.log(self.name);
-  }, []);
+  useLockBodyScroll(bool);
+  useLockBodyScroll(bool2);
 
   return (
     <div>
       <div>UseSelfDemo</div>
+      <button type="button" onClick={() => set(!bool)}>toggle | {bool.toString()}</button>
+      <button type="button" onClick={() => set2(!bool2)}>toggle2 | {bool2.toString()}</button>
     </div>
   );
 };

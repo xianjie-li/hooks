@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSelf } from './useSelf';
 import { useIsInitMount } from './useIsInitMount';
 import { useSessionSetState } from './useSessionSetState';
+import { useSessionState } from './useSessionState';
 
 import { placeHolderFn } from './util';
 
@@ -20,6 +21,8 @@ export interface UseFetchOptions<Payload, Data, ExtraData> {
   initPayload?: Payload;
   /** {} | 指定extraData的初始值, 当存在有效缓存时，缓存会覆盖此项 */
   initExtraData?: ExtraData;
+  /** 传递给请求方法的查询，传递此项时，Payload会被忽略, 并且每次search发生改变时都会自动发起更新请求 */
+  search?: string;
   /** 8000 | 超时时间(ms) */
   timeout?: number;
   /** 轮询间隔，传递后会开启轮询并以指定的ms进行轮询(ms必须大于500才会生效, 需要进行轮询开关是，可以传递小于500的值或null) */
@@ -79,6 +82,7 @@ export const useFetch = <
     initData,
     initPayload,
     initExtraData,
+    search: _search,
     timeout = 8000,
     pollingInterval,
     cacheKey,
@@ -112,6 +116,13 @@ export const useFetch = <
   const [payload, setPayload, setOverPayload] = useSessionSetState<Payload>(`${cacheKey}_FETCH_PAYLOAD`, initPayload, { disable: !isCache });
 
   const [extraData, setExtraData] = useSessionSetState<ExtraData>(`${cacheKey}_FETCH_EXTRA`, initExtraData, { disable: !isCache });
+
+  const [search, setSearch] = useSessionState(`${cacheKey}_FETCH_SEARCH`, _search, { disable: !isCache });
+  // 同步props _search 到 state search
+  useEffect(() => {
+    setSearch(_search);
+    // eslint-disable-next-line
+  }, [_search]);
 
   /* 常用关联值存一个state减少更新 */
   const [state, setState] = useSessionSetState<{
@@ -175,7 +186,8 @@ export const useFetch = <
       }, timeout);
 
       try {
-        const response: Data = await method(payload);
+        // search存在时取search
+        const response: Data = await method((search !== undefined && search) ? search : payload);
         if (ignore) return;
         setState({ ...getResetState('data', response) });
         onSuccess(response, _isUpdate);
@@ -200,7 +212,7 @@ export const useFetch = <
       timer && clearTimeout(timer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [payload, isPass, force, ...inputs]);
+  }, [payload, search, isPass, force, ...inputs]);
 
   /* 返回一个将互斥的状态还原的对象，并通过键值设置某个值 */
   function getResetState(key: string, value: any) {

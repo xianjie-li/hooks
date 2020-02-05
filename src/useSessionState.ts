@@ -6,7 +6,9 @@ import {
 const BASE_KEY = 'USE_SESSION_STATE_CACHE';
 
 function setSessionState(key: string, beCache: any) {
-  window.sessionStorage.setItem(`${BASE_KEY}_${key.toUpperCase()}`, JSON.stringify(beCache));
+  if (beCache || beCache === 0) {
+    window.sessionStorage.setItem(`${BASE_KEY}_${key.toUpperCase()}`, JSON.stringify(beCache));
+  }
 }
 
 function getSessionState(key: string) {
