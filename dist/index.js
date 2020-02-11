@@ -163,13 +163,13 @@ function _objectSpread2(target) {
     var source = arguments[i] != null ? arguments[i] : {};
 
     if (i % 2) {
-      ownKeys(source, true).forEach(function (key) {
+      ownKeys(Object(source), true).forEach(function (key) {
         _defineProperty(target, key, source[key]);
       });
     } else if (Object.getOwnPropertyDescriptors) {
       Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
     } else {
-      ownKeys(source).forEach(function (key) {
+      ownKeys(Object(source)).forEach(function (key) {
         Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
       });
     }
@@ -281,6 +281,7 @@ function useSessionState(key, initialState, option) {
 
       if (cache !== null) {
         // null以外的值都视为缓存
+        console.log(key, cache);
         return cache;
       }
     }
@@ -361,7 +362,9 @@ var useFetch = function useFetch(method) {
       onTimeout = _options$onTimeout === void 0 ? placeHolderFn : _options$onTimeout;
   var isCache = !!cacheKey && !isPost; // 包含用于缓存的key并且非isPost时，缓存才会生效
 
+  var _initData = initData instanceof Function ? initData() : initData;
   /* pass规则：为函数时取返回值，函数内部报错时取false，否则直接取pass的值 */
+
 
   var isPass = pass;
 
@@ -375,6 +378,7 @@ var useFetch = function useFetch(method) {
 
   var self = useSelf({
     isUpdate: false,
+    isManual: false,
     lastFetch: Date.now()
   });
   var isInit = useIsInitMount();
@@ -407,13 +411,13 @@ var useFetch = function useFetch(method) {
       setSearch = _useSessionState2[1]; // 同步props _search 到 state search
 
 
-  react.useEffect(function () {
+  reactUse.useUpdateEffect(function () {
     setSearch(_search); // eslint-disable-next-line
   }, [_search]);
   /* 常用关联值存一个state减少更新 */
 
   var _useSessionSetState5 = useSessionSetState("".concat(cacheKey, "_FETCH_STATES"), {
-    data: initData instanceof Function ? initData() : initData,
+    data: _initData,
     loading: false,
     error: undefined,
     timeout: false
@@ -451,14 +455,18 @@ var useFetch = function useFetch(method) {
 
   }, _toConsumableArray(inputs));
   react.useEffect(function fetchHandle() {
-    var ignore = false;
-    var timer;
     var _isUpdate = self.isUpdate;
-    self.isUpdate = false; // 初始化时，如果isPost则跳过
+    var _isManual = self.isManual;
+    self.isUpdate = false;
+    self.isManual = false; // 处理post请求
 
-    if (isInit && isPost) {
+    if (isPost && !_isManual) {
+      setState(_objectSpread2({}, getResetState('data', _initData)));
       return;
     }
+
+    var ignore = false;
+    var timer;
 
     function fetcher() {
       return _fetcher.apply(this, arguments);
@@ -482,7 +490,7 @@ var useFetch = function useFetch(method) {
                 }, timeout);
                 _context.prev = 3;
                 _context.next = 6;
-                return method(search !== undefined && search ? search : payload);
+                return method(search !== undefined ? search : payload);
 
               case 6:
                 response = _context.sent;
@@ -533,8 +541,6 @@ var useFetch = function useFetch(method) {
 
     if (isPass) {
       fetcher().then();
-    } else {
-      self.isUpdate = false;
     }
 
     return function () {
@@ -579,7 +585,8 @@ var useFetch = function useFetch(method) {
   var send = react.useCallback(_send, [update]);
 
   function _send(_payload) {
-    if (!isPass) return;
+    if (!isPass || !isPost) return;
+    self.isManual = true;
     _payload ? setOverPayload(_payload) : update();
   }
 
@@ -589,6 +596,7 @@ var useFetch = function useFetch(method) {
     setOverPayload: setOverPayload,
     update: update,
     send: send,
+    search: search,
     setData: memoSetState,
     extraData: extraData,
     setExtraData: setExtraData

@@ -30,7 +30,7 @@ export interface UseFetchOptions<Payload, Data, ExtraData> {
 }
 export interface UseFetchReturns<Payload, Data, ExtraData> {
     /** method方法resolve时，data为它resolve的值 */
-    data: Data;
+    data: Data | undefined;
     /** 正在进行请求。该状态为互斥状态 */
     loading: boolean;
     /** method方法reject时，error为它reject的值。该状态为互斥状态 */
@@ -39,6 +39,8 @@ export interface UseFetchReturns<Payload, Data, ExtraData> {
     timeout: boolean;
     /** 当前用于请求的payload */
     payload: Payload;
+    /** 当前的search */
+    search: string;
     /** 设置payload并触发请求, 使用方式同类组件的setState() */
     setPayload: (patch: Partial<Payload> | ((payload: Payload) => Partial<Payload>)) => void;
     /** 设置payload并触发请求, 它会覆盖掉原有状态 */

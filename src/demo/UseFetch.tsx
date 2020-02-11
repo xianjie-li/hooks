@@ -4,6 +4,7 @@ import { useFetch, useCustomEvent, customEventEmit } from '../index';
 
 function mock<D>(success: boolean, data: D, ms = 1800) {
   return (arg: any) => {
+    console.log(123, ms);
     return new Promise<D>((resolve, reject) => {
       setTimeout(() => {
         success ? resolve(data) : reject(new Error('发生错误了!!!'));
@@ -26,6 +27,15 @@ const UseFetch = () => {
   const [dep, setDep] = React.useState(0);
   const [name, setName] = React.useState('lxj');
 
+  // useFetch(
+  //   mock(true, { name: 'lxj', age: Math.random() }, 1500),
+  //   // @ts-ignore
+  //   // mock(false, { code: 110, msg: '发生错误啦！' }),
+  //   {
+  //     inputs: [dep],
+  //   },
+  // );
+
   const res = useFetch(
     mock(true, { name: 'lxj', age: Math.random() }, 1000),
     // @ts-ignore
@@ -34,8 +44,8 @@ const UseFetch = () => {
       pass: true,
       inputs: [dep],
       cacheKey: 'test1',
-      isPost: true,
-      initData: ({ name: 'xxx' }),
+      // isPost: true,
+      // initData: ({ name: 'xxx' }),
       search: '?name=' + name,
       initPayload: { page: 1, sort: 5 },
       initExtraData: {
@@ -57,6 +67,8 @@ const UseFetch = () => {
     },
   );
 
+  console.log(res);
+
   useCustomEvent('update', () => {
     res.update();
   }, []);
@@ -69,7 +81,7 @@ const UseFetch = () => {
       <div>data: {JSON.stringify(res.data)}</div>
       <div>payload: {JSON.stringify(res.payload)}</div>
       <div>extraData: {JSON.stringify(res.extraData)}</div>
-      <div>search: {'?name=' + name}</div>
+      <div>search: {res.search}</div>
 
       <div>method:</div>
       <div>
@@ -100,7 +112,7 @@ const UseFetch = () => {
           type="button"
           onClick={() => {
             res.send({
-              page: 123123,
+              page: Math.random(),
             // sort: 4321432,
             });
           }}

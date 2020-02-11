@@ -1,8 +1,8 @@
 import { createBreakpoint, useUpdateEffect, useFirstMountState, useLockBodyScroll as useLockBodyScroll$1 } from 'react-use';
 import { useRef, useEffect, useState, useCallback } from 'react';
 import _regeneratorRuntime from '@babel/runtime/regenerator';
-import _defineProperty from '@babel/runtime/helpers/esm/defineProperty';
 import _asyncToGenerator from '@babel/runtime/helpers/esm/asyncToGenerator';
+import _defineProperty from '@babel/runtime/helpers/esm/defineProperty';
 import _toConsumableArray from '@babel/runtime/helpers/esm/toConsumableArray';
 import _slicedToArray from '@babel/runtime/helpers/esm/slicedToArray';
 import { isFunction } from '@lxjx/utils';
@@ -133,6 +133,7 @@ function useSessionState(key, initialState, option) {
 
       if (cache !== null) {
         // null以外的值都视为缓存
+        console.log(key, cache);
         return cache;
       }
     }
@@ -199,8 +200,8 @@ var useFetch = function useFetch(method) {
       pass = _options$pass === void 0 ? true : _options$pass,
       _options$inputs = options.inputs,
       inputs = _options$inputs === void 0 ? [] : _options$inputs,
-      _options$initFetch = options.initFetch,
-      initFetch = _options$initFetch === void 0 ? true : _options$initFetch,
+      _options$isPost = options.isPost,
+      isPost = _options$isPost === void 0 ? false : _options$isPost,
       initData = options.initData,
       initPayload = options.initPayload,
       initExtraData = options.initExtraData,
@@ -217,8 +218,11 @@ var useFetch = function useFetch(method) {
       onComplete = _options$onComplete === void 0 ? placeHolderFn : _options$onComplete,
       _options$onTimeout = options.onTimeout,
       onTimeout = _options$onTimeout === void 0 ? placeHolderFn : _options$onTimeout;
-  var isCache = !!cacheKey;
+  var isCache = !!cacheKey && !isPost; // 包含用于缓存的key并且非isPost时，缓存才会生效
+
+  var _initData = initData instanceof Function ? initData() : initData;
   /* pass规则：为函数时取返回值，函数内部报错时取false，否则直接取pass的值 */
+
 
   var isPass = pass;
 
@@ -232,6 +236,7 @@ var useFetch = function useFetch(method) {
 
   var self = useSelf({
     isUpdate: false,
+    isManual: false,
     lastFetch: Date.now()
   });
   var isInit = useIsInitMount();
@@ -264,13 +269,13 @@ var useFetch = function useFetch(method) {
       setSearch = _useSessionState2[1]; // 同步props _search 到 state search
 
 
-  useEffect(function () {
+  useUpdateEffect(function () {
     setSearch(_search); // eslint-disable-next-line
   }, [_search]);
   /* 常用关联值存一个state减少更新 */
 
   var _useSessionSetState5 = useSessionSetState("".concat(cacheKey, "_FETCH_STATES"), {
-    data: initData instanceof Function ? initData() : initData,
+    data: _initData,
     loading: false,
     error: undefined,
     timeout: false
@@ -284,10 +289,10 @@ var useFetch = function useFetch(method) {
 
 
   useEffect(function intervalHandle() {
-    var timter;
+    var timer;
 
     if (pollingInterval && pollingInterval > 500) {
-      timter = window.setInterval(function () {
+      timer = window.setInterval(function () {
         var now = Date.now();
         var last = self.lastFetch;
         var reFetch = now - last >= pollingInterval;
@@ -296,7 +301,7 @@ var useFetch = function useFetch(method) {
     }
 
     return function () {
-      timter && clearInterval(timter);
+      timer && clearInterval(timer);
     }; // eslint-disable-next-line
   }, [pollingInterval]);
   /* 将inputs改变标记为isUpdate */
@@ -308,15 +313,18 @@ var useFetch = function useFetch(method) {
 
   }, _toConsumableArray(inputs));
   useEffect(function fetchHandle() {
-    // 初始化时，如果initFetch为false则跳过
-    if (isInit && !initFetch) {
+    var _isUpdate = self.isUpdate;
+    var _isManual = self.isManual;
+    self.isUpdate = false;
+    self.isManual = false; // 处理post请求
+
+    if (isPost && !_isManual) {
+      setState(_objectSpread$1({}, getResetState('data', _initData)));
       return;
     }
 
     var ignore = false;
     var timer;
-    var _isUpdate = self.isUpdate;
-    self.isUpdate = false;
 
     function fetcher() {
       return _fetcher.apply(this, arguments);
@@ -340,7 +348,7 @@ var useFetch = function useFetch(method) {
                 }, timeout);
                 _context.prev = 3;
                 _context.next = 6;
-                return method(search !== undefined && search ? search : payload);
+                return method(search !== undefined ? search : payload);
 
               case 6:
                 response = _context.sent;
@@ -391,13 +399,11 @@ var useFetch = function useFetch(method) {
 
     if (isPass) {
       fetcher().then();
-    } else {
-      self.isUpdate = false;
     }
 
     return function () {
       ignore = true;
-      clearTimeout(timer);
+      timer && clearTimeout(timer);
     }; // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [payload, search, isPass, force].concat(_toConsumableArray(inputs)));
   /* 返回一个将互斥的状态还原的对象，并通过键值设置某个值 */
@@ -437,7 +443,8 @@ var useFetch = function useFetch(method) {
   var send = useCallback(_send, [update]);
 
   function _send(_payload) {
-    if (!isPass) return;
+    if (!isPass || !isPost) return;
+    self.isManual = true;
     _payload ? setOverPayload(_payload) : update();
   }
 
@@ -447,6 +454,7 @@ var useFetch = function useFetch(method) {
     setOverPayload: setOverPayload,
     update: update,
     send: send,
+    search: search,
     setData: memoSetState,
     extraData: extraData,
     setExtraData: setExtraData

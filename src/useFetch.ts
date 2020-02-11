@@ -3,6 +3,7 @@ import { useSelf } from './useSelf';
 import { useIsInitMount } from './useIsInitMount';
 import { useSessionSetState } from './useSessionSetState';
 import { useSessionState } from './useSessionState';
+import { useUpdateEffect } from 'react-use';
 
 import { placeHolderFn } from './util';
 
@@ -42,7 +43,7 @@ export interface UseFetchOptions<Payload, Data, ExtraData> {
 /* note: 互斥状态，与其他互斥状态不会共存，例如，当error存在时，同为互斥状态的timeout和loading会被还原为他们的初始值 */
 export interface UseFetchReturns<Payload, Data, ExtraData> {
   /** method方法resolve时，data为它resolve的值 */
-  data: Data;
+  data: Data | undefined;
   /** 正在进行请求。该状态为互斥状态 */
   loading: boolean;
   /** method方法reject时，error为它reject的值。该状态为互斥状态 */
@@ -51,6 +52,8 @@ export interface UseFetchReturns<Payload, Data, ExtraData> {
   timeout: boolean;
   /** 当前用于请求的payload */
   payload: Payload;
+  /** 当前的search */
+  search: string;
   /** 设置payload并触发请求, 使用方式同类组件的setState() */
   setPayload: (patch: Partial<Payload> | ((payload: Payload) => Partial<Payload>)) => void;
   /** 设置payload并触发请求, 它会覆盖掉原有状态 */
@@ -93,6 +96,7 @@ export const useFetch = <
   } = options;
 
   const isCache = !!cacheKey && !isPost; // 包含用于缓存的key并且非isPost时，缓存才会生效
+  const _initData = initData instanceof Function ? initData() : initData;
 
   /* pass规则：为函数时取返回值，函数内部报错时取false，否则直接取pass的值 */
   let isPass = pass;
@@ -106,6 +110,7 @@ export const useFetch = <
 
   const self = useSelf({
     isUpdate: false,
+    isManual: false,
     lastFetch: Date.now(), // 对上一次请求的时间进行标记，用于处理轮询等状态
   });
 
@@ -119,7 +124,7 @@ export const useFetch = <
 
   const [search, setSearch] = useSessionState(`${cacheKey}_FETCH_SEARCH`, _search, { disable: !isCache });
   // 同步props _search 到 state search
-  useEffect(() => {
+  useUpdateEffect(() => {
     setSearch(_search);
     // eslint-disable-next-line
   }, [_search]);
@@ -131,7 +136,7 @@ export const useFetch = <
     error: any;
     timeout: boolean;
   }>(`${cacheKey}_FETCH_STATES`, {
-    data: initData instanceof Function ? initData() : initData,
+    data: _initData,
     loading: false,
     error: undefined,
     timeout: false,
@@ -165,15 +170,19 @@ export const useFetch = <
   }, [...inputs]);
 
   useEffect(function fetchHandle() {
-    let ignore = false;
-    let timer: any;
     const _isUpdate = self.isUpdate;
+    const _isManual = self.isManual;
     self.isUpdate = false;
+    self.isManual = false;
 
-    // 初始化时，如果isPost则跳过
-    if (isInit && isPost) {
+    // 处理post请求
+    if (isPost && !_isManual) {
+      setState({ ...getResetState('data', _initData) });
       return;
     }
+
+    let ignore = false;
+    let timer: any;
 
     async function fetcher() {
       setState({ ...getResetState('loading', true) });
@@ -187,7 +196,7 @@ export const useFetch = <
 
       try {
         // search存在时取search
-        const response: Data = await method((search !== undefined && search) ? search : payload);
+        const response: Data = await method(search !== undefined ? search : payload);
         if (ignore) return;
         setState({ ...getResetState('data', response) });
         onSuccess(response, _isUpdate);
@@ -203,8 +212,6 @@ export const useFetch = <
 
     if (isPass) {
       fetcher().then();
-    } else {
-      self.isUpdate = false;
     }
 
     return () => {
@@ -241,7 +248,8 @@ export const useFetch = <
 
   const send = useCallback(_send, [update]);
   function _send(_payload?: Payload) {
-    if (!isPass) return;
+    if (!isPass || !isPost) return;
+    self.isManual = true;
     _payload
       ? setOverPayload(_payload)
       : update();
@@ -254,6 +262,7 @@ export const useFetch = <
     setOverPayload,
     update,
     send,
+    search,
     setData: memoSetState,
     extraData,
     setExtraData,
