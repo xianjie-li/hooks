@@ -347,7 +347,7 @@ var useFetch = function useFetch(method) {
       initData = options.initData,
       initPayload = options.initPayload,
       initExtraData = options.initExtraData,
-      _search = options.search,
+      search = options.search,
       _options$timeout = options.timeout,
       timeout = _options$timeout === void 0 ? 8000 : _options$timeout,
       pollingInterval = options.pollingInterval,
@@ -402,19 +402,8 @@ var useFetch = function useFetch(method) {
       _useSessionSetState4 = _slicedToArray(_useSessionSetState3, 2),
       extraData = _useSessionSetState4[0],
       setExtraData = _useSessionSetState4[1];
-
-  var _useSessionState = useSessionState("".concat(cacheKey, "_FETCH_SEARCH"), _search, {
-    disable: !isCache
-  }),
-      _useSessionState2 = _slicedToArray(_useSessionState, 2),
-      search = _useSessionState2[0],
-      setSearch = _useSessionState2[1]; // 同步props _search 到 state search
-
-
-  reactUse.useUpdateEffect(function () {
-    setSearch(_search); // eslint-disable-next-line
-  }, [_search]);
   /* 常用关联值存一个state减少更新 */
+
 
   var _useSessionSetState5 = useSessionSetState("".concat(cacheKey, "_FETCH_STATES"), {
     data: _initData,

@@ -85,7 +85,7 @@ export const useFetch = <
     initData,
     initPayload,
     initExtraData,
-    search: _search,
+    search,
     timeout = 8000,
     pollingInterval,
     cacheKey,
@@ -121,13 +121,6 @@ export const useFetch = <
   const [payload, setPayload, setOverPayload] = useSessionSetState<Payload>(`${cacheKey}_FETCH_PAYLOAD`, initPayload, { disable: !isCache });
 
   const [extraData, setExtraData] = useSessionSetState<ExtraData>(`${cacheKey}_FETCH_EXTRA`, initExtraData, { disable: !isCache });
-
-  const [search, setSearch] = useSessionState(`${cacheKey}_FETCH_SEARCH`, _search, { disable: !isCache });
-  // 同步props _search 到 state search
-  useUpdateEffect(() => {
-    setSearch(_search);
-    // eslint-disable-next-line
-  }, [_search]);
 
   /* 常用关联值存一个state减少更新 */
   const [state, setState] = useSessionSetState<{
