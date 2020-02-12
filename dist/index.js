@@ -281,7 +281,6 @@ function useSessionState(key, initialState, option) {
 
       if (cache !== null) {
         // null以外的值都视为缓存
-        console.log(key, cache);
         return cache;
       }
     }
@@ -323,6 +322,24 @@ var useSessionSetState = function useSessionSetState(key) {
       _useSessionState2 = _slicedToArray(_useSessionState, 2),
       state = _useSessionState2[0],
       set = _useSessionState2[1];
+
+  var setState = react.useCallback(function (patch) {
+    set(function (prevState) {
+      return _objectSpread2({}, prevState, {}, patch instanceof Function ? patch(prevState) : patch);
+    });
+  }, [set]);
+  return [state, setState, set];
+};
+
+/* 与react-use的useSetState一样, 但是额外返回了一个setOverState用于覆盖状态 */
+
+var useSetState = function useSetState() {
+  var initialState = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  var _useState = react.useState(initialState),
+      _useState2 = _slicedToArray(_useState, 2),
+      state = _useState2[0],
+      set = _useState2[1];
 
   var setState = react.useCallback(function (patch) {
     set(function (prevState) {
@@ -402,20 +419,24 @@ var useFetch = function useFetch(method) {
       _useSessionSetState4 = _slicedToArray(_useSessionSetState3, 2),
       extraData = _useSessionSetState4[0],
       setExtraData = _useSessionSetState4[1];
+
+  var _useSessionState = useSessionState("".concat(cacheKey, "_FETCH_DATA"), _initData, {
+    disable: !isCache
+  }),
+      _useSessionState2 = _slicedToArray(_useSessionState, 2),
+      data = _useSessionState2[0],
+      setData = _useSessionState2[1];
   /* 常用关联值存一个state减少更新 */
 
 
-  var _useSessionSetState5 = useSessionSetState("".concat(cacheKey, "_FETCH_STATES"), {
-    data: _initData,
-    loading: false,
+  var _useSetState = useSetState({
+    loading: !isPost,
     error: undefined,
     timeout: false
-  }, {
-    disable: !isCache
   }),
-      _useSessionSetState6 = _slicedToArray(_useSessionSetState5, 2),
-      state = _useSessionSetState6[0],
-      setState = _useSessionSetState6[1];
+      _useSetState2 = _slicedToArray(_useSetState, 2),
+      state = _useSetState2[0],
+      setState = _useSetState2[1];
   /* 轮询处理 */
 
 
@@ -440,7 +461,7 @@ var useFetch = function useFetch(method) {
   react.useEffect(function flagUpdate() {
     if (!isInit) {
       self.isUpdate = true;
-    } // eslint-disable-next-line react-hooks/exhaustive-deps
+    } // eslint-disable-next-line
 
   }, _toConsumableArray(inputs));
   react.useEffect(function fetchHandle() {
@@ -450,7 +471,9 @@ var useFetch = function useFetch(method) {
     self.isManual = false; // 处理post请求
 
     if (isPost && !_isManual) {
-      setState(_objectSpread2({}, getResetState('data', _initData)));
+      setState({
+        loading: false
+      });
       return;
     }
 
@@ -470,7 +493,10 @@ var useFetch = function useFetch(method) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                setState(_objectSpread2({}, getResetState('loading', true)));
+                if (!state.loading) {
+                  setState(_objectSpread2({}, getResetState('loading', true)));
+                }
+
                 self.lastFetch = Date.now();
                 timer = setTimeout(function () {
                   ignore = true;
@@ -492,38 +518,39 @@ var useFetch = function useFetch(method) {
                 return _context.abrupt("return");
 
               case 9:
-                setState(_objectSpread2({}, getResetState('data', response)));
+                setData(response);
+                setState(_objectSpread2({}, getResetState('loading', false)));
                 onSuccess(response, _isUpdate);
-                _context.next = 19;
+                _context.next = 20;
                 break;
 
-              case 13:
-                _context.prev = 13;
+              case 14:
+                _context.prev = 14;
                 _context.t0 = _context["catch"](3);
 
                 if (!ignore) {
-                  _context.next = 17;
+                  _context.next = 18;
                   break;
                 }
 
                 return _context.abrupt("return");
 
-              case 17:
+              case 18:
                 setState(_objectSpread2({}, getResetState('error', _context.t0)));
                 onError(_context.t0);
 
-              case 19:
-                _context.prev = 19;
+              case 20:
+                _context.prev = 20;
                 !ignore && onComplete();
                 clearTimeout(timer);
-                return _context.finish(19);
+                return _context.finish(20);
 
-              case 23:
+              case 24:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, null, [[3, 13, 19, 23]]);
+        }, _callee, null, [[3, 14, 20, 24]]);
       }));
       return _fetcher.apply(this, arguments);
     }
@@ -535,9 +562,9 @@ var useFetch = function useFetch(method) {
     return function () {
       ignore = true;
       timer && clearTimeout(timer);
-    }; // eslint-disable-next-line react-hooks/exhaustive-deps
+    }; // eslint-disable-next-line
   }, [payload, search, isPass, force].concat(_toConsumableArray(inputs)));
-  /* 返回一个将互斥的状态还原的对象，并通过键值设置某个值 */
+  /* 返回一个将互斥的状态还原的对象，并通过键值覆盖设置某个值 */
 
   function getResetState(key, value) {
     return _defineProperty({
@@ -545,20 +572,6 @@ var useFetch = function useFetch(method) {
       error: undefined,
       timeout: false
     }, key, value);
-  }
-
-  var memoSetState = react.useCallback(_setState, [setState]);
-
-  function _setState(patch) {
-    setState(function (_ref2) {
-      var data = _ref2.data;
-
-      var _patch = utils.isFunction(patch) ? patch(data) : patch;
-
-      return {
-        data: _objectSpread2({}, data, {}, _patch)
-      };
-    });
   }
 
   var update = react.useCallback(_update, [isPass]);
@@ -580,13 +593,14 @@ var useFetch = function useFetch(method) {
   }
 
   return _objectSpread2({}, state, {
+    data: data,
     payload: payload,
     setPayload: setPayload,
     setOverPayload: setOverPayload,
     update: update,
     send: send,
     search: search,
-    setData: memoSetState,
+    setData: setData,
     extraData: extraData,
     setExtraData: setExtraData
   });
@@ -763,6 +777,7 @@ var useLockBodyScroll = function useLockBodyScroll(locked, elementRef) {
 /**
  * 用于便捷的获取或设置react-router v5的query string
  * @interface <Query> - any | 查询对象的接口格式
+ * @param defaultSearch - 默认查询
  * @return result
  * @return result.search - 原始查询字符串
  * @return result.queryObject - 根据search解析得到的对象
@@ -770,7 +785,7 @@ var useLockBodyScroll = function useLockBodyScroll(locked, elementRef) {
  * @return result.coverSet - 同set，区别是会重置掉所有search并设置为传入的查询对象
  * */
 
-function useQuery() {
+function useQuery(defaultSearch) {
   var _useHistory = reactRouterDom.useHistory(),
       replace = _useHistory.replace;
 
@@ -779,7 +794,23 @@ function useQuery() {
       pathname = _useLocation.pathname,
       hash = _useLocation.hash;
 
-  var queryObject = qs.parse(search);
+  var _default = react.useMemo(function () {
+    if (defaultSearch) {
+      if (typeof defaultSearch === 'string') {
+        return qs.parse(defaultSearch);
+      }
+
+      return defaultSearch;
+    }
+
+    return {}; // eslint-disable-next-line
+  }, []);
+
+  var queryObject = react.useMemo(function () {
+    return _objectSpread2({}, _default, {}, qs.parse(search));
+  }, [_default, search]);
+
+  var _search = qs.stringify(queryObject);
 
   function navWidthNewSearch(newQO) {
     replace("".concat(pathname, "?").concat(qs.stringify(newQO)).concat(hash));
@@ -791,33 +822,15 @@ function useQuery() {
     navWidthNewSearch(newQueryObject); // eslint-disable-next-line
   }, [search]);
   var coverSet = react.useCallback(function (queryItem) {
-    navWidthNewSearch(queryItem); // eslint-disable-next-line
+    navWidthNewSearch(_objectSpread2({}, _default, {}, queryItem)); // eslint-disable-next-line
   }, [search]);
   return {
-    search: search,
+    search: _search ? "?".concat(_search) : '',
     queryObject: queryObject,
     set: set,
     coverSet: coverSet
   };
 }
-
-/* 与react-use的useSetState一样, 但是额外返回了一个setOverState用于覆盖状态 */
-
-var useSetState = function useSetState() {
-  var initialState = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-  var _useState = react.useState(initialState),
-      _useState2 = _slicedToArray(_useState, 2),
-      state = _useState2[0],
-      set = _useState2[1];
-
-  var setState = react.useCallback(function (patch) {
-    set(function (prevState) {
-      return _objectSpread2({}, prevState, {}, patch instanceof Function ? patch(prevState) : patch);
-    });
-  }, [set]);
-  return [state, setState, set];
-};
 
 /**
  * 可以把它理解为类组件setState API风格的useSelf，但它包含以下特点

@@ -1,8 +1,8 @@
 import { createBreakpoint, useUpdateEffect, useFirstMountState, useLockBodyScroll as useLockBodyScroll$1 } from 'react-use';
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import _regeneratorRuntime from '@babel/runtime/regenerator';
-import _asyncToGenerator from '@babel/runtime/helpers/esm/asyncToGenerator';
 import _defineProperty from '@babel/runtime/helpers/esm/defineProperty';
+import _asyncToGenerator from '@babel/runtime/helpers/esm/asyncToGenerator';
 import _toConsumableArray from '@babel/runtime/helpers/esm/toConsumableArray';
 import _slicedToArray from '@babel/runtime/helpers/esm/slicedToArray';
 import { isFunction } from '@lxjx/utils';
@@ -133,7 +133,6 @@ function useSessionState(key, initialState, option) {
 
       if (cache !== null) {
         // null以外的值都视为缓存
-        console.log(key, cache);
         return cache;
       }
     }
@@ -187,13 +186,34 @@ var useSessionSetState = function useSessionSetState(key) {
   return [state, setState, set];
 };
 
+function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$1(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+/* 与react-use的useSetState一样, 但是额外返回了一个setOverState用于覆盖状态 */
+
+var useSetState = function useSetState() {
+  var initialState = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  var _useState = useState(initialState),
+      _useState2 = _slicedToArray(_useState, 2),
+      state = _useState2[0],
+      set = _useState2[1];
+
+  var setState = useCallback(function (patch) {
+    set(function (prevState) {
+      return _objectSpread$1({}, prevState, {}, patch instanceof Function ? patch(prevState) : patch);
+    });
+  }, [set]);
+  return [state, setState, set];
+};
+
 var placeHolderFn = function placeHolderFn() {
   return undefined;
 };
 
-function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$2(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$1(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+function _objectSpread$2(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$2(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$2(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 var useFetch = function useFetch(method) {
   var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
   var _options$pass = options.pass,
@@ -260,20 +280,24 @@ var useFetch = function useFetch(method) {
       _useSessionSetState4 = _slicedToArray(_useSessionSetState3, 2),
       extraData = _useSessionSetState4[0],
       setExtraData = _useSessionSetState4[1];
+
+  var _useSessionState = useSessionState("".concat(cacheKey, "_FETCH_DATA"), _initData, {
+    disable: !isCache
+  }),
+      _useSessionState2 = _slicedToArray(_useSessionState, 2),
+      data = _useSessionState2[0],
+      setData = _useSessionState2[1];
   /* 常用关联值存一个state减少更新 */
 
 
-  var _useSessionSetState5 = useSessionSetState("".concat(cacheKey, "_FETCH_STATES"), {
-    data: _initData,
-    loading: false,
+  var _useSetState = useSetState({
+    loading: !isPost,
     error: undefined,
     timeout: false
-  }, {
-    disable: !isCache
   }),
-      _useSessionSetState6 = _slicedToArray(_useSessionSetState5, 2),
-      state = _useSessionSetState6[0],
-      setState = _useSessionSetState6[1];
+      _useSetState2 = _slicedToArray(_useSetState, 2),
+      state = _useSetState2[0],
+      setState = _useSetState2[1];
   /* 轮询处理 */
 
 
@@ -298,7 +322,7 @@ var useFetch = function useFetch(method) {
   useEffect(function flagUpdate() {
     if (!isInit) {
       self.isUpdate = true;
-    } // eslint-disable-next-line react-hooks/exhaustive-deps
+    } // eslint-disable-next-line
 
   }, _toConsumableArray(inputs));
   useEffect(function fetchHandle() {
@@ -308,7 +332,9 @@ var useFetch = function useFetch(method) {
     self.isManual = false; // 处理post请求
 
     if (isPost && !_isManual) {
-      setState(_objectSpread$1({}, getResetState('data', _initData)));
+      setState({
+        loading: false
+      });
       return;
     }
 
@@ -328,12 +354,15 @@ var useFetch = function useFetch(method) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                setState(_objectSpread$1({}, getResetState('loading', true)));
+                if (!state.loading) {
+                  setState(_objectSpread$2({}, getResetState('loading', true)));
+                }
+
                 self.lastFetch = Date.now();
                 timer = setTimeout(function () {
                   ignore = true;
                   onTimeout();
-                  setState(_objectSpread$1({}, getResetState('timeout', true)));
+                  setState(_objectSpread$2({}, getResetState('timeout', true)));
                 }, timeout);
                 _context.prev = 3;
                 _context.next = 6;
@@ -350,38 +379,39 @@ var useFetch = function useFetch(method) {
                 return _context.abrupt("return");
 
               case 9:
-                setState(_objectSpread$1({}, getResetState('data', response)));
+                setData(response);
+                setState(_objectSpread$2({}, getResetState('loading', false)));
                 onSuccess(response, _isUpdate);
-                _context.next = 19;
+                _context.next = 20;
                 break;
 
-              case 13:
-                _context.prev = 13;
+              case 14:
+                _context.prev = 14;
                 _context.t0 = _context["catch"](3);
 
                 if (!ignore) {
-                  _context.next = 17;
+                  _context.next = 18;
                   break;
                 }
 
                 return _context.abrupt("return");
 
-              case 17:
-                setState(_objectSpread$1({}, getResetState('error', _context.t0)));
+              case 18:
+                setState(_objectSpread$2({}, getResetState('error', _context.t0)));
                 onError(_context.t0);
 
-              case 19:
-                _context.prev = 19;
+              case 20:
+                _context.prev = 20;
                 !ignore && onComplete();
                 clearTimeout(timer);
-                return _context.finish(19);
+                return _context.finish(20);
 
-              case 23:
+              case 24:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, null, [[3, 13, 19, 23]]);
+        }, _callee, null, [[3, 14, 20, 24]]);
       }));
       return _fetcher.apply(this, arguments);
     }
@@ -393,9 +423,9 @@ var useFetch = function useFetch(method) {
     return function () {
       ignore = true;
       timer && clearTimeout(timer);
-    }; // eslint-disable-next-line react-hooks/exhaustive-deps
+    }; // eslint-disable-next-line
   }, [payload, search, isPass, force].concat(_toConsumableArray(inputs)));
-  /* 返回一个将互斥的状态还原的对象，并通过键值设置某个值 */
+  /* 返回一个将互斥的状态还原的对象，并通过键值覆盖设置某个值 */
 
   function getResetState(key, value) {
     return _defineProperty({
@@ -403,20 +433,6 @@ var useFetch = function useFetch(method) {
       error: undefined,
       timeout: false
     }, key, value);
-  }
-
-  var memoSetState = useCallback(_setState, [setState]);
-
-  function _setState(patch) {
-    setState(function (_ref2) {
-      var data = _ref2.data;
-
-      var _patch = isFunction(patch) ? patch(data) : patch;
-
-      return {
-        data: _objectSpread$1({}, data, {}, _patch)
-      };
-    });
   }
 
   var update = useCallback(_update, [isPass]);
@@ -437,22 +453,23 @@ var useFetch = function useFetch(method) {
     _payload ? setOverPayload(_payload) : update();
   }
 
-  return _objectSpread$1({}, state, {
+  return _objectSpread$2({}, state, {
+    data: data,
     payload: payload,
     setPayload: setPayload,
     setOverPayload: setOverPayload,
     update: update,
     send: send,
     search: search,
-    setData: memoSetState,
+    setData: setData,
     extraData: extraData,
     setExtraData: setExtraData
   });
 };
 
-function ownKeys$2(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$3(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$2(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$2(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$2(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+function _objectSpread$3(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$3(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$3(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 var VALUE = 'value';
 var DEFAULT_VALUE = 'defaultValue';
 var TRIGGER = 'onChange';
@@ -469,7 +486,7 @@ function formStateMap(props, _ref) {
       defaultValue = _ref.defaultValue,
       trigger = _ref.trigger;
 
-  var _props = _objectSpread$2({}, props);
+  var _props = _objectSpread$3({}, props);
 
   if (value && value in props) {
     _props[VALUE] = props[value];
@@ -621,12 +638,13 @@ var useLockBodyScroll = function useLockBodyScroll(locked, elementRef) {
   return useLockBodyScroll$1(locked, elementRef);
 };
 
-function ownKeys$3(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$4(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$3(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$3(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$3(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+function _objectSpread$4(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$4(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$4(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 /**
  * 用于便捷的获取或设置react-router v5的query string
  * @interface <Query> - any | 查询对象的接口格式
+ * @param defaultSearch - 默认查询
  * @return result
  * @return result.search - 原始查询字符串
  * @return result.queryObject - 根据search解析得到的对象
@@ -634,7 +652,7 @@ function _objectSpread$3(target) { for (var i = 1; i < arguments.length; i++) { 
  * @return result.coverSet - 同set，区别是会重置掉所有search并设置为传入的查询对象
  * */
 
-function useQuery() {
+function useQuery(defaultSearch) {
   var _useHistory = useHistory(),
       replace = _useHistory.replace;
 
@@ -643,48 +661,43 @@ function useQuery() {
       pathname = _useLocation.pathname,
       hash = _useLocation.hash;
 
-  var queryObject = qs.parse(search);
+  var _default = useMemo(function () {
+    if (defaultSearch) {
+      if (typeof defaultSearch === 'string') {
+        return qs.parse(defaultSearch);
+      }
+
+      return defaultSearch;
+    }
+
+    return {}; // eslint-disable-next-line
+  }, []);
+
+  var queryObject = useMemo(function () {
+    return _objectSpread$4({}, _default, {}, qs.parse(search));
+  }, [_default, search]);
+
+  var _search = qs.stringify(queryObject);
 
   function navWidthNewSearch(newQO) {
     replace("".concat(pathname, "?").concat(qs.stringify(newQO)).concat(hash));
   }
 
   var set = useCallback(function (queryItem) {
-    var newQueryObject = _objectSpread$3({}, queryObject, {}, queryItem);
+    var newQueryObject = _objectSpread$4({}, queryObject, {}, queryItem);
 
     navWidthNewSearch(newQueryObject); // eslint-disable-next-line
   }, [search]);
   var coverSet = useCallback(function (queryItem) {
-    navWidthNewSearch(queryItem); // eslint-disable-next-line
+    navWidthNewSearch(_objectSpread$4({}, _default, {}, queryItem)); // eslint-disable-next-line
   }, [search]);
   return {
-    search: search,
+    search: _search ? "?".concat(_search) : '',
     queryObject: queryObject,
     set: set,
     coverSet: coverSet
   };
 }
-
-function ownKeys$4(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread$4(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$4(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$4(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-/* 与react-use的useSetState一样, 但是额外返回了一个setOverState用于覆盖状态 */
-
-var useSetState = function useSetState() {
-  var initialState = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-  var _useState = useState(initialState),
-      _useState2 = _slicedToArray(_useState, 2),
-      state = _useState2[0],
-      set = _useState2[1];
-
-  var setState = useCallback(function (patch) {
-    set(function (prevState) {
-      return _objectSpread$4({}, prevState, {}, patch instanceof Function ? patch(prevState) : patch);
-    });
-  }, [set]);
-  return [state, setState, set];
-};
 
 /**
  * 可以把它理解为类组件setState API风格的useSelf，但它包含以下特点

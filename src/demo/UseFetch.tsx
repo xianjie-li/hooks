@@ -44,7 +44,7 @@ const UseFetch = () => {
       pass: true,
       inputs: [dep],
       cacheKey: 'test1',
-      // isPost: true,
+      isPost: true,
       // initData: ({ name: 'xxx' }),
       search: '?name=' + name,
       initPayload: { page: 1, sort: 5 },

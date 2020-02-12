@@ -3,13 +3,15 @@ import { useSelf } from './useSelf';
 import { useIsInitMount } from './useIsInitMount';
 import { useSessionSetState } from './useSessionSetState';
 import { useSessionState } from './useSessionState';
-import { useUpdateEffect } from 'react-use';
+import { useSetState } from './useSetState';
 
 import { placeHolderFn } from './util';
 
 import { isFunction } from '@lxjx/utils';
 
-export interface UseFetchOptions<Payload, Data, ExtraData> {
+/* TODO: 类型声明优化 [any, any] */
+
+export interface UseFetchOptions<Data, Payload, ExtraData> {
   /** true | 一个boolean或function，为false时，会阻止请求，为function时，取它的返回值，当函数内部抛出错误时，pass会被设置为false。可以用来实现串行请求。(不会阻止手动设置data等或payload操作) */
   pass?: boolean | (() => boolean);
   /** [] | 类似useEffect(fn, inputs)，当依赖数组内的值发生改变时，重新进行请求, 确保长度不会发生改变，传入引用类型时请先memo */
@@ -41,7 +43,7 @@ export interface UseFetchOptions<Payload, Data, ExtraData> {
 }
 
 /* note: 互斥状态，与其他互斥状态不会共存，例如，当error存在时，同为互斥状态的timeout和loading会被还原为他们的初始值 */
-export interface UseFetchReturns<Payload, Data, ExtraData> {
+export interface UseFetchReturns<Data, Payload, ExtraData> {
   /** method方法resolve时，data为它resolve的值 */
   data: Data | undefined;
   /** 正在进行请求。该状态为互斥状态 */
@@ -71,12 +73,12 @@ export interface UseFetchReturns<Payload, Data, ExtraData> {
 }
 
 export const useFetch = <
-  Payload extends object = any,
-  Data extends object = any,
-  ExtraData extends object = any
+  Data extends {} = any,
+  Payload extends {} = any,
+  ExtraData extends {} = any
   >(
-    method: (...arg: any[]) => Promise<Data>, // 一个Promise return函数或async函数，resolve的结果会作为data，失败时会将reject的值设置为error, timeout 由 useFetch 内部进行处理
-    options = {} as UseFetchOptions<Payload, Data, ExtraData>, // 配置当前的useFetch
+    method: (...arg: any[]) => Promise<any>, // 一个Promise return函数或async函数，resolve的结果会作为data，失败时会将reject的值设置为error, timeout 由 useFetch 内部进行处理
+    options = {} as UseFetchOptions<Data, Payload, ExtraData>, // 配置当前的useFetch
   ) => {
   const {
     pass = true,
@@ -122,18 +124,14 @@ export const useFetch = <
 
   const [extraData, setExtraData] = useSessionSetState<ExtraData>(`${cacheKey}_FETCH_EXTRA`, initExtraData, { disable: !isCache });
 
+  const [data, setData] = useSessionState<Data | undefined>(`${cacheKey}_FETCH_DATA`, _initData, { disable: !isCache });
+
   /* 常用关联值存一个state减少更新 */
-  const [state, setState] = useSessionSetState<{
-    data: Data | undefined;
-    loading: boolean;
-    error: any;
-    timeout: boolean;
-  }>(`${cacheKey}_FETCH_STATES`, {
-    data: _initData,
-    loading: false,
-    error: undefined,
-    timeout: false,
-  }, { disable: !isCache });
+  const [state, setState] = useSetState({
+    loading: !isPost,
+    error: undefined as any,
+    timeout: false as boolean,
+  });
 
   /* 轮询处理 */
   useEffect(function intervalHandle() {
@@ -159,7 +157,7 @@ export const useFetch = <
     if (!isInit) {
       self.isUpdate = true;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [...inputs]);
 
   useEffect(function fetchHandle() {
@@ -170,7 +168,7 @@ export const useFetch = <
 
     // 处理post请求
     if (isPost && !_isManual) {
-      setState({ ...getResetState('data', _initData) });
+      setState({ loading: false });
       return;
     }
 
@@ -178,7 +176,10 @@ export const useFetch = <
     let timer: any;
 
     async function fetcher() {
-      setState({ ...getResetState('loading', true) });
+      if (!state.loading) {
+        setState({ ...getResetState('loading', true) });
+      }
+
       self.lastFetch = Date.now();
 
       timer = setTimeout(() => {
@@ -191,7 +192,8 @@ export const useFetch = <
         // search存在时取search
         const response: Data = await method(search !== undefined ? search : payload);
         if (ignore) return;
-        setState({ ...getResetState('data', response) });
+        setData(response);
+        setState({ ...getResetState('loading', false) });
         onSuccess(response, _isUpdate);
       } catch (err) {
         if (ignore) return;
@@ -211,10 +213,10 @@ export const useFetch = <
       ignore = true;
       timer && clearTimeout(timer);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [payload, search, isPass, force, ...inputs]);
 
-  /* 返回一个将互斥的状态还原的对象，并通过键值设置某个值 */
+  /* 返回一个将互斥的状态还原的对象，并通过键值覆盖设置某个值 */
   function getResetState(key: string, value: any) {
     return {
       loading: false,
@@ -222,14 +224,6 @@ export const useFetch = <
       timeout: false,
       [key]: value,
     };
-  }
-
-  const memoSetState = useCallback(_setState, [setState]);
-  function _setState(patch: any) {
-    setState(({ data }) => {
-      const _patch = isFunction(patch) ? patch(data) : patch;
-      return { data: { ...data, ..._patch } };
-    });
   }
 
   const update = useCallback(_update, [isPass]);
@@ -250,14 +244,15 @@ export const useFetch = <
 
   return {
     ...state,
+    data,
     payload,
     setPayload,
     setOverPayload,
     update,
     send,
     search,
-    setData: memoSetState,
+    setData,
     extraData,
     setExtraData,
-  } as UseFetchReturns<Payload, Data, ExtraData>;
+  } as UseFetchReturns<Data, Payload, ExtraData>;
 };
