@@ -34,7 +34,6 @@ function useSessionState<S>(key: string, initialState?: any, option?: any) {
     if (!disable) {
       const cache = getSessionState(key);
       if (cache !== null) { // null以外的值都视为缓存
-        console.log(key, cache);
         return cache;
       }
     }
