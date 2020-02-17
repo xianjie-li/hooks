@@ -1,7 +1,6 @@
 <h1 align="center" style="color: #61dafb;">hooks</h1>
 <h1 align="center" style="font-size: 80px;color:#61dafb">📌</h1>
 <p align="center">Use Your Imagination</p>
-
 ## state
 
 ### `useSelf`
@@ -187,7 +186,58 @@ useSessionState('cache-key', 123, { disable: false });
 
 ## effect
 
-> no data
+### `useThrottle`
+
+> 一个更符合直觉的节流hook
+
+```ts
+const caller = useThrottle<FnType>(ms?, {
+  leading?: boolean;
+  trailing?: boolean;                    
+})
+```
+
+**FnType?** - 待调用的函数类型
+
+**ms?** - 300 | 节流时间
+
+**option?** - 其他配置
+
+**option.leading**? - 指定调用在节流开始前
+
+**option.trailing?** - 指定调用在节流开始前
+
+
+
+**示例**
+
+```ts
+function Demo() {
+    const caller = useThrottle<typeof handle>();
+    
+    function handle(position: Position) {
+        log(position);
+    }
+    
+    function onScroll({ x, y }) {
+        caller(handle, { x, y }); // 声明了`<typeof handle>` 后类型检测是可用的
+    }
+    
+    return (
+    	<Scroll onScroll={onScroll}>something</Scroll>
+    )
+}
+```
+
+
+
+> 💡 其他
+
+* 相对于 [react-use](https://github.com/streamich/react-use/blob/master/docs/useThrottle.md) 和 [umijs/hooks](https://hooks.umijs.org/side-effect/use-throttle-fn) ， 这种节流的方式不用考虑deps依赖值的改变和闭包的影响
+* 如果需要，同一个caller可以用于多个不同的函数，它们共享同一个hook配置
+* 参数与lodash完全一致😘
+
+
 
 <br>
 
@@ -203,7 +253,11 @@ useSessionState('cache-key', 123, { disable: false });
 
 > 通过hooks来进行颠覆性的数据请求
 
-`const bonus = useFetch(requestMethod, options?);`
+```ts
+const bonus = useFetch(requestMethod, options?);
+```
+
+
 
 **requestMethod**: 
 

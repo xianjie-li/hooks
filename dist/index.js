@@ -470,10 +470,13 @@ var useFetch = function useFetch(method) {
     self.isUpdate = false;
     self.isManual = false; // 处理post请求
 
-    if (isPost && !_isManual) {
-      setState({
-        loading: false
-      });
+    if (!isPass || isPost && !_isManual) {
+      if (state.loading) {
+        setState({
+          loading: false
+        });
+      }
+
       return;
     }
 
@@ -555,10 +558,7 @@ var useFetch = function useFetch(method) {
       return _fetcher.apply(this, arguments);
     }
 
-    if (isPass) {
-      fetcher().then();
-    }
-
+    fetcher().then();
     return function () {
       ignore = true;
       timer && clearTimeout(timer);
