@@ -167,8 +167,10 @@ export const useFetch = <
     self.isManual = false;
 
     // 处理post请求
-    if (isPost && !_isManual) {
-      setState({ loading: false });
+    if (!isPass || (isPost && !_isManual)) {
+      if (state.loading) {
+        setState({ loading: false });
+      }
       return;
     }
 
@@ -205,9 +207,7 @@ export const useFetch = <
       }
     }
 
-    if (isPass) {
-      fetcher().then();
-    }
+    fetcher().then();
 
     return () => {
       ignore = true;
