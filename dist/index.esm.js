@@ -1,4 +1,4 @@
-import { createBreakpoint, useUpdateEffect, useFirstMountState, useLockBodyScroll as useLockBodyScroll$1 } from 'react-use';
+import { createBreakpoint, useUpdateEffect, useLockBodyScroll as useLockBodyScroll$1 } from 'react-use';
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import _regeneratorRuntime from '@babel/runtime/regenerator';
 import _defineProperty from '@babel/runtime/helpers/esm/defineProperty';
@@ -608,12 +608,12 @@ var firstWidth = ''; // 保留第一个锁定是的style用于还原
 /** 基于react-use的useLockBodyScroll，隐藏时会对滚动条所占位置进行修正，防止页面抖动 */
 
 var useLockBodyScroll = function useLockBodyScroll(locked, elementRef) {
-  var firstMount = useFirstMountState();
   useEffect(function () {
     // 是否包含滚动条
     var hasScroll = hasScrollBar(document.documentElement); // 是否需要进行处理 包含滚动条 + locked为true + 非初始化
 
-    var doHandle = hasScroll && locked && !firstMount;
+    var doHandle = hasScroll && locked;
+    console.log(lockCount, doHandle);
 
     if (doHandle) {
       if (lockCount === 0) {
@@ -639,7 +639,7 @@ var useLockBodyScroll = function useLockBodyScroll(locked, elementRef) {
         }
       }
     };
-  }, [firstMount, locked]);
+  }, [locked]);
   return useLockBodyScroll$1(locked, elementRef);
 };
 

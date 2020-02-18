@@ -36,7 +36,6 @@ export const useLockBodyScroll: typeof useLibLockScroll = (locked, elementRef) =
     const hasScroll = hasScrollBar(document.documentElement);
     // 是否需要进行处理 包含滚动条 + locked为true + 非初始化
     const doHandle = hasScroll && locked;
-    console.log(lockCount, doHandle);
     if (doHandle) {
       if (lockCount === 0) {
         const bodyStyleWidth = document.body.style.width;
