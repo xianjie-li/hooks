@@ -9,8 +9,6 @@ import { placeHolderFn } from './util';
 
 import { isFunction } from '@lxjx/utils';
 
-/* TODO: 类型声明优化 [any, any] */
-
 export interface UseFetchOptions<Data, Payload, ExtraData> {
   /** true | 一个boolean或function，为false时，会阻止请求，为function时，取它的返回值，当函数内部抛出错误时，pass会被设置为false。可以用来实现串行请求。(不会阻止手动设置data等或payload操作) */
   pass?: boolean | (() => boolean);
@@ -77,7 +75,7 @@ export const useFetch = <
   Payload extends {} = any,
   ExtraData extends {} = any
   >(
-    method: (...arg: any[]) => Promise<any>, // 一个Promise return函数或async函数，resolve的结果会作为data，失败时会将reject的值设置为error, timeout 由 useFetch 内部进行处理
+    method: ((...arg: any[]) => Promise<any>) | boolean, // 一个Promise return函数或async函数，resolve的结果会作为data，失败时会将reject的值设置为error, timeout 由 useFetch 内部进行处理
     options = {} as UseFetchOptions<Data, Payload, ExtraData>, // 配置当前的useFetch
   ) => {
   const {
@@ -128,7 +126,7 @@ export const useFetch = <
 
   /* 常用关联值存一个state减少更新 */
   const [state, setState] = useSetState({
-    loading: !isPost,
+    loading: !isPost && isFunction(method),
     error: undefined as any,
     timeout: false as boolean,
   });
@@ -167,7 +165,7 @@ export const useFetch = <
     self.isManual = false;
 
     // 处理post请求
-    if (!isPass || (isPost && !_isManual)) {
+    if (!isPass || (isPost && !_isManual) || !isFunction(method)) {
       if (state.loading) {
         setState({ loading: false });
       }
@@ -192,7 +190,7 @@ export const useFetch = <
 
       try {
         // search存在时取search
-        const response: Data = await method(search !== undefined ? search : payload);
+        const response: Data = await (method as any)(search !== undefined ? search : payload);
         if (ignore) return;
         setData(response);
         setState({ ...getResetState('loading', false) });

@@ -2,7 +2,6 @@
 <h1 align="center" style="font-size: 80px;color:#61dafb">📌</h1>
 <p align="center">Use Your Imagination</p>
 
-
 <!-- TOC -->
 
 - [state](#state)
@@ -279,7 +278,7 @@ function Demo() {
 > 通过hooks来进行颠覆性的数据请求
 
 ```ts
-const bonus = useFetch(requestMethod, options?);
+const bonus = useFetch(key: requestMethod | boolean, options?);
 ```
 
 
@@ -288,29 +287,35 @@ const bonus = useFetch(requestMethod, options?);
 
 一个Promise返回函数或async函数, 用于请求异步数据，该函数的执行结果决定了返回的结果。
 
+当值不为函数时，请求会被阻止，可以以此实现串连请求
+
 
 
 **options**：
 
 ```ts
-export interface UseFetchOptions<Payload, Data, ExtraData> {
+interface UseFetchOptions<Data, Payload, ExtraData> {
   /** true | 一个boolean或function，为false时，会阻止请求，为function时，取它的返回值，当函数内部抛出错误时，pass会被设置为false。可以用来实现串行请求。(不会阻止手动设置data等或payload操作) */
   pass?: boolean | (() => boolean);
   /** [] | 类似useEffect(fn, inputs)，当依赖数组内的值发生改变时，重新进行请求, 确保长度不会发生改变，传入引用类型时请先memo */
   inputs?: any[];
   /** {} | data的初始值, 可用于搭配redux来获取初始状态, 当存在有效缓存时，缓存会覆盖此项(使用redux也就没用理由使用缓存了) */
   initData?: Data | (() => Data);
-  /** true | 是否初始化时进行请求 */
-  initFetch?: boolean;
+  /** true | 标记为post请求，将会跳过初始化时的请求、缓存 */
+  isPost?: boolean;
   /** {} | 初始化载荷, 当存在有效缓存时，缓存会覆盖此项 */
   initPayload?: Payload;
   /** {} | 指定extraData的初始值, 当存在有效缓存时，缓存会覆盖此项 */
   initExtraData?: ExtraData;
+  /** 传递给请求方法的查询，传递此项时，Payload会被忽略, 并且每次search发生改变时都会自动发起更新请求 */
+  search?: string;
   /** 8000 | 超时时间(ms) */
   timeout?: number;
+  /** 轮询间隔，传递后会开启轮询并以指定的ms进行轮询(ms必须大于500才会生效, 需要进行轮询开关是，可以传递小于500的值或null) */
+  pollingInterval?: number;
   /** 用于缓存的key，传递后，会将状态缓存到session中，下次加载时将读取缓存数据作为初始值 */
   cacheKey?: string;
-  /** 成功回调, 第二个参数在当次请求是在payload没有改变的情况下触发时为true(即通过update等操作执行更新请求时) */
+  /** 成功回调, 第二个参数在当次请求是在payload没有改变的情况下触发时为true */
   onSuccess?: (result: Data, isUpdate: boolean) => void;
   /** 错误回调 */
   onError?: (error: any) => void;
@@ -323,12 +328,12 @@ export interface UseFetchOptions<Payload, Data, ExtraData> {
 
 
 
-**returns**： (互斥状态表示，同类型状态中只能同时有一个为存在)
+**returns**： (互斥状态表示，一个状态与其他互斥状态不会共存，例如，当error存在时，同为互斥状态的timeout和loading会被还原为他们的初始值)
 
 ```ts
-export interface UseFetchReturns<Payload, Data, ExtraData> {
-  /** undefined | method方法resolve时，data为它resolve的值 */
-  data: Data;
+interface UseFetchReturns<Data, Payload, ExtraData> {
+  /** method方法resolve时，data为它resolve的值 */
+  data: Data | undefined;
   /** 正在进行请求。该状态为互斥状态 */
   loading: boolean;
   /** method方法reject时，error为它reject的值。该状态为互斥状态 */
@@ -337,6 +342,8 @@ export interface UseFetchReturns<Payload, Data, ExtraData> {
   timeout: boolean;
   /** 当前用于请求的payload */
   payload: Payload;
+  /** 当前的search */
+  search: string;
   /** 设置payload并触发请求, 使用方式同类组件的setState() */
   setPayload: (patch: Partial<Payload> | ((payload: Payload) => Partial<Payload>)) => void;
   /** 设置payload并触发请求, 它会覆盖掉原有状态 */
@@ -416,7 +423,7 @@ function Test() {
 
 ```jsx
 const { data, loading, error, send } = useFetch(getGoodsList, {
-    initFetch: false, // 使用post请求的关键是设置initFetch为false，使useFetch完全手动触发
+    isPost: false, // 使用post请求的关键是设置initFetch为false，使useFetch完全手动触发
     onSuccess(res, isUpdate) {
         console.log('onSuccess', res, isUpdate);
     },
