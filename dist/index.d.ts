@@ -10,3 +10,5 @@ export * from './useSessionSetState';
 export * from './useSessionState';
 export * from './useSetState';
 export * from './useSyncState';
+export * from './useScroll';
+export * from './useThrottle';

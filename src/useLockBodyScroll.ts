@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useLockBodyScroll as useLibLockScroll, useFirstMountState } from 'react-use';
+import { useLockBodyScroll as useLibLockScroll } from 'react-use';
 
 /* 获取滚动条宽度 */
 function getScrollBarWidth() {
@@ -30,13 +30,13 @@ let firstWidth = ''; // 保留第一个锁定是的style用于还原
 
 /** 基于react-use的useLockBodyScroll，隐藏时会对滚动条所占位置进行修正，防止页面抖动 */
 export const useLockBodyScroll: typeof useLibLockScroll = (locked, elementRef) => {
-  const firstMount = useFirstMountState();
 
   useEffect(() => {
     // 是否包含滚动条
     const hasScroll = hasScrollBar(document.documentElement);
     // 是否需要进行处理 包含滚动条 + locked为true + 非初始化
-    const doHandle = hasScroll && locked && !firstMount;
+    const doHandle = hasScroll && locked;
+    console.log(lockCount, doHandle);
     if (doHandle) {
       if (lockCount === 0) {
         const bodyStyleWidth = document.body.style.width;
@@ -56,6 +56,6 @@ export const useLockBodyScroll: typeof useLibLockScroll = (locked, elementRef) =
         }
       }
     };
-  }, [firstMount, locked]);
+  }, [locked]);
   return useLibLockScroll(locked, elementRef);
 };

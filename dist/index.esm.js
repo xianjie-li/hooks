@@ -5,9 +5,11 @@ import _defineProperty from '@babel/runtime/helpers/esm/defineProperty';
 import _asyncToGenerator from '@babel/runtime/helpers/esm/asyncToGenerator';
 import _toConsumableArray from '@babel/runtime/helpers/esm/toConsumableArray';
 import _slicedToArray from '@babel/runtime/helpers/esm/slicedToArray';
-import { isFunction } from '@lxjx/utils';
+import { isFunction, isNumber, isDom } from '@lxjx/utils';
 import { useHistory, useLocation } from 'react-router-dom';
 import qs from 'query-string';
+import _clamp from 'lodash/clamp';
+import { useSpring } from 'react-spring';
 
 var useBreakPointBase = createBreakpoint({
   xs: 0,
@@ -210,6 +212,9 @@ var useSetState = function useSetState() {
 var placeHolderFn = function placeHolderFn() {
   return undefined;
 };
+function getGlobal() {
+  return typeof window !== 'undefined' ? window : global;
+}
 
 function ownKeys$2(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -742,4 +747,250 @@ function useSyncState() {
   return [self, setSelf];
 }
 
-export { customEventEmit, formStateMap, getSessionState, setSessionState, useBreakPoint, useCustomEvent, useFetch, useFormState, useIsInitMount, useLockBodyScroll, useQuery, useSelf, useSessionSetState, useSessionState, useSetState, useSyncState };
+function useThrottle() {
+  var wait = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 300;
+
+  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+      _ref$leading = _ref.leading,
+      leading = _ref$leading === void 0 ? true : _ref$leading,
+      _ref$trailing = _ref.trailing,
+      trailing = _ref$trailing === void 0 ? true : _ref$trailing;
+
+  var self = useRef({
+    lastCall: 0,
+    lastMethod: undefined
+  });
+  var caller = useCallback(function caller(method) {
+    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      args[_key - 1] = arguments[_key];
+    }
+
+    var ct = self.current;
+    ct.lastMethod = method;
+    var now = Date.now();
+    var diff = now - ct.lastCall;
+
+    if (ct.timer) {
+      getGlobal().clearTimeout(ct.timer);
+    }
+
+    if (trailing) {
+      ct.timer = getGlobal().setTimeout(function () {
+        caller.apply(void 0, [method].concat(args));
+        ct.lastCall = 0; // 标记下次调用为leading调用
+
+        getGlobal().clearTimeout(ct.timer);
+      }, wait);
+    }
+
+    if (diff > wait) {
+      if (leading || ct.lastCall !== 0) {
+        var _ct$lastMethod;
+
+        (_ct$lastMethod = ct.lastMethod) === null || _ct$lastMethod === void 0 ? void 0 : _ct$lastMethod.call.apply(_ct$lastMethod, [ct].concat(args));
+      }
+
+      ct.lastCall = now;
+    } // eslint-disable-next-line
+
+  }, [wait]);
+  return caller;
+}
+
+function ownKeys$5(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread$5(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$5(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$5(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+function useScroll() {
+  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+      el = _ref.el,
+      onScroll = _ref.onScroll,
+      _ref$throttleTime = _ref.throttleTime,
+      throttleTime = _ref$throttleTime === void 0 ? 100 : _ref$throttleTime,
+      _ref$offset = _ref.offset,
+      offset = _ref$offset === void 0 ? 0 : _ref$offset,
+      offsetX = _ref.offsetX,
+      offsetY = _ref.offsetY;
+
+  var defaultEl = useMemo(function () {
+    return el || document.documentElement;
+  }, [el]);
+  var ref = useRef(null); // @ts-ignore 坑2： 8.x版本的[,,stop]stop无效, 不能监听滚动后停止定位动画
+
+  var _useSpring = useSpring(function () {
+    return {
+      y: 0,
+      x: 0,
+      config: {
+        clamp: true
+      },
+      reset: true
+    };
+  }),
+      _useSpring2 = _slicedToArray(_useSpring, 2),
+      setY = _useSpring2[1];
+
+  var caller = useThrottle(throttleTime);
+  useEffect(function () {
+    var meta = get();
+
+    function scrollHandle() {
+      onScroll && caller(onScroll, meta);
+    }
+    /* 坑: 页面级滚动scroll事件绑在documentElement和body上无效, 只能绑在window上 */
+
+
+    var scrollEl = meta.el instanceof HTMLHtmlElement ? window : meta.el;
+    scrollEl.addEventListener('scroll', scrollHandle);
+    return function () {
+      scrollEl.removeEventListener('scroll', scrollHandle);
+    }; // eslint-disable-next-line
+  }, [onScroll]);
+  /** 从默认值、参数中取到滚动元素 */
+
+  function getEl() {
+    return ref.current || defaultEl;
+  }
+
+  function animateTo(sEl, next, now) {
+    setY(_objectSpread$5({}, next, {
+      from: now,
+      // @ts-ignore 类型错误？
+      onFrame: function onFrame(props) {
+        sEl.scrollTop = props.y;
+        sEl.scrollLeft = props.x;
+      }
+    }));
+  }
+  /** 根据传入的x、y值设置滚动位置 */
+
+
+  function set(_ref2) {
+    var x = _ref2.x,
+        y = _ref2.y,
+        raise = _ref2.raise,
+        immediate = _ref2.immediate;
+    var scroller = getEl();
+
+    var _get = get(),
+        xMax = _get.xMax,
+        yMax = _get.yMax,
+        oldX = _get.x,
+        oldY = _get.y;
+
+    var nextPos = {};
+    var nowPos = {
+      x: oldX,
+      y: oldY
+    };
+
+    if (isNumber(x)) {
+      var nextX = x;
+
+      if (raise) {
+        nextX = _clamp(oldX + x, 0, xMax);
+      }
+
+      if (nextX !== oldX) {
+        nextPos.x = nextX;
+      }
+    }
+
+    if (isNumber(y)) {
+      var nextY = y;
+
+      if (raise) {
+        nextY = _clamp(oldY + y, 0, yMax);
+      }
+
+      if (nextY !== oldY) {
+        nextPos.y = nextY;
+      }
+    }
+
+    if ('x' in nextPos || 'y' in nextPos) {
+      if (immediate) {
+        isNumber(nextPos.x) && (scroller.scrollLeft = nextPos.x);
+        isNumber(nextPos.y) && (scroller.scrollTop = nextPos.y);
+      } else {
+        animateTo(scroller, nextPos, nowPos);
+      }
+    }
+  }
+
+  function scrollToElement(arg) {
+    var sEl = getEl();
+    var targetEl;
+
+    if (!sEl.getBoundingClientRect) {
+      console.warn('The browser does not support `getBoundingClientRect` API');
+      return;
+    }
+
+    if (typeof arg === 'string') {
+      targetEl = getEl().querySelector(arg);
+    } else {
+      targetEl = arg;
+    }
+
+    if (!isDom(targetEl)) return;
+
+    var _targetEl$getBounding = targetEl.getBoundingClientRect(),
+        cTop = _targetEl$getBounding.top,
+        cLeft = _targetEl$getBounding.left;
+
+    var _sEl$getBoundingClien = sEl.getBoundingClientRect(),
+        fTop = _sEl$getBoundingClien.top,
+        fLeft = _sEl$getBoundingClien.left;
+    /**
+     * 使用offsetTop等属性只能获取到元素相对于第一个非常规定位父元素的距离，所以需要单独计算
+     * 计算规则: eg. 子元素距离顶部比父元素多100px，滚动条位置应该减少100px让两者等值
+     * */
+
+
+    var xOffset = offsetX || offset;
+    var yOffset = offsetY || offset;
+    set({
+      x: cLeft - fLeft + xOffset,
+      y: cTop - fTop + yOffset,
+      raise: !(sEl instanceof HTMLHtmlElement)
+    });
+  }
+  /** 获取各种有用的滚动信息 */
+
+
+  function get() {
+    var sEl = getEl();
+    var x = sEl.scrollLeft;
+    var y = sEl.scrollTop;
+    var height = sEl.clientHeight;
+    var width = sEl.clientWidth;
+    var scrollHeight = sEl.scrollHeight;
+    var scrollWidth = sEl.scrollWidth;
+    var xMax = scrollWidth - width;
+    var yMax = scrollHeight - height;
+    return {
+      el: sEl,
+      x: x,
+      y: y,
+      xMax: xMax,
+      yMax: yMax,
+      height: height,
+      width: width,
+      scrollHeight: scrollHeight,
+      scrollWidth: scrollWidth,
+      touchBottom: yMax - y <= 0,
+      touchLeft: x === 0,
+      touchRight: xMax - x <= 0,
+      touchTop: y === 0
+    };
+  }
+
+  return {
+    set: set,
+    get: get,
+    scrollToElement: scrollToElement,
+    ref: ref
+  };
+}
+
+export { customEventEmit, formStateMap, getSessionState, setSessionState, useBreakPoint, useCustomEvent, useFetch, useFormState, useIsInitMount, useLockBodyScroll, useQuery, useScroll, useSelf, useSessionSetState, useSessionState, useSetState, useSyncState, useThrottle };
