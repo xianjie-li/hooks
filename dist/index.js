@@ -435,7 +435,7 @@ var useFetch = function useFetch(method) {
 
 
   var _useSetState = useSetState({
-    loading: !isPost,
+    loading: !isPost && utils.isFunction(method),
     error: undefined,
     timeout: false
   }),
@@ -475,7 +475,7 @@ var useFetch = function useFetch(method) {
     self.isUpdate = false;
     self.isManual = false; // 处理post请求
 
-    if (!isPass || isPost && !_isManual) {
+    if (!isPass || isPost && !_isManual || !utils.isFunction(method)) {
       if (state.loading) {
         setState({
           loading: false
@@ -749,7 +749,6 @@ var useLockBodyScroll = function useLockBodyScroll(locked, elementRef) {
     var hasScroll = hasScrollBar(document.documentElement); // 是否需要进行处理 包含滚动条 + locked为true + 非初始化
 
     var doHandle = hasScroll && locked;
-    console.log(lockCount, doHandle);
 
     if (doHandle) {
       if (lockCount === 0) {

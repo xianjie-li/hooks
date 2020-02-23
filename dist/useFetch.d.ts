@@ -56,4 +56,4 @@ export interface UseFetchReturns<Data, Payload, ExtraData> {
     /** 设置extraData, 使用方式同类组件的setState() */
     setExtraData: (patch: Partial<ExtraData> | ((prevState: ExtraData) => Partial<ExtraData>)) => void;
 }
-export declare const useFetch: <Data extends {} = any, Payload extends {} = any, ExtraData extends {} = any>(method: (...arg: any[]) => Promise<any>, options?: UseFetchOptions<Data, Payload, ExtraData>) => UseFetchReturns<Data, Payload, ExtraData>;
+export declare const useFetch: <Data extends {} = any, Payload extends {} = any, ExtraData extends {} = any>(method: boolean | ((...arg: any[]) => Promise<any>), options?: UseFetchOptions<Data, Payload, ExtraData>) => UseFetchReturns<Data, Payload, ExtraData>;
