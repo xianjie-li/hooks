@@ -11,6 +11,7 @@ var reactRouterDom = require('react-router-dom');
 var qs = _interopDefault(require('query-string'));
 var _clamp = _interopDefault(require('lodash/clamp'));
 var reactSpring = require('react-spring');
+var _isEqualWith = _interopDefault(require('lodash/isEqualWith'));
 
 var useBreakPointBase = reactUse.createBreakpoint({
   xs: 0,
@@ -165,13 +166,13 @@ function _objectSpread2(target) {
     var source = arguments[i] != null ? arguments[i] : {};
 
     if (i % 2) {
-      ownKeys(Object(source), true).forEach(function (key) {
+      ownKeys(source, true).forEach(function (key) {
         _defineProperty(target, key, source[key]);
       });
     } else if (Object.getOwnPropertyDescriptors) {
       Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
     } else {
-      ownKeys(Object(source)).forEach(function (key) {
+      ownKeys(source).forEach(function (key) {
         Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
       });
     }
@@ -1122,17 +1123,166 @@ function useScroll() {
   };
 }
 
+var sameMap = {};
+/**
+ * 用于对同类组件进行管理，获取其他已渲染的同类组件的共享数据以及当前处在启用实例中的位置
+ * 一般用例为:
+ * - 获取Modal等组件的实例关系，根据组件渲染顺序设置zIndex，隐藏多余的mask等
+ * - 对于Drawer等组件，根据渲染顺序调整显示的层级
+ * @param key - 用于表示同类组件
+ * @param dep - 只有在dep的值为true时，该实例才算启用并被钩子接受, 通常为Modal等组件的toggle参数
+ * @param meta - 用于共享的组件源数据，可以在同组件的其他实例中获取到
+ * @return zIndex[0] - 该组件实例处于所有示例中的第几位，未启用的组件返回-1
+ * @return zIndex[1] - 所有启用状态的组件<Item>组成的数组，正序
+ * @return zIndex[2] - 该组件实例的唯一标识
+ * */
+
+function useSame(key, dep, meta) {
+  var _sameMap$key;
+
+  var id = react.useMemo(function () {
+    return utils.createRandString(2);
+  }, []);
+
+  var _useState = react.useState(depChangeHandel),
+      _useState2 = _slicedToArray(_useState, 2),
+      cIndex = _useState2[0],
+      setCIndex = _useState2[1];
+  /* 在某个组件更新了sameMap后，需要通知其他相应的以最新状态更新组件 */
+
+
+  var update = reactUse.useUpdate();
+  var eventKey = "".concat(key, "_custom_event");
+  var emitUpdate = useCustomEvent(eventKey, function (_id) {
+    // 触发更新的实例和未激活的不更新
+    if (_id === id) return;
+    update();
+  }, []);
+  setCurrentMeta(meta);
+  /* 获取当前实例在实例组中的索引或添加当前实例到实例组中，未启用组件索引返回-1 */
+
+  function depChangeHandel() {
+    var _getCurrent = getCurrent(),
+        _getCurrent2 = _slicedToArray(_getCurrent, 2),
+        current = _getCurrent2[0],
+        index = _getCurrent2[1]; // 执行后续操作前，先移除已有实例
+
+
+    if (index !== -1) {
+      current.splice(index, 1);
+    } // 当依赖值为true时才添加实例到组中
+
+
+    if (dep) {
+      sameMap[key].push({
+        id: id,
+        meta: {}
+      });
+    } // 从更新后的实例组中获取当前索引
+
+
+    var _getCurrent3 = getCurrent(),
+        _getCurrent4 = _slicedToArray(_getCurrent3, 2),
+        newIndex = _getCurrent4[1];
+
+    return newIndex;
+  }
+  /* dep改变时。更新索引信息 */
+
+
+  reactUse.useUpdateEffect(function () {
+    setCIndex(depChangeHandel());
+  }, [dep]);
+  /* cIndex变更时，通知其他钩子进行更新 */
+
+  reactUse.useUpdateEffect(function () {
+    emitUpdate(eventKey, id);
+  }, [cIndex]);
+  /**
+   * 获取当前组件在sameMap中的实例组和该组件在实例中的索引并确保sameMap[key]存在
+   * @return meta[0] - 该组件实例组成的数组
+   * @return meta[1] - 当前组件在实例中的位置
+   * */
+
+  function getCurrent() {
+    // 无实例存在时赋初始值
+    if (!utils.isArray(sameMap[key])) {
+      sameMap[key] = [];
+    } // 取所在索引
+
+
+    var index = sameMap[key].findIndex(function (item) {
+      return item.id === id;
+    });
+    return [sameMap[key], index];
+  }
+  /* 设置当前实例的meta状态 */
+
+
+  function setCurrentMeta(_meta) {
+    if (typeof _meta === 'undefined') return;
+
+    var _getCurrent5 = getCurrent(),
+        _getCurrent6 = _slicedToArray(_getCurrent5, 2),
+        current = _getCurrent6[0],
+        index = _getCurrent6[1];
+
+    if (index !== -1) {
+      current[index].meta = _meta;
+    }
+  }
+  /* 在sameMap[key]长度改变时更新 */
+
+
+  react.useEffect(function () {
+    var _getCurrent7 = getCurrent(),
+        _getCurrent8 = _slicedToArray(_getCurrent7, 2),
+        newIndex = _getCurrent8[1];
+
+    if (newIndex !== cIndex) {
+      setCIndex(newIndex);
+    } // eslint-disable-next-line
+
+  }, [(_sameMap$key = sameMap[key]) === null || _sameMap$key === void 0 ? void 0 : _sameMap$key.length]);
+  return [cIndex, sameMap[key], id];
+}
+
+/**
+ *  实现类似getDerivedStateFromProps的效果，接收prop并将其同步为内部状态，
+ *  当prop改变, 对prop和内部state执行_.isEqual,对比结果为false时，会更新内部值 (基础类型使用 === 进行对比，性能更高，当必须使用引用类型时，尽量保持结构简单，减少对比次数)
+ *  @param prop - 需要派生为state的prop
+ *  @param customizer - 可以通过此函数自定义对比方式, 如果相等返回 true，否则返回 false, 返回undefined时使用默认对比方式
+ * */
+
+function useDerivedStateFromProps(prop, customizer) {
+  var _useState = react.useState(prop),
+      _useState2 = _slicedToArray(_useState, 2),
+      state = _useState2[0],
+      setState = _useState2[1];
+
+  reactUse.useUpdateEffect(function () {
+    var isEqual = _isEqualWith(prop, state, customizer);
+
+    if (!isEqual) {
+      setState(prop);
+    }
+  }, [prop]);
+  return [state, setState];
+}
+
 exports.customEventEmit = customEventEmit;
 exports.formStateMap = formStateMap;
 exports.getSessionState = getSessionState;
 exports.setSessionState = setSessionState;
 exports.useBreakPoint = useBreakPoint;
 exports.useCustomEvent = useCustomEvent;
+exports.useDerivedStateFromProps = useDerivedStateFromProps;
 exports.useFetch = useFetch;
 exports.useFormState = useFormState;
 exports.useIsInitMount = useIsInitMount;
 exports.useLockBodyScroll = useLockBodyScroll;
 exports.useQuery = useQuery;
+exports.useSame = useSame;
 exports.useScroll = useScroll;
 exports.useSelf = useSelf;
 exports.useSessionSetState = useSessionSetState;

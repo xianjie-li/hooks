@@ -12,3 +12,5 @@ export * from './useSetState';
 export * from './useSyncState';
 export * from './useScroll';
 export * from './useThrottle';
+export * from './effect/useSame';
+export * from './effect/useDerivedStateFromProps';
