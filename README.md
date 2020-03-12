@@ -266,7 +266,7 @@ function Demo() {
 
 <br>
 
-### useSame
+### `useSame`
 
 用于对同类组件进行管理，获取其他已渲染的同类组件的共享数据以及当前组件处在所有启用实例中的位置
 
@@ -341,7 +341,7 @@ function Drawer({ show, children }) {
 
 <br>
 
-### useDerivedStateFromProps
+### `useDerivedStateFromProps`
 
 实现类似`getDerivedStateFromProps`的效果，接收prop并将其同步为内部状态，
 
