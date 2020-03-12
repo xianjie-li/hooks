@@ -6,7 +6,7 @@ const UseSelfDemo = () => {
   /* 使用类型推导(常用) */
   const self = useSelf({
     name: 'lxj',
-    age: 18
+    age: 18,
   });
   /* 使用泛型声明 */
   const self2 = useSelf<{
@@ -23,7 +23,7 @@ const UseSelfDemo = () => {
     self.name = self.name.split('').reverse().join('');
     // 立即获取变更
     // console.log(self.name);
-  }, []);
+  }, [self.name]);
 
   return (
     <div>

@@ -1,14 +1,18 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
+import {
+  useSessionState,
+  UseSessionStateOptions,
+} from './useSessionState';
 
-export interface SetState<T> {
-  (patch: Partial<T> | ((prevState: T) => Partial<T>)): void;
-}
+import { SetState } from './useSetState';
 
 /* 与react-use的useSetState一样, 但是额外返回了一个setOverState用于覆盖状态 */
-export const useSetState = <T extends object>(
+export const useSessionSetState = <T extends object = any>(
+  key: string,
   initialState = {} as (() => T) | T,
+  options?: UseSessionStateOptions,
 ): [T, SetState<T>, SetState<T>] => {
-  const [state, set] = useState<T>(initialState);
+  const [state, set] = useSessionState<T>(key, initialState, options);
   const setState = useCallback(
     patch => {
       set(prevState => ({ ...prevState, ...(patch instanceof Function ? patch(prevState) : patch) }));
