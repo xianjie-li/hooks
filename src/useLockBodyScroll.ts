@@ -40,7 +40,7 @@ export const useLockBodyScroll: typeof useLibLockScroll = (locked, elementRef) =
       if (lockCount === 0) {
         const bodyStyleWidth = document.body.style.width;
         if (!firstWidth) {
-          firstWidth = bodyStyleWidth;
+          firstWidth = bodyStyleWidth!;
         }
         document.body.style.width = `calc(${bodyStyleWidth || '100%'} - ${scrollBarWidth}px)`;
       }

@@ -28,7 +28,7 @@
     "eslint-plugin-react-hooks": "^2.3.0",
     "father": "^2.24.0",
     "react": "^16.11.0",
-    "typescript": "^3.7.2"
+    "typescript": "^3.8.3"
   },
   "peerDependencies": {
     "react": ">= 16.8.0"
