@@ -12,6 +12,8 @@
   - [`useSessionSetState`](#usesessionsetstate)
 - [effect](#effect)
   - [`useThrottle`](#usethrottle)
+  - [useSame](#usesame)
+  - [useDerivedStateFromProps](#usederivedstatefromprops)
 - [lifecycles](#lifecycles)
 - [fetch](#fetch)
   - [`useFetch`](#usefetch)
@@ -264,7 +266,7 @@ function Demo() {
 
 <br>
 
-## useSame
+### useSame
 
 用于对同类组件进行管理，获取其他已渲染的同类组件的共享数据以及当前组件处在所有启用实例中的位置
 
@@ -274,7 +276,7 @@ function Demo() {
 
 
 
-**语法**
+**签名**
 
 ```tsx
 const [index, instances, id] = useSame<Meta = any>(key: string, dep: boolean, meta?: Meta);
@@ -335,9 +337,41 @@ function Drawer({ show, children }) {
 }
 ```
 
+<br>
+
+<br>
+
+### useDerivedStateFromProps
+
+实现类似`getDerivedStateFromProps`的效果，接收prop并将其同步为内部状态，
+
+当prop改变, 对prop和内部state执行_.isEqual,对比结果为false时，会更新内部值 (基础类型使用 === 进行对比，性能更高，当必须使用引用类型时，尽量保持结构简单，减少对比次数)
 
 
 
+**签名**
+
+```ts
+const [state, setState] = useDerivedStateFromProps<T>(prop: T, customizer?: (next: T, prev: T) => boolean);
+```
+
+
+
+**参数**
+
+prop - 需要派生为state的prop
+
+customizer - 可以通过此函数自定义对比方式, 如果相等返回 true，否则返回 false, 返回undefined时使用默认对比方式
+
+[state, setState ] - 派生状态/设置派生状态, 用法与`React.setState()`一致
+
+
+
+**示例**
+
+```ts
+const [id, setId] = useDerivedStateFromProps(prop.id);
+```
 
 <br>
 
