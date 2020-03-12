@@ -1,7 +1,6 @@
 <h1 align="center" style="color: #61dafb;">hooks</h1>
 <h1 align="center" style="font-size: 80px;color:#61dafb">📌</h1>
 <p align="center">Use Your Imagination</p>
-
 <!-- TOC -->
 
 - [state](#state)
@@ -13,6 +12,8 @@
   - [`useSessionSetState`](#usesessionsetstate)
 - [effect](#effect)
   - [`useThrottle`](#usethrottle)
+  - [`useSame`](#usesame)
+  - [`useDerivedStateFromProps`](#usederivedstatefromprops)
 - [lifecycles](#lifecycles)
 - [fetch](#fetch)
   - [`useFetch`](#usefetch)
@@ -261,7 +262,116 @@ function Demo() {
 * 如果需要，同一个caller可以用于多个不同的函数，它们共享同一个hook配置
 * 参数与lodash完全一致😘
 
+<br>
 
+<br>
+
+### `useSame`
+
+用于对同类组件进行管理，获取其他已渲染的同类组件的共享数据以及当前组件处在所有启用实例中的位置
+
+一般用例为:
+
+ * 获取Modal等组件的实例关系，根据组件渲染顺序设置zIndex，隐藏多余的mask等, 优化视觉上的显示效果
+
+
+
+**签名**
+
+```tsx
+const [index, instances, id] = useSame<Meta = any>(key: string, dep: boolean, meta?: Meta);
+
+// 相关接口
+interface Item<Meta = any> {
+  /** 改组件的唯一key */
+  id: string;
+  /** 共享给其他组件的元信息 */
+  meta: Meta;
+}
+```
+
+
+
+**参数**
+
+key - 用于标识同类组件
+
+dep - 只有在dep的值为true时，该实例才算启用并被钩子接受, 通常为Modal等组件的toggle参数
+
+meta - 用于共享的组件源数据，可以在同组件的其他实例中获取到
+
+index - 该组件实例处于所有示例中的第几位，未启用的组件返回-1
+
+instances - 所有启用状态的组件<Item>组成的数组，正序
+
+id - 该组件实例的唯一标识
+
+
+
+**示例**
+
+以下是一个Drawer组件的伪代码
+
+```tsx
+const baseZIndex = 1000;
+
+function Drawer({ show, children }) {
+  const [index, instances, id] = useSame('drawer_metas', show, {
+    // 共享给其他实例的数据，可以是props、state或其他
+    show,
+    xxx: 'bar',
+  });
+  
+  // 动态设置zIndex
+  const nowZIndex = index === -1 ? baseZIndex : index + baseZIndex;
+  
+  return (
+    // 只有位于实例第一位的组件启用Mask
+  	<Mask show={index === 0} style={{ zIndex: nowZIndex }}>
+      // 该实例之后每存在一个新实例，为其设置60px的偏移距离以优化显示
+    	<div style={{ right: show ? (instances.length - index + 1) * 60 : 0 }}>
+      	{children}
+      </div>
+    </Mask>
+  )
+}
+```
+
+<br>
+
+<br>
+
+### `useDerivedStateFromProps`
+
+实现类似`getDerivedStateFromProps`的效果，接收prop并将其同步为内部状态，
+
+当prop改变, 对prop和内部state执行_.isEqual,对比结果为false时，会更新内部值 (基础类型使用 === 进行对比，性能更高，当必须使用引用类型时，尽量保持结构简单，减少对比次数)
+
+
+
+**签名**
+
+```ts
+const [state, setState] = useDerivedStateFromProps<T>(prop: T, customizer?: (next: T, prev: T) => boolean);
+```
+
+
+
+**参数**
+
+prop - 需要派生为state的prop
+
+customizer - 可以通过此函数自定义对比方式, 如果相等返回 true，否则返回 false, 返回undefined时使用默认对比方式
+
+[state, setState ] - 派生状态/设置派生状态, 用法与`React.setState()`一致
+
+
+
+**示例**
+
+```ts
+const [id, setId] = useDerivedStateFromProps(prop.id);
+```
 
 <br>
 

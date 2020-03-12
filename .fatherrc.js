@@ -4,6 +4,9 @@ export default {
   cjs: 'rollup',
   // umd: true,
   runtimeHelpers: true,   // 一定要在 dependencies 里有 @babel/runtime 依赖
+  extraBabelPlugins: [
+    '@babel/plugin-proposal-optional-chaining',
+  ],
 
   // extractCSS: true,
   // extraBabelPresets: [], // 额外的 babel preset。
