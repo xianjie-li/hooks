@@ -12,8 +12,8 @@
   - [`useSessionSetState`](#usesessionsetstate)
 - [effect](#effect)
   - [`useThrottle`](#usethrottle)
-  - [useSame](#usesame)
-  - [useDerivedStateFromProps](#usederivedstatefromprops)
+  - [`useSame`](#usesame)
+  - [`useDerivedStateFromProps`](#usederivedstatefromprops)
 - [lifecycles](#lifecycles)
 - [fetch](#fetch)
   - [`useFetch`](#usefetch)
@@ -294,7 +294,7 @@ interface Item<Meta = any> {
 
 **参数**
 
-key - 用于表示同类组件
+key - 用于标识同类组件
 
 dep - 只有在dep的值为true时，该实例才算启用并被钩子接受, 通常为Modal等组件的toggle参数
 
