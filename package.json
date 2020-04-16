@@ -12,7 +12,8 @@
     "test": "tsdx test --passWithNoTests",
     "lint": "tsdx lint",
     "prepare": "tsdx build",
-    "dev": "dumi dev"
+    "dev": "dumi dev",
+    "build:doc": "dumi build"
   },
   "peerDependencies": {
     "react": ">=16.8.0"
