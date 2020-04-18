@@ -86,7 +86,7 @@ function isSyntheticEvent(arg: any) {
 
 function useFetch<Data = any, Payload = any>(
   /** 一个Promise return函数或async函数, 当不为函数时不会走请求流程 */
-  method?: ((...arg: any[]) => Promise<any>) | any,
+  method?: ((...arg: any[]) => Promise<Data>) | any,
   options = {} as UseFetchOptions<Data, Payload>
 ) {
   const self = useSelf({
