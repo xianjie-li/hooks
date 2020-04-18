@@ -11,20 +11,28 @@ import { useFn } from './useFn';
 
 const GLOBAL = __GLOBAL__ as Window;
 
+/* TODO: 自动重试、窗口聚焦、失焦 */
+
+/**
+ * param： 传递给请求函数的参数, 当发生改变时，会以新值发起调用请求
+ * parma会执行_.isEqul来进行深度对比，所以可以直接传入引用类型 (尽量保持结构简单来提高对比性能)
+ * arg的与Payload共享类型
+ */
+
 interface UseFetchOptions<Data, Payload> {
-  /** [] | 类似useEffect(fn, deps)，当依赖数组内的值发生改变时，重新进行请求 */
+  /** [] | 类似useEffect(fn, deps)，当依赖数组内的值发生改变时，会以当前参数进行更新请求, 请勿传入未memo的引用类型值 */
   deps?: any[];
   /** 当查询方法依赖简单类型参数时使用，在变更时发起更新请求并作为参数传入查询方法。传递此项时，Payload会被忽略 */
   arg?: string | number | boolean;
   /** false | 只能通过send来触发请求 */
   manual?: boolean;
-  /** 8000 | 超时时间 */
+  /** 10000 | 超时时间 */
   timeout?: number;
   /** 初始data, 支持 `T => T` 方式取值 */
   initData?: (() => Data) | Data;
-  /** 初始payload, 支持 `T => T` 方式取值 */
+  /** 初始payload, 在不存在arg时，作为参数传递给请求方法，否则传入arg, 支持 `T => T` 方式取值 */
   initPayload?: (() => Payload) | Payload;
-  /** 成功回调, 当为更新请求(通过无参调用send, arg，deps等配置发起请求)时，此项为true */
+  /** 成功回调, 当为更新请求(通过无参调用send, arg、deps等配置发起请求)时，isUpdate为true */
   onSuccess?: (result: Data, isUpdate: boolean) => void;
   /** 错误回调， error为请求函数中抛出的错误 */
   onError?: (error: any) => void;
@@ -34,11 +42,11 @@ interface UseFetchOptions<Data, Payload> {
   onTimeout?: () => void;
   /** 用于缓存的key，传递后，会将(payload, data, arg)缓存到session中，下次加载时将读取缓存数据作为初始值 */
   cacheKey?: string;
-  /** true | 在存在缓存数据时，是否进行swr(stale-while-revalidate)请求 */
+  /** true | 当存在缓存数据时，是否进行swr(stale-while-revalidate)请求 */
   stale?: boolean;
-  /** 节流时间，传入时，开启节流, 只有初始化时的配置会生效 */
+  /** 节流间隔时间，传入时，开启节流, 只有初始化时的配置会生效 */
   throttleInterval?: number;
-  /** 节流时间，传入时，开启防抖, 只有初始化时的配置会生效, 当存在throttleInterval时，此配置不会生效 */
+  /** 防抖间隔时间，传入时，开启防抖, 只有初始化时的配置会生效, 当存在throttleInterval时，此配置不会生效 */
   debounceInterval?: number;
   /** 轮询间隔, 大于500时生效 */
   pollingInterval?: number;
@@ -63,10 +71,19 @@ interface UseFetchReturns<Data, Payload> {
   cancel: () => void;
   /** 轮询的开关状态，轮询还依赖于pollingInterval配置，只有两者同时有效时才会开启轮询 */
   polling: boolean;
-  /** 设置轮询开关状态 */
-  setPolling: ((prev: boolean) => boolean) | boolean;
-  /** 以新参数发起请求/发起更新(无参数)/存在arg时会以arg代替payload, 如果该次请求有效，返回一个必定resolve数组的Promise，数组值1为执行错误，数组值2为请求结果 */
-  send: (newPayload?: Payload | undefined) => Promise<[any, Data]>;
+  /** 设置轮询状态 */
+  setPolling(patch: boolean | ((prev: boolean) => boolean)): void;
+  /**
+   * 根据参数类型不同，会有不同效果:
+   * 带参数: 以新的payload发起请求并设置payload
+   * 无参数/参数为合成事件: 以当前参数发起更新
+   * 传入了arg配置项: 当存在arg配置，一律视为更新并以当前arg的值发起更新. 此时，传入的payload会被忽略
+   *
+   * 返回错误优先的Promise:
+   * 如果该次请求有效，返回一个必定resolve数组[err, res]的Promise，err为reject的结果(不为null说明该次请求发生了错误)，res为resolve的结果 */
+  send: (
+    newPayload?: Payload | React.SyntheticEvent | undefined
+  ) => Promise<[any, Data]>;
 }
 
 /** 简单的判断是否为合成事件 */
@@ -125,6 +142,14 @@ function useFetch<Data = any, Payload = any>(
     timeout: false,
   });
 
+  // 防止卸载后赋值
+  useEffect(() => {
+    return () => {
+      self.fetchID = 0; // 超时后阻止后续赋值操作
+      self.timeoutTimer && GLOBAL.clearTimeout(self.timeoutTimer);
+    };
+  }, []);
+
   const [payload, setPayload] = useStorageState(
     `${cacheKey}_FETCH_PAYLOAD`,
     initPayload,
@@ -138,13 +163,9 @@ function useFetch<Data = any, Payload = any>(
   });
 
   // 将arg映射到内部，用于缓存
-  const [innerArg, setInnerArg] = useStorageState(
-    `${cacheKey}_FETCH_ARG`,
-    arg,
-    {
-      disabled: !isCache,
-    }
-  );
+  const [innerArg, setInnerArg] = useStorageState(`${cacheKey}`, arg, {
+    disabled: !isCache,
+  });
 
   const [polling, setPolling] = useState(true);
 
@@ -222,7 +243,7 @@ function useFetch<Data = any, Payload = any>(
     }
   );
 
-  /** 手动发起请求，传入payload时会以传入值进行替换 */
+  /** 手动发起请求，传入payload时会以传入值进行替换, 参数支持SyntheticEvent是为了方便onClick={send}这样使用 */
   const send = useFn((newPayload?: Payload) => {
     const isUpdate = isSyntheticEvent(newPayload) || newPayload === undefined;
     return fetchHandel(getActualPayload(newPayload), isUpdate);
@@ -275,7 +296,7 @@ function useFetch<Data = any, Payload = any>(
     }
 
     // 包含新的payload，更新payload值并使用新的payload更新请求
-    setPayload(newPayload); // 同步新的payload
+    setPayload(newPayload as Payload); // 同步新的payload
     return newPayload;
   }
 
