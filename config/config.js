@@ -7,7 +7,7 @@ export default {
   publicPath: '/hooks/',
   title: 'hooks',
   description: 'Use Your Imagination',
-  logo: '../logo.png',
+  logo: 'https://github.com/Iixianjie/hooks/blob/master/logo.png?raw=true',
   resolve: {
     includes: ['src'],
   },
