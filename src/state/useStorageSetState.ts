@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { SetState, StateInitState, UseSetStateTuple } from '../type';
+import { StateInitState, UseSetStateTuple } from '../type';
 import { AnyObject } from '@lxjx/utils';
 import { UseStorageStateOptions, useStorageState } from './useStorageState';
 

@@ -17,10 +17,6 @@ title: useFetch
 - 取消请求
 - more...
 
-## 示例
-
-<code src="./useFetch.demo.tsx" />
-
 ## 基础示例
 
 <code src="./useFetch/Base.tsx" />
@@ -28,6 +24,18 @@ title: useFetch
 ## 节流/防抖
 
 <code src="./useFetch/ThrottleDebounce.tsx" />
+
+## 懒人模式
+
+调用`send`很麻烦，大部分业务中，理想的请求时机是某个依赖的值发生改变时，通过`param`，可以轻松的实现这一点
+
+<code src="./useFetch/Param.tsx" />
+
+> 💡 内部通过\_.isEqual 来对比 param 相等性，保持 param 结构相对简单能够减少对比深度，从而提高性能
+
+> 💡 为什么`cacheKey`没有缓存 param?
+
+param 是不可控的、完全由外部传入的状态，缓存 param 会在很多情况下造成内外不一致，如果需要缓存 param，在`useFetch`外使用[useStorageState](/#/state/use-storage-state)来管理 param 或者将页面参数存到 url 中是更可靠的做法
 
 ## API
 
@@ -43,17 +51,17 @@ const bonus = useFetch(method, options?);
 interface UseFetchOptions<Data, Payload> {
   /** [] | 类似useEffect(fn, deps)，当依赖数组内的值发生改变时，会以当前参数进行更新请求, 请勿传入未memo的引用类型值 */
   deps?: any[];
-  /** 当查询方法依赖简单类型参数时使用，在变更时发起更新请求并作为参数传入查询方法。传递此项时，Payload会被忽略 */
-  arg?: string | number | boolean;
+  /** 传递给请求函数的参数, 当发生改变时，会以新值发起调用请求。传递此项时，Payload会被忽略。与payload共用Payload类型 */
+  param?: Payload;
   /** false | 只能通过send来触发请求 */
   manual?: boolean;
-  /** 10000 | 超时时间 */
+  /** 10000 | 超时时间 ms*/
   timeout?: number;
-  /** 初始data, 支持 `T => T` 方式取值 */
+  /** 初始data */
   initData?: (() => Data) | Data;
-  /** 初始payload, 在不存在arg时，作为参数传递给请求方法，否则传入arg, 支持 `T => T` 方式取值 */
+  /** 初始payload, 在不存在param配置时，作为参数传递给请求方法 */
   initPayload?: (() => Payload) | Payload;
-  /** 成功回调, 当为更新请求(通过无参调用send, arg，deps等配置发起请求)时，此项为true */
+  /** 成功回调, 当为更新请求(通过无参调用send、deps等配置发起请求)时，isUpdate为true */
   onSuccess?: (result: Data, isUpdate: boolean) => void;
   /** 错误回调， error为请求函数中抛出的错误 */
   onError?: (error: any) => void;
@@ -63,7 +71,7 @@ interface UseFetchOptions<Data, Payload> {
   onTimeout?: () => void;
   /** 用于缓存的key，传递后，会将(payload, data, arg)缓存到session中，下次加载时将读取缓存数据作为初始值 */
   cacheKey?: string;
-  /** true | 当存在缓存数据时，是否进行swr(stale-while-revalidate)请求 */
+  /** true | 当传入了cacheKey且存在缓存数据时，是否进行swr(stale-while-revalidate)请求 */
   stale?: boolean;
   /** 节流间隔时间，传入时，开启节流, 只有初始化时的配置会生效 */
   throttleInterval?: number;
@@ -86,23 +94,31 @@ interface UseFetchReturns<Data, Payload> {
   timeout: boolean;
   /** method方法resolve的值或initData */
   data: Data | undefined;
-  /** 当前用于请求的payload */
+  /** 当前用于请求的payload或initPayload */
   payload: Payload | undefined;
-  /** 请求函数依赖的参数，一般代替payload使用 */
-  arg: string | number | boolean | undefined;
+  /** 当前用于请求的param */
+  param: Payload;
   /** 设置当前的data */
   setData: SetStateBase<Data>;
   /** 取消请求 */
   cancel: () => void;
   /** 轮询的开关状态，轮询还依赖于pollingInterval配置，只有两者同时有效时才会开启轮询 */
   polling: boolean;
-  /** 设置轮询开关状态 */
-  setPolling: ((prev: boolean) => boolean) | boolean;
+  /** 设置轮询状态 */
+  setPolling(patch: boolean | ((prev: boolean) => boolean)): void;
   /**
-   * 以新参数发起请求/发起更新(无参数或为合成事件)/存在arg配置时时payload参数无效,
-   * 如果该次请求有效，返回一个必定resolve数组的Promise，数组值1为reject的结果(不为null说明该次请求发生了错误)，数组值2为resolve的结果 */
+   * 根据参数类型不同，会有不同效果:
+   * 带参数: 以新的payload发起请求并设置payload
+   * 无参数/参数为合成事件: 以当前参数发起更新
+   * 传入了param配置项: 当存在param配置，一律视为更新并以当前arg的值发起更新. 此时，传入的payload会被忽略
+   *
+   * 返回错误优先的Promise:
+   * 如果该次请求有效，返回一个必定resolve数组[err, res]的Promise，err为reject的结果(不为null说明该次请求发生了错误)，res为resolve的结果 */
   send: (
-    newPayload?: Payload | React.SyntheticEvent | undefined
+    newPayload?:
+      | Payload
+      | React.SyntheticEvent
+      | undefined /* SyntheticEvent是为了直接将send绑定给onClick等时不出现类型错误 */
   ) => Promise<[any, Data]>;
 }
 ```

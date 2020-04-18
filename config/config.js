@@ -7,8 +7,10 @@ export default {
   publicPath: '/hooks/',
   title: 'hooks',
   description: 'Use Your Imagination',
-  logo: 'https://github.com/Iixianjie/hooks/blob/master/logo.png?raw=true',
   resolve: {
     includes: ['src'],
+  },
+  dynamicImport: {
+    loading: '@/Loading',
   },
 };

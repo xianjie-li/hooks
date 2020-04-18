@@ -2,37 +2,31 @@ import { isEmpty, isFunction, isObject, __GLOBAL__ } from '@lxjx/utils';
 import _debounce from 'lodash/debounce';
 import _throttle from 'lodash/throttle';
 import { useEffect, useState } from 'react';
-import { useUpdateEffect } from 'react-use';
 import { useSelf } from '../state/useSelf';
 import { useSetState } from '../state/useSetState';
 import { useStorageState } from '../state/useStorageState';
 import { SetStateBase } from '../type';
+import { useEffectEqual } from './useEffectEqual';
 import { useFn } from './useFn';
 
 const GLOBAL = __GLOBAL__ as Window;
 
 /* TODO: 自动重试、窗口聚焦、失焦 */
 
-/**
- * param： 传递给请求函数的参数, 当发生改变时，会以新值发起调用请求
- * parma会执行_.isEqul来进行深度对比，所以可以直接传入引用类型 (尽量保持结构简单来提高对比性能)
- * arg的与Payload共享类型
- */
-
 interface UseFetchOptions<Data, Payload> {
   /** [] | 类似useEffect(fn, deps)，当依赖数组内的值发生改变时，会以当前参数进行更新请求, 请勿传入未memo的引用类型值 */
   deps?: any[];
-  /** 当查询方法依赖简单类型参数时使用，在变更时发起更新请求并作为参数传入查询方法。传递此项时，Payload会被忽略 */
-  arg?: string | number | boolean;
+  /** 传递给请求函数的参数, 当发生改变时，会以新值发起调用请求。传递此项时，Payload会被忽略。与payload共用Payload类型 */
+  param?: Payload;
   /** false | 只能通过send来触发请求 */
   manual?: boolean;
-  /** 10000 | 超时时间 */
+  /** 10000 | 超时时间 ms*/
   timeout?: number;
-  /** 初始data, 支持 `T => T` 方式取值 */
+  /** 初始data */
   initData?: (() => Data) | Data;
-  /** 初始payload, 在不存在arg时，作为参数传递给请求方法，否则传入arg, 支持 `T => T` 方式取值 */
+  /** 初始payload, 在不存在param配置时，作为参数传递给请求方法 */
   initPayload?: (() => Payload) | Payload;
-  /** 成功回调, 当为更新请求(通过无参调用send, arg、deps等配置发起请求)时，isUpdate为true */
+  /** 成功回调, 当为更新请求(通过无参调用send、deps等配置发起请求)时，isUpdate为true */
   onSuccess?: (result: Data, isUpdate: boolean) => void;
   /** 错误回调， error为请求函数中抛出的错误 */
   onError?: (error: any) => void;
@@ -42,7 +36,7 @@ interface UseFetchOptions<Data, Payload> {
   onTimeout?: () => void;
   /** 用于缓存的key，传递后，会将(payload, data, arg)缓存到session中，下次加载时将读取缓存数据作为初始值 */
   cacheKey?: string;
-  /** true | 当存在缓存数据时，是否进行swr(stale-while-revalidate)请求 */
+  /** true | 当传入了cacheKey且存在缓存数据时，是否进行swr(stale-while-revalidate)请求 */
   stale?: boolean;
   /** 节流间隔时间，传入时，开启节流, 只有初始化时的配置会生效 */
   throttleInterval?: number;
@@ -61,10 +55,10 @@ interface UseFetchReturns<Data, Payload> {
   timeout: boolean;
   /** method方法resolve的值或initData */
   data: Data | undefined;
-  /** 当前用于请求的payload */
+  /** 当前用于请求的payload或initPayload */
   payload: Payload | undefined;
-  /** 请求函数依赖的参数，一般代替payload使用 */
-  arg: string | number | boolean | undefined;
+  /** 当前用于请求的param */
+  param: Payload;
   /** 设置当前的data */
   setData: SetStateBase<Data>;
   /** 取消请求 */
@@ -77,12 +71,15 @@ interface UseFetchReturns<Data, Payload> {
    * 根据参数类型不同，会有不同效果:
    * 带参数: 以新的payload发起请求并设置payload
    * 无参数/参数为合成事件: 以当前参数发起更新
-   * 传入了arg配置项: 当存在arg配置，一律视为更新并以当前arg的值发起更新. 此时，传入的payload会被忽略
+   * 传入了param配置项: 当存在param配置，一律视为更新并以当前param的值发起更新. 此时，传入的payload会被忽略
    *
    * 返回错误优先的Promise:
    * 如果该次请求有效，返回一个必定resolve数组[err, res]的Promise，err为reject的结果(不为null说明该次请求发生了错误)，res为resolve的结果 */
   send: (
-    newPayload?: Payload | React.SyntheticEvent | undefined
+    newPayload?:
+      | Payload
+      | React.SyntheticEvent
+      | undefined /* SyntheticEvent是为了直接将send绑定给onClick等时不出现类型错误 */
   ) => Promise<[any, Data]>;
 }
 
@@ -120,7 +117,7 @@ function useFetch<Data = any, Payload = any>(
     initData,
     initPayload,
     deps = [],
-    arg,
+    param,
     manual = false,
     timeout = 10000,
     onSuccess,
@@ -162,16 +159,7 @@ function useFetch<Data = any, Payload = any>(
     disabled: !isCache,
   });
 
-  // 将arg映射到内部，用于缓存
-  const [innerArg, setInnerArg] = useStorageState(`${cacheKey}`, arg, {
-    disabled: !isCache,
-  });
-
   const [polling, setPolling] = useState(true);
-
-  useUpdateEffect(() => {
-    setInnerArg(arg!);
-  }, [arg]);
 
   const fetchHandel = useFn(
     async function _fetchHandel(args: any, isUpdate = false) {
@@ -243,11 +231,18 @@ function useFetch<Data = any, Payload = any>(
     }
   );
 
-  /** 手动发起请求，传入payload时会以传入值进行替换, 参数支持SyntheticEvent是为了方便onClick={send}这样使用 */
+  /** 手动发起请求 */
   const send = useFn((newPayload?: Payload) => {
     const isUpdate = isSyntheticEvent(newPayload) || newPayload === undefined;
     return fetchHandel(getActualPayload(newPayload), isUpdate);
   });
+
+  /** 监听param改变并执行缓存更新，发起请求 */
+  useEffectEqual(() => {
+    if (!('param' in options)) return;
+    if (self.fetchCount === 0 || manual) return;
+    fetchHandel(getActualPayload(), false); // 走到这里说明参数已经改变了
+  }, [param]);
 
   /** 执行一些自动触发请求的操作 */
   useEffect(() => {
@@ -260,7 +255,7 @@ function useFetch<Data = any, Payload = any>(
       return;
     }
     fetchHandel(getActualPayload(), self.fetchCount !== 0);
-  }, [innerArg, ...deps]);
+  }, [...deps]);
 
   /** 轮询处理 */
   useEffect(
@@ -283,11 +278,11 @@ function useFetch<Data = any, Payload = any>(
     [pollingInterval, polling]
   );
 
-  /** 接受可选的新payload，并根据条件返回传递给fetchHandel的参数(使用arg或payload) */
+  /** 接受可选的新payload，并根据条件返回传递给fetchHandel的参数(使用param或payload) */
   function getActualPayload(newPayload?: Payload) {
-    // 包含arg，使用当前arg更新
-    if ('arg' in options) {
-      return arg;
+    // 包含param配置项，使用当前param更新
+    if ('param' in options) {
+      return param;
     }
 
     // 参数为合成事件或未传，视为更新请求，使用当前payload进行更新请求
@@ -329,7 +324,7 @@ function useFetch<Data = any, Payload = any>(
     send,
     data,
     payload,
-    arg: innerArg,
+    param,
     setData,
     cancel,
     polling,
