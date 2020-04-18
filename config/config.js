@@ -10,7 +10,7 @@ export default {
   resolve: {
     includes: ['src'],
   },
-  dynamicImport: {
-    loading: '@/Loading',
-  },
+  // dynamicImport: {
+  //   loading: '@/Loading',
+  // },
 };
