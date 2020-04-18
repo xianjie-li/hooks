@@ -6,7 +6,8 @@ export default {
   base: '/hooks/',
   publicPath: '/hooks/',
   title: 'hooks',
-  description: 'Use Your Imagination\n',
+  description: 'Use Your Imagination',
+  logo: '../logo.png',
   resolve: {
     includes: ['src'],
   },
