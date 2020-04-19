@@ -36,3 +36,5 @@ export * from './ui/useBreakPoint';
 export * from './ui/useLockBodyScroll';
 
 export * from './ui/useScroll';
+
+export * from './ui/useCheck';
