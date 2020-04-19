@@ -1,8 +1,7 @@
-import { useFn } from '@/effect/useFn';
-import { FormLike, useFormState } from '@lxjx/hooks';
+import { FormLike, useFn, useFormState } from '@lxjx/hooks';
 import { useMemo } from 'react';
 
-interface UseCheckConf<T, OPTION> extends FormLike<T[]> {
+export interface UseCheckConf<T, OPTION> extends FormLike<T[]> {
   /** 选项数组 */
   options: OPTION[];
   /** 所有禁用值 */
@@ -12,7 +11,7 @@ interface UseCheckConf<T, OPTION> extends FormLike<T[]> {
 }
 
 /** checked可以允许存在options中不存在的值， 所有选中, 局部选中都只针对传入选项来确定 */
-interface UseCheckReturns<T, OPTION> {
+export interface UseCheckReturns<T, OPTION> {
   /** 部分值被选中 */
   partialChecked: boolean;
   /** 是否全部选中 */
