@@ -1,4 +1,4 @@
-import { StateInitState, SetStateBase } from 'type';
+import { StateInitState, SetStateBase } from '../type';
 import { __GLOBAL__ } from '@lxjx/utils';
 import { useState } from 'react';
 import { useFn } from '../effect/useFn';
