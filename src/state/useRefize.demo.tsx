@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { UseRefize } from './useRefize';
+import { useRefize } from './useRefize';
 
 const useRefizeDemo = () => {
   const [count, setCount] = useState(0);
-  const refState = UseRefize({
+  const refState = useRefize({
     count,
   });
 
