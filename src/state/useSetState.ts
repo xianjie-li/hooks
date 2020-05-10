@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { SetState, StateInitState } from '../type';
 import { AnyObject } from '@lxjx/utils';
 
@@ -12,19 +12,19 @@ import { AnyObject } from '@lxjx/utils';
 export const useSetState = <T extends AnyObject>(
   initState = {} as StateInitState<T>
 ): [T, SetState<T>] => {
-  const [, update] = useState(0);
   const [state, set] = useState<T>(initState);
+  const ref = useRef(state);
+
   const setState = useCallback(
     patch => {
-      // 关键是使用Object.assign保证引用不变
-      set(
-        Object.assign(state, patch instanceof Function ? patch(state) : patch)
-      );
-      // 引用相同useState是不会更新的，需要手动触发更新
-      update(prev => prev + 1);
+      const newState = {
+        ...state, ...(patch instanceof Function ? patch(ref.current) : patch),
+      };
+      ref.current = Object.assign(ref.current, newState);
+      set(newState);
     },
     [set]
   );
 
-  return [state, setState];
+  return [ref.current, setState];
 };
