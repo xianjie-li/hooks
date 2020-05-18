@@ -65,10 +65,10 @@ export function useFormState<T, Ext = any>(
     // 初始状态获取说明: value > defaultValue > useFormState中配置的defaultValue
     let val = defaultValue;
     if (valueKey in props) {
-      val = value;
+      val = props[valueKey] === undefined ? defaultValue : value;
     }
     if (defaultValueKey in props) {
-      val = propDefaultValue;
+      val = props[valueKey] === undefined ? defaultValue : propDefaultValue;
     }
     return (stateRef.current = val);
   });
