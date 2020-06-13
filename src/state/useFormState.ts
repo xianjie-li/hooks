@@ -68,8 +68,10 @@ export function useFormState<T, Ext = any>(
       val = props[valueKey] === undefined ? defaultValue : value;
     }
     if (defaultValueKey in props) {
-      val = props[valueKey] === undefined ? defaultValue : propDefaultValue;
+      val =
+        props[defaultValueKey] === undefined ? defaultValue : propDefaultValue;
     }
+
     return (stateRef.current = val);
   });
 

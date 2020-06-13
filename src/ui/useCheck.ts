@@ -48,8 +48,8 @@ export function useCheck<T, OPTION = T>(
   conf: UseCheckConf<T, OPTION>
 ): UseCheckReturns<T, OPTION> {
   const { options = [], disables = [], collector } = conf;
-  // 先把选项值、禁用值提出来
 
+  // 先把选项值、禁用值提出来
   const items = useMemo(() => {
     const cItem = collector
       ? options.map(item => collector(item))
@@ -58,6 +58,8 @@ export function useCheck<T, OPTION = T>(
   }, [options, disables]);
 
   const [checked, setChecked] = useFormState<T[], OPTION[]>(conf, []);
+
+  console.log(conf, checked);
 
   // 禁用项中所有已被选中的值
   const disabledCheckVal = useMemo(() => {

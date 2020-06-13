@@ -13,7 +13,7 @@ const options2 = [
 const UseCheckDemo = () => {
   const res = useCheck<number, { id: number; disabled?: boolean }>({
     options: options2,
-    defaultValue: [1, 4],
+    defaultValue: [1, 3],
     disables: [4],
     collector: item => item.id,
   });
