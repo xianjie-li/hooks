@@ -1,7 +1,8 @@
-import { FormLike, useFn, useFormState } from '@lxjx/hooks';
+import { FormLikeWithExtra, useFn, useFormState } from '@lxjx/hooks';
 import { useMemo } from 'react';
 
-export interface UseCheckConf<T, OPTION> extends FormLike<T[]> {
+export interface UseCheckConf<T, OPTION>
+  extends FormLikeWithExtra<T[], OPTION[]> {
   /** 选项数组 */
   options: OPTION[];
   /** 所有禁用值 */
@@ -49,22 +50,19 @@ export function useCheck<T, OPTION = T>(
 ): UseCheckReturns<T, OPTION> {
   const { options = [], disables = [], collector } = conf;
 
-  // 先把选项值、禁用值提出来
+  /** 提取所有选项值 */
   const items = useMemo(() => {
-    const cItem = collector
+    return collector
       ? options.map(item => collector(item))
       : ((options as unknown) as T[]);
-    return cItem;
   }, [options, disables]);
 
   const [checked, setChecked] = useFormState<T[], OPTION[]>(conf, []);
 
-  console.log(conf, checked);
-
-  // 禁用项中所有已被选中的值
-  const disabledCheckVal = useMemo(() => {
-    return checked.filter(item => disables.includes(item));
-  }, [checked, disables]);
+  /** 提取所有禁用项 */
+  // const disabledCheckVal = useMemo(() => {
+  //   return checked.filter(item => disables.includes(item));
+  // }, [checked, disables]);
 
   const isChecked = useFn((val: T) => checked.includes(val));
 
@@ -74,7 +72,7 @@ export function useCheck<T, OPTION = T>(
     if (isDisabled(val)) return;
     const index = checked.indexOf(val);
     if (index === -1) {
-      setChecked([...checked, val]);
+      setCheckedWithOptions([...checked, val]);
     }
   });
 
@@ -84,27 +82,27 @@ export function useCheck<T, OPTION = T>(
     if (index !== -1) {
       const temp = [...checked];
       temp.splice(index, 1);
-      setChecked(temp);
+      setCheckedWithOptions(temp);
     }
   });
 
   const checkAll = useFn(() => {
-    setChecked(getEnables());
+    setCheckedWithOptions(getEnables());
   });
 
   const unCheckAll = useFn(() => {
-    setChecked(getEnables(false));
+    setCheckedWithOptions(getEnables(false));
   });
 
   const toggle = useFn((val: T) => {
     if (isDisabled(val)) return;
     const index = checked.indexOf(val);
     if (index === -1) {
-      setChecked(prev => [...prev, val]);
+      setCheckedWithOptions([...checked, val]);
     } else {
       const newArray = [...checked];
       newArray.splice(index, 1);
-      setChecked(newArray);
+      setCheckedWithOptions(newArray);
     }
     return index !== -1;
   });
@@ -116,15 +114,18 @@ export function useCheck<T, OPTION = T>(
       if (_isDisabled) return _isChecked; // 如果禁用则返回、
       return !_isChecked;
     });
-    setChecked(reverse);
+    setCheckedWithOptions(reverse);
   });
 
   const setCheck = useFn((nextChecked: T[]) => {
-    // 所有禁用已选项中不存在的值
-    const extra = disabledCheckVal.filter(item => {
-      return !nextChecked.includes(item);
+    // 只选中列表中未被禁用的项
+    const extra = nextChecked.filter(item => {
+      if (isDisabled(item)) {
+        return isChecked(item);
+      }
+      return true;
     });
-    setChecked([...nextChecked, ...extra]);
+    setCheckedWithOptions([...extra]);
   });
 
   const setCheckBy = useFn((val: T, _isChecked: boolean) => {
@@ -132,7 +133,12 @@ export function useCheck<T, OPTION = T>(
     _isChecked ? check(val) : unCheck(val);
   });
 
-  /** 获取所有可用的选项，传入false时，从option中排除所有未禁用的选项并返回 */
+  /** setChecked的额外包装，传入option */
+  function setCheckedWithOptions(_checked: T[]) {
+    setChecked(_checked, getCheckedOptions(_checked));
+  }
+
+  /** 获取所有选项，传入false时，返回空数组。所有禁用项会以原样返回 */
   function getEnables(isCheck = true) {
     return items.filter(item => {
       const _isDisabled = isDisabled(item);
@@ -145,10 +151,11 @@ export function useCheck<T, OPTION = T>(
     });
   }
 
-  function getCheckedOptions() {
-    if (!collector) return (checked as unknown) as OPTION[];
+  /** 获取所有已选中的选项 */
+  function getCheckedOptions(_checked: T[]) {
+    if (!collector) return (_checked as unknown) as OPTION[];
     return options.filter(item => {
-      return checked.includes(collector(item));
+      return _checked.includes(collector(item));
     });
   }
 
@@ -174,7 +181,7 @@ export function useCheck<T, OPTION = T>(
   return {
     ...getCheckStatus(),
     checked,
-    originalChecked: getCheckedOptions(),
+    originalChecked: getCheckedOptions(checked),
     noneChecked: checked.length === 0,
     isChecked,
     isDisabled,

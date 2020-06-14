@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useCheck } from '@lxjx/hooks';
 
-const options1 = [1, 2, 3, 4, 5, 6];
+// const options1 = [1, 2, 3, 4, 5, 6];
 const options2 = [
   { id: 1, label: '选项1' },
   { id: 2, label: '选项2' },
@@ -16,6 +16,9 @@ const UseCheckDemo = () => {
     defaultValue: [1, 3],
     disables: [4],
     collector: item => item.id,
+    onChange(v, o) {
+      console.log(v, o);
+    },
   });
 
   return (
