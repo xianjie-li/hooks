@@ -1,4 +1,4 @@
-import { FormLikeWithExtra, useFn, useFormState } from '@lxjx/hooks';
+import { FormLikeWithExtra, useFn, useFormState, useSelf } from '@lxjx/hooks';
 import { useMemo } from 'react';
 
 export interface UseCheckConf<T, OPTION>
@@ -9,9 +9,11 @@ export interface UseCheckConf<T, OPTION>
   disables?: T[];
   /** 当option子项为对象类型时，传入此项来决定从该对象中取何值作为实际的选项值  */
   collector?: (item: OPTION) => T;
+  /** 如果当前value包含在options中不存在的值，会触发此函数，用于从服务器或其他地方拉取不存在的选项 */
+  notExistValueTrigger?(val: T[]): void;
 }
 
-/** checked可以允许存在options中不存在的值， 所有选中, 局部选中都只针对传入选项来确定 */
+/** checked可以允许存在options中不存在的值， 所有选中, 局部选中都只针对传入选项中存在的值来确定 */
 export interface UseCheckReturns<T, OPTION> {
   /** 部分值被选中 */
   partialChecked: boolean;
@@ -48,63 +50,91 @@ export interface UseCheckReturns<T, OPTION> {
 export function useCheck<T, OPTION = T>(
   conf: UseCheckConf<T, OPTION>
 ): UseCheckReturns<T, OPTION> {
-  const { options = [], disables = [], collector } = conf;
+  const { options = [], disables = [], collector, notExistValueTrigger } = conf;
 
-  /** 提取所有选项值 */
+  /* ⚠ 用最少的循环实现功能，因为option可能包含巨量的数据 */
+  const self = useSelf({
+    /** 存放所有选项的字典 */
+    optMap: {} as { [key: string]: OPTION },
+    /** 存放所有已选值的字典 */
+    valMap: {} as { [key: string]: { v: T; o: OPTION } },
+    /** 存放checked种存在，但是options中不存在的值, used为是否已通过 */
+    notExistVal: {} as { [key: string]: { used: boolean; v: T } },
+  });
+
+  const [checked, setChecked] = useFormState<T[], OPTION[]>(
+    {
+      ...conf,
+      // 截获onChange并自定义更新逻辑
+      onChange(val: T[]) {
+        valMapSync(val);
+        conf.onChange?.(val, getCheckedOptions(val));
+      },
+    },
+    []
+  );
+
+  /** 提取所有选项为基础类型值, 基础值数组操作更方便 */
   const items = useMemo(() => {
     return collector
-      ? options.map(item => collector(item))
+      ? options.map(item => {
+          const v = collector(item);
+          // 在这里更新optMap
+          self.optMap[String(v)] = item;
+          return collector(item);
+        })
       : ((options as unknown) as T[]);
-  }, [options, disables]);
+  }, [options]);
 
-  const [checked, setChecked] = useFormState<T[], OPTION[]>(conf, []);
+  /** 使用memo会更快被调用 */
+  useMemo(() => {
+    valMapSync(checked);
+  }, []);
 
-  /** 提取所有禁用项 */
-  // const disabledCheckVal = useMemo(() => {
-  //   return checked.filter(item => disables.includes(item));
-  // }, [checked, disables]);
-
-  const isChecked = useFn((val: T) => checked.includes(val));
+  const isChecked = useFn((val: T) => !!self.valMap[val as any]);
 
   const isDisabled = useFn((val: T) => disables.includes(val));
 
   const check = useFn((val: T) => {
     if (isDisabled(val)) return;
-    const index = checked.indexOf(val);
-    if (index === -1) {
-      setCheckedWithOptions([...checked, val]);
+    if (!isChecked(val)) {
+      setChecked([...checked, val]);
     }
   });
 
   const unCheck = useFn((val: T) => {
     if (isDisabled(val)) return;
+    if (!isChecked(val)) return;
     const index = checked.indexOf(val);
     if (index !== -1) {
       const temp = [...checked];
       temp.splice(index, 1);
-      setCheckedWithOptions(temp);
+      setChecked(temp);
     }
   });
 
   const checkAll = useFn(() => {
-    setCheckedWithOptions(getEnables());
+    setChecked(getEnables());
   });
 
   const unCheckAll = useFn(() => {
-    setCheckedWithOptions(getEnables(false));
+    setChecked(getEnables(false));
   });
 
   const toggle = useFn((val: T) => {
     if (isDisabled(val)) return;
-    const index = checked.indexOf(val);
-    if (index === -1) {
-      setCheckedWithOptions([...checked, val]);
+
+    const _isC = isChecked(val);
+
+    if (!_isC) {
+      setChecked([...checked, val]);
     } else {
-      const newArray = [...checked];
+      const index = checked.indexOf(val);
+      const newArray = checked.slice();
       newArray.splice(index, 1);
-      setCheckedWithOptions(newArray);
+      setChecked(newArray);
     }
-    return index !== -1;
+    return !_isC;
   });
 
   const toggleAll = useFn(() => {
@@ -114,7 +144,7 @@ export function useCheck<T, OPTION = T>(
       if (_isDisabled) return _isChecked; // 如果禁用则返回、
       return !_isChecked;
     });
-    setCheckedWithOptions(reverse);
+    setChecked(reverse);
   });
 
   const setCheck = useFn((nextChecked: T[]) => {
@@ -125,7 +155,7 @@ export function useCheck<T, OPTION = T>(
       }
       return true;
     });
-    setCheckedWithOptions([...extra]);
+    setChecked([...extra]);
   });
 
   const setCheckBy = useFn((val: T, _isChecked: boolean) => {
@@ -133,17 +163,11 @@ export function useCheck<T, OPTION = T>(
     _isChecked ? check(val) : unCheck(val);
   });
 
-  /** setChecked的额外包装，传入option */
-  function setCheckedWithOptions(_checked: T[]) {
-    setChecked(_checked, getCheckedOptions(_checked));
-  }
-
-  /** 获取所有选项，传入false时，返回空数组。所有禁用项会以原样返回 */
+  /** 获取所有未禁用选项，传入false时，返回非禁用可用选项。禁用项会以原样返回 */
   function getEnables(isCheck = true) {
     return items.filter(item => {
       const _isDisabled = isDisabled(item);
 
-      // 如果是禁用项则根据选中状态返回
       if (_isDisabled) {
         return isChecked(item);
       }
@@ -154,9 +178,17 @@ export function useCheck<T, OPTION = T>(
   /** 获取所有已选中的选项 */
   function getCheckedOptions(_checked: T[]) {
     if (!collector) return (_checked as unknown) as OPTION[];
-    return options.filter(item => {
-      return _checked.includes(collector(item));
+
+    const temp: OPTION[] = [];
+
+    _checked.forEach(item => {
+      const c = self.valMap[item as any];
+      if (c) {
+        temp.push(c.o);
+      }
     });
+
+    return temp;
   }
 
   /** 判断是否局部选中, 是否所有选中 */
@@ -174,6 +206,42 @@ export function useCheck<T, OPTION = T>(
       /** 是否全部选中 */
       allChecked: checkLen === maxLength,
     };
+  }
+
+  /** 同步valMap, notExistVal  */
+  function valMapSync(_checked: T[]) {
+    self.valMap = {};
+
+    _checked.forEach(item => {
+      const c = self.optMap[item as any];
+
+      if (c) {
+        self.valMap[item as any] = {
+          v: item,
+          o: self.optMap[item as any],
+        };
+      } else {
+        if (!self.notExistVal[item as any]) {
+          self.notExistVal[item as any] = {
+            used: false,
+            v: item,
+          };
+        }
+      }
+    });
+
+    if (notExistValueTrigger) {
+      const notOptionValues: T[] = [];
+
+      Object.entries(self.notExistVal).forEach(([_, v]) => {
+        if (!v.used) {
+          v.used = true;
+          notOptionValues.push(v.v);
+        }
+      });
+
+      notOptionValues.length && notExistValueTrigger(notOptionValues);
+    }
   }
 
   /**

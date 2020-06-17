@@ -4,7 +4,11 @@ title: useCheck
 
 # useCheck
 
-一个对选中状态进行管理的 hook，支持像表单控件一样受控、非受控使用
+一个高性能的选中状态管理 hook，支持像表单控件一样受控、非受控使用
+
+✨ 支持绝大多数选择用例  
+✨ 通过onChange/value等表单式接口，可以无缝接入Checkbox/Radio/Select等组件  
+✨ 轻松处理十万级别的选项数据(i5-4210M的古董机上处理30万个选项无明显延迟)
 
 ## 示例
 
@@ -21,18 +25,21 @@ title: useCheck
 **conf**
 
 ```ts
-interface UseCheckConf<T, OPTION> extends FormLike<T[]> {
+interface UseCheckConf<T, OPTION = T>
+  extends FormLikeWithExtra<T[], OPTION[]> {
   /** 选项数组 */
   options: OPTION[];
   /** 所有禁用值 */
   disables?: T[];
-  /** 当option子项为对象类型时，传入此项来决定从该对象中取何值作为实际的选项值 */
+  /** 当option子项为对象类型时，传入此项来决定从该对象中取何值作为实际的选项值  */
   collector?: (item: OPTION) => T;
+  /** 如果当前value中存在options中不存在的值，会触发此函数，用于从服务器或其他地方拉取不存在的选项 */
+  notExistValueTrigger?(val: T[]): void;
 }
 
-interface FormLike<T> {
+interface FormLikeWithExtra<T, Ext = any> {
   value?: T;
-  onChange?: (value: T) => void;
+  onChange?: (value: T, extra: Ext) => void;
   defaultValue?: T;
 }
 ```
@@ -40,7 +47,7 @@ interface FormLike<T> {
 **bonus**
 
 ```ts
-/** checked可以允许存在options中不存在的值， 所有选中, 局部选中都只针对传入选项来确定 */
+/** checked可以允许存在options中不存在的值， 所有选中, 局部选中都只针对传入选项中存在的值来确定 */
 interface UseCheckReturns<T, OPTION> {
   /** 部分值被选中 */
   partialChecked: boolean;

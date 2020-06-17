@@ -1,43 +1,51 @@
 import React from 'react';
 import { useCheck } from '@lxjx/hooks';
 
-// const options1 = [1, 2, 3, 4, 5, 6];
-const options2 = [
-  { id: 1, label: '选项1' },
-  { id: 2, label: '选项2' },
-  { id: 3, label: '选项3' },
-  { id: 4, label: '选项4' },
-  { id: 5, label: '选项5' },
-];
+function fakeOptions(num: number) {
+  return Array.from({ length: num }).map((_, index) => ({
+    label: `选项${index + 1}`,
+    value: index + 1,
+  }));
+}
+
+const opt = fakeOptions(300000);
 
 const UseCheckDemo = () => {
-  const res = useCheck<number, { id: number; disabled?: boolean }>({
-    options: options2,
+  const res = useCheck<number, { value: number; disabled?: boolean }>({
+    options: opt,
     defaultValue: [1, 3],
     disables: [4],
-    collector: item => item.id,
+    collector: item => item.value,
     onChange(v, o) {
-      console.log(v, o);
+      console.log('onChange', v, o);
     },
   });
 
   return (
     <div>
       <div>
-        {options2.map(item => (
-          <label key={item.id}>
+        {opt.slice(0, 6).map(item => (
+          <label key={item.value}>
             <input
               type="checkbox"
-              checked={res.isChecked(item.id)}
-              onChange={({ target }) => res.setCheckBy(item.id, target.checked)}
-              disabled={res.isDisabled(item.id)}
+              checked={res.isChecked(item.value)}
+              onChange={({ target }) =>
+                res.setCheckBy(item.value, target.checked)
+              }
+              disabled={res.isDisabled(item.value)}
             />
             {item.label}
           </label>
         ))}
+        等{opt.length}个选项...
       </div>
-      <div>选中: {JSON.stringify(res.checked, null, 4)}</div>
-      <div>原始选中: {JSON.stringify(res.originalChecked, null, 4)}</div>
+      <div>
+        选中: {JSON.stringify(res.checked.slice(0, 6), null, 4)}{' '}
+        {res.checked.length}+...
+      </div>
+      <div>
+        原始选中: {JSON.stringify(res.originalChecked.slice(0, 6), null, 4)}...
+      </div>
       <div>是否全部选中: {res.allChecked.toString()}</div>
       <div>无任何值选中: {res.noneChecked.toString()}</div>
       <div>部分选中: {res.partialChecked.toString()}</div>
@@ -64,9 +72,12 @@ const UseCheckDemo = () => {
       <button onClick={() => res.toggle(5)}>toggle5</button>
       <br />
       <br />
-      <button onClick={() => res.checkAll()}>checkAll</button>
-      <button onClick={() => res.unCheckAll()}>unCheckAll</button>
-      <button onClick={() => res.toggleAll()}>toggleAll</button>
+      <div style={{ border: '1px solid red', padding: 16 }}>
+        <button onClick={() => res.checkAll()}>checkAll</button>
+        <button onClick={() => res.unCheckAll()}>unCheckAll</button>
+        <button onClick={() => res.toggleAll()}>toggleAll</button>
+        <span style={{ fontSize: 12, color: '#666' }}>高性能消耗</span>
+      </div>
       <br />
       <br />
       <button onClick={() => console.log(res.isChecked(1))}>isChecked1</button>
@@ -99,11 +110,11 @@ const UseCheckDemo = () => {
       </button>
       <br />
       <br />
-      <button onClick={() => res.setCheckBy(2, true)}>
-        setCheckBy(2, true)
+      <button onClick={() => res.setCheckBy(1, true)}>
+        setCheckBy(1, true))
       </button>
-      <button onClick={() => res.setCheckBy(4, false)}>
-        setCheckBy(4, false)
+      <button onClick={() => () => res.setCheckBy(3, false)}>
+        setCheckBy(3, false)
       </button>
     </div>
   );
