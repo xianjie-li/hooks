@@ -207,10 +207,11 @@ export function useScroll<ElType extends HTMLElement>(
    * @param selector | target
    *    selector - 滚动到以该选择器命中的第一个元素
    *    element - 滚动到指定元素
+   * @param immediate - 是否跳过动画
    * */
-  function scrollToElement(selector: string): void;
-  function scrollToElement(element: HTMLElement): void;
-  function scrollToElement(arg: string | HTMLElement) {
+  function scrollToElement(selector: string, immediate?: boolean): void;
+  function scrollToElement(element: HTMLElement, immediate?: boolean): void;
+  function scrollToElement(arg: string | HTMLElement, immediate?: boolean) {
     const sEl = getEl();
     let targetEl: HTMLElement | null;
 
@@ -240,6 +241,7 @@ export function useScroll<ElType extends HTMLElement>(
       x: cLeft - fLeft + xOffset,
       y: cTop - fTop + yOffset,
       raise: !(sEl instanceof HTMLHtmlElement), // 如果滚动节点为html元素, 可以直接取计算结果
+      immediate,
     });
   }
 

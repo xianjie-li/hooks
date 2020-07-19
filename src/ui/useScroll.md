@@ -77,9 +77,9 @@ interface UseScrollSetArg {
 
 ```ts
 // selector - 滚动到以该选择器命中的第一个元素
-function scrollToElement(selector: string): void;
+function scrollToElement(selector: string, immediate?: boolean): void;
 // element - 滚动到指定元素
-function scrollToElement(element: HTMLElement): void;
+function scrollToElement(element: HTMLElement, immediate?: boolean): void;
 ```
 
 **ref** - 默认使用`document.documentElement`作为滚动元素，可以通过这个属性自行指定滚动元素
