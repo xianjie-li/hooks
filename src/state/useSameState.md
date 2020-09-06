@@ -19,18 +19,23 @@ title: useSameState
 ## API
 
 ```ts
-function useSameState<Meta = any>(
+/**
+ * @param key - 标识该组件的唯一key
+ * @param config - 额外配置
+ * @param config.meta - 用于共享的组件源数据，可以在同组件的其他实例中获取到
+ * @param config.deps - [] | 出于性能考虑，各组件共享的meta只在该实例index变更时更新，以通过此项传入依赖项数组在任意一个依赖变更后更新meta
+ * @param config.enable - true | 只有在dep的值为true时，该实例才算启用并被钩子接受, 通常为Modal等组件的toggle参数
+ * @return state - 同类型启用组件共享的状态
+ * @return state[0] index - 该组件实例处于所有实例中的第几位，未启用的组件返回-1
+ * @return state[1] instances - 所有启用状态的组件<Item>组成的数组，正序
+ * @return state[2] id - 该组件实例的唯一标识
+ * */
+export function useSameState<Meta = any>(
   key: string,
-  dep: boolean,
-  meta?: Meta
-): sameState;
-```
-
-```ts
-key - 标识该组件的唯一 key
-dep - 只有在 dep 的值为 true 时，该实例才算启用并被钩子接受, 通常为 Modal 等组件的 toggle 参数
-meta - 用于共享的组件源数据，可以在同组件的其他实例中获取到
-sameState[0] - 该组件实例处于所有实例中的第几位，未启用的组件返回-1
-sameState[1] - 所有启用状态的组件<Item>组成的数组，正序
-sameState[2] - 该组件实例的唯一标识
+  config?: {
+    meta?: Meta,
+    deps?: any[],
+    enable?: boolean,
+  }
+): state
 ```

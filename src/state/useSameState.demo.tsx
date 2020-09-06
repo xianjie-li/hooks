@@ -7,15 +7,22 @@ interface SameComponentProps {
 }
 
 function SameComponent({ flag, show = false }: SameComponentProps) {
-  const [index, instances, id] = useSameState('same_component', show, {
-    flag,
-    show,
+  const [num, setNum] = useState(() => Math.random());
+
+  const [index, instances, id] = useSameState('same_component', {
+    meta: {
+      flag,
+      show,
+      num,
+    },
+    enable: show,
+    deps: [num],
   });
 
   return (
-    <div style={{ margin: '24px 0' }}>
-      <div>该组件位于实例第 {index} 位</div>
-      <div>组件共享参数: {JSON.stringify(instances, null, 2)}</div>
+    <div style={{ margin: '24px 0' }} onClick={() => setNum(Math.random())}>
+      <h3>该组件位于实例第 {index} 位</h3>
+      <div>组件共享参数: <pre>{JSON.stringify(instances, null, 2)}</pre></div>
       <div>组件id: {id}</div>
     </div>
   );

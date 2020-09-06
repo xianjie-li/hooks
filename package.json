@@ -1,5 +1,6 @@
 {
-  "version": "1.4.0",
+  "version": "1.4.1",
+  "description": "react hooks library",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
