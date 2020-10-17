@@ -22,7 +22,6 @@
     "moduleResolution": "node",
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"],
       "@lxjx/hooks": ["src/index.ts"]
     },
     "jsx": "react",

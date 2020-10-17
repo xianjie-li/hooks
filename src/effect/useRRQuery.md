@@ -14,12 +14,12 @@ title: useRRQuery
 
 ```ts
 const result = useRRQuery<Query extends object = any>
-(defaultSearch?: string | AnyObject);
+(defaultQuery?: string | AnyObject);
 ```
 
-**defaultSearch** - 默认查询, 会与 url 查询合并, 可以是查询对象或查询字符串(只在初始化时读取)
+**defaultQuery** - 默认查询, 会与 url 查询合并, 可以是查询对象或查询字符串(只在初始化时读取)
 
-**search** - 查询字符串
+**query** - 查询字符串
 
 **queryObject** - 根据 search 解析得到的对象
 

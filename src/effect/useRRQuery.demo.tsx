@@ -15,11 +15,7 @@ const useRRQueryDemo = () => {
         set name
       </button>
       <button onClick={() => qs.set({ id: Math.random() })}>set id</button>
-      <button
-        onClick={() =>
-          qs.set({ name: `lxj${Math.random()}`, id: Math.random() })
-        }
-      >
+      <button onClick={() => qs.coverSet({ name: `lxj${Math.random()}` })}>
         coverSet
       </button>
     </div>

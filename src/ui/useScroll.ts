@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { isNumber, isDom } from '@lxjx/utils';
 import _clamp from 'lodash/clamp';
 import { useThrottle } from '../effect/useThrottle';
-import { useSpring } from 'react-spring';
+import { useSpring, config } from 'react-spring';
 
 interface UseScrollOptions {
   /** 直接以指定dom作为滚动元素，优先级高于default，低于ref */
@@ -22,7 +22,7 @@ interface UseScrollOptions {
   touchOffset?: number;
 }
 
-interface UseScrollSetArg {
+export interface UseScrollSetArg {
   /** 指定滚动的x轴 */
   x?: number;
   /** 指定滚动的y轴 */
@@ -33,16 +33,16 @@ interface UseScrollSetArg {
   immediate?: boolean;
 }
 
-interface UseScrollMeta {
+export interface UseScrollMeta {
   /** 滚动元素 */
   el: HTMLElement;
   /** x轴位置 */
   x: number;
   /** y轴位置 */
   y: number;
-  /** 可接受的x轴滚动最大值 */
+  /** 可接受的x轴滚动最大值(值大于0说明可滚动) */
   xMax: number;
-  /** 可接受的y轴滚动最大值 */
+  /** 可接受的y轴滚动最大值(值大于0说明可滚动) */
   yMax: number;
   /** 元素高度 */
   height: number;
@@ -86,12 +86,10 @@ export function useScroll<ElType extends HTMLElement>(
 
   const ref = useRef<ElType>(null);
 
-  // @ts-ignore 坑2： 8.x版本的[,,stop]stop无效, 不能监听滚动后停止定位动画
-  const [, setY] = useSpring<{ y: number; x: number }>(() => ({
+  const [spValue, update, stop] = useSpring<{ y: number; x: number }>(() => ({
     y: 0,
     x: 0,
-    config: { clamp: true },
-    reset: true,
+    config: { clamp: true, ...config.stiff },
   }));
 
   const scrollHandle = useThrottle(() => {
@@ -105,11 +103,25 @@ export function useScroll<ElType extends HTMLElement>(
     const scrollEl = elIsDoc() ? window : sEl;
 
     scrollEl.addEventListener('scroll', scrollHandle);
+
     return () => {
       scrollEl.removeEventListener('scroll', scrollHandle);
     };
-    // eslint-disable-next-line
-  }, [onScroll]);
+  }, []);
+
+  /** 执行滚动、拖动操作时，停止当前正在进行的滚动操作 */
+  useEffect(() => {
+    const sEl = getEl();
+
+    function wheelHandle() {
+      if (spValue.x.is('ACTIVE') || spValue.y.is('ACTIVE')) {
+        stop();
+      }
+    }
+
+    sEl.addEventListener('wheel', wheelHandle);
+    sEl.addEventListener('touchmove', wheelHandle);
+  }, []);
 
   function elIsDoc() {
     const sEl = getEl();
@@ -128,11 +140,10 @@ export function useScroll<ElType extends HTMLElement>(
   ) {
     const isDoc = elIsDoc();
 
-    setY({
+    update({
       ...next,
       from: now,
-      // @ts-ignore 类型错误？
-      onFrame(props) {
+      onChange(props) {
         sEl.scrollTop = props.y;
         sEl.scrollLeft = props.x;
         // 修复document.body和document.documentElement取值设值在不同浏览器不一致的问题

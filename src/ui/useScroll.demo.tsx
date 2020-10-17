@@ -30,7 +30,7 @@ const useScrollDemo = () => {
         onClick={() => {
           set({
             x: 200,
-            y: 200,
+            y: 1000,
             raise: true,
           });
         }}
