@@ -30,6 +30,8 @@ export * from './state/useStorageSetState';
 
 export * from './state/useStorageState';
 
+export * from './state/useQueue';
+
 /* UI */
 export * from './ui/useBreakPoint';
 
