@@ -96,8 +96,8 @@ return <div ref={ref}>...</div>;
 useScroll(option?: UseScrollOptions)
 
 interface UseScrollOptions {
-  /** 直接以指定dom作为滚动元素，优先级高于default，低于ref */
-  el?: HTMLElement;
+  /** 直接以指定dom或refObj作为滚动元素, 默认的滚动元素是documentElement, 各参数的优先级为 return ref > dom el > ref el */
+  el?: HTMLElement | RefObject<any>;
   /** 滚动时触发 */
   onScroll?(meta: UseScrollMeta): void;
   /** 100 | 配置了onScroll时，设置throttle时间, 单位(ms) */
