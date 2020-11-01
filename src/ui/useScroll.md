@@ -26,7 +26,7 @@ return (
 ```ts
 function get(): UseScrollMeta;
 
-interface UseScrollMeta {
+export interface UseScrollMeta {
   /** 滚动元素 */
   el: HTMLElement;
   /** x轴位置 */

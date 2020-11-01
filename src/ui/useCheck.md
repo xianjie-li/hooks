@@ -49,9 +49,9 @@ interface FormLikeWithExtra<T, Ext = any> {
 ```ts
 /** checked可以允许存在options中不存在的值， 所有选中, 局部选中都只针对传入选项中存在的值来确定 */
 interface UseCheckReturns<T, OPTION> {
-  /** 部分值被选中 */
+  /** 部分值被选中(只针对存在于options中的选项) */
   partialChecked: boolean;
-  /** 是否全部选中 */
+  /** 是否全部选中(只针对存在于options中的选项) */
   allChecked: boolean;
   /** 没有任何值被选中 */
   noneChecked: boolean;

@@ -113,7 +113,7 @@ const UseCheckDemo = () => {
       <button onClick={() => res.setCheckBy(1, true)}>
         setCheckBy(1, true))
       </button>
-      <button onClick={() => () => res.setCheckBy(3, false)}>
+      <button onClick={() => res.setCheckBy(3, false)}>
         setCheckBy(3, false)
       </button>
     </div>

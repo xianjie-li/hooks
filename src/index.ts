@@ -32,6 +32,10 @@ export * from './state/useStorageState';
 
 export * from './state/useQueue';
 
+export * from './state/usePrev';
+
+export * from './state/useMountExist';
+
 /* UI */
 export * from './ui/useBreakPoint';
 
@@ -40,3 +44,8 @@ export * from './ui/useLockBodyScroll';
 export * from './ui/useScroll';
 
 export * from './ui/useCheck';
+
+export * from './ui/useMeasure';
+
+/* UTILS */
+export * from './utils/utils';

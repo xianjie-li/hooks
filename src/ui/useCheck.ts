@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 export interface UseCheckConf<T, OPTION>
   extends FormLikeWithExtra<T[], OPTION[]> {
   /** 选项数组 */
-  options: OPTION[];
+  options?: OPTION[];
   /** 所有禁用值 */
   disables?: T[];
   /** 当option子项为对象类型时，传入此项来决定从该对象中取何值作为实际的选项值  */
@@ -15,9 +15,9 @@ export interface UseCheckConf<T, OPTION>
 
 /** checked可以允许存在options中不存在的值， 所有选中, 局部选中都只针对传入选项中存在的值来确定 */
 export interface UseCheckReturns<T, OPTION> {
-  /** 部分值被选中 */
+  /** 部分值被选中(只针对存在于options中的选项) */
   partialChecked: boolean;
-  /** 是否全部选中 */
+  /** 是否全部选中(只针对存在于options中的选项) */
   allChecked: boolean;
   /** 没有任何值被选中 */
   noneChecked: boolean;
@@ -58,7 +58,7 @@ export function useCheck<T, OPTION = T>(
     optMap: {} as { [key: string]: OPTION },
     /** 存放所有已选值的字典 */
     valMap: {} as { [key: string]: { v: T; o: OPTION } },
-    /** 存放checked种存在，但是options中不存在的值, used为是否已通过 */
+    /** 存放checked中存在，但是options中不存在的值, used为是否已通过 */
     notExistVal: {} as { [key: string]: { used: boolean; v: T } },
   });
 
@@ -79,19 +79,26 @@ export function useCheck<T, OPTION = T>(
     return collector
       ? options.map(item => {
           const v = collector(item);
-          // 在这里更新optMap
           self.optMap[String(v)] = item;
           return collector(item);
         })
-      : ((options as unknown) as T[]);
+      : options.map<T>((item: any) => {
+          self.optMap[String(item)] = item;
+          return item;
+        });
   }, [options]);
 
-  /** 使用memo会更快被调用 */
+  /** 初始化触发valMap */
   useMemo(() => {
     valMapSync(checked);
   }, []);
 
-  const isChecked = useFn((val: T) => !!self.valMap[val as any]);
+  console.log(self);
+
+  const isChecked = useFn((val: T) => {
+    const v: any = val;
+    return !!self.valMap[v] || !!self.notExistVal[v];
+  });
 
   const isDisabled = useFn((val: T) => disables.includes(val));
 
@@ -114,6 +121,7 @@ export function useCheck<T, OPTION = T>(
   });
 
   const checkAll = useFn(() => {
+    // 只选中当前包含的选项
     setChecked(getEnables());
   });
 
@@ -163,11 +171,10 @@ export function useCheck<T, OPTION = T>(
     _isChecked ? check(val) : unCheck(val);
   });
 
-  /** 获取所有未禁用选项，传入false时，返回非禁用可用选项。禁用项会以原样返回 */
+  /** 获取可用选项，禁用项会以原样返回， 传入false时，返回所有未禁用项 */
   function getEnables(isCheck = true) {
     return items.filter(item => {
       const _isDisabled = isDisabled(item);
-
       if (_isDisabled) {
         return isChecked(item);
       }
@@ -182,7 +189,9 @@ export function useCheck<T, OPTION = T>(
     const temp: OPTION[] = [];
 
     _checked.forEach(item => {
-      const c = self.valMap[item as any];
+      const k = String(item);
+
+      const c = self.valMap[k] || self.notExistVal[k];
       if (c) {
         temp.push(c.o);
       }
@@ -208,28 +217,34 @@ export function useCheck<T, OPTION = T>(
     };
   }
 
-  /** 同步valMap, notExistVal  */
+  /** 同步valMap, 触发notExistVal  */
   function valMapSync(_checked: T[]) {
+    const prevNotExits = { ...self.notExistVal };
+
     self.valMap = {};
+    self.notExistVal = {};
 
     _checked.forEach(item => {
-      const c = self.optMap[item as any];
+      const strItem = String(item);
+
+      const c = self.optMap[strItem];
 
       if (c) {
-        self.valMap[item as any] = {
+        self.valMap[strItem] = {
           v: item,
-          o: self.optMap[item as any],
+          o: self.optMap[strItem],
         };
       } else {
-        if (!self.notExistVal[item as any]) {
-          self.notExistVal[item as any] = {
-            used: false,
-            v: item,
-          };
-        }
+        const prev = prevNotExits[strItem];
+
+        self.notExistVal[strItem] = {
+          used: prev ? prev.used : false,
+          v: item,
+        };
       }
     });
 
+    // 通知选中但不存在的选项到notExistValueTrigger
     if (notExistValueTrigger) {
       const notOptionValues: T[] = [];
 
