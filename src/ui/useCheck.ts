@@ -93,8 +93,6 @@ export function useCheck<T, OPTION = T>(
     valMapSync(checked);
   }, []);
 
-  console.log(self);
-
   const isChecked = useFn((val: T) => {
     const v: any = val;
     return !!self.valMap[v] || !!self.notExistVal[v];
