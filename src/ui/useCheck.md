@@ -79,5 +79,9 @@ interface UseCheckReturns<T, OPTION> {
   setChecked: (nextChecked: T[]) => void;
   /** 指定值并设置其选中状态 */
   setCheckBy: (val: T, isChecked: boolean) => void;
+  /** 以列表的形式添加选中项 */
+  checkList: (checkList: T[]) => void;
+  /** 以列表的形式移除选中项 */
+  unCheckList: (checkList: T[]) => void;
 }
 ```
