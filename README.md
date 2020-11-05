@@ -1,6 +1,6 @@
 ## 介绍
 
-一些很常用的`react hook`
+一些常用的`react hook`
 
 ## 安装
 
@@ -8,7 +8,7 @@
 
 ## 相关项目
 
-- [m78](https://github.com/Iixianjie/m78)， react 组件库，使用了很多本库中的`hook`
+- [m78](https://github.com/Iixianjie/m78)， 一个 `react` 组件库，大量使用本库中的`hook`
 
 ## 其他 hook 库
 
