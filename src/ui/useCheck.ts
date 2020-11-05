@@ -67,7 +67,7 @@ export function useCheck<T, OPTION = T>(
       ...conf,
       // 截获onChange并自定义更新逻辑
       onChange(val: T[]) {
-        valMapSync(val);
+        // valMapSync(val); 强控制时在这里同步会有问题，统一转移到effect中
         conf.onChange?.(val, getCheckedOptions(val));
       },
     },
@@ -91,7 +91,11 @@ export function useCheck<T, OPTION = T>(
   /** 初始化触发valMap */
   useMemo(() => {
     valMapSync(checked);
+<<<<<<< HEAD
   }, []);
+=======
+  }, [checked]);
+>>>>>>> 752b259b7f79fd7fc713995b6367ac7d8476b494
 
   const isChecked = useFn((val: T) => {
     const v: any = val;
