@@ -116,6 +116,14 @@ const UseCheckDemo = () => {
       <button onClick={() => res.setCheckBy(3, false)}>
         setCheckBy(3, false)
       </button>
+      <br />
+      <br />
+      <button onClick={() => res.checkList([1, 2, 3, 4])}>
+        checkList([1, 2, 3, 4])
+      </button>
+      <button onClick={() => res.unCheckList([3, 4, 5, 6])}>
+        unCheckList([3, 4, 5, 6])
+      </button>
     </div>
   );
 };

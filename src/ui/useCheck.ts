@@ -1,4 +1,6 @@
 import { FormLikeWithExtra, useFn, useFormState, useSelf } from '@lxjx/hooks';
+import { isArray } from '@lxjx/utils';
+import _difference from 'lodash/difference';
 import { useMemo } from 'react';
 import { UseFormStateConfig } from 'src/state/useFormState';
 
@@ -46,6 +48,10 @@ export interface UseCheckReturns<T, OPTION> {
   setChecked: (nextChecked: T[]) => void;
   /** 指定值并设置其选中状态 */
   setCheckBy: (val: T, isChecked: boolean) => void;
+  /** 以列表的形式添加选中项 */
+  checkList: (checkList: T[]) => void;
+  /** 以列表的形式移除选中项 */
+  unCheckList: (checkList: T[]) => void;
 }
 
 export function useCheck<T, OPTION = T>(
@@ -154,6 +160,34 @@ export function useCheck<T, OPTION = T>(
       return !_isChecked;
     });
     setChecked(reverse);
+  });
+  
+  const checkList = useFn((checkList: T[]) => {
+    if (!isArray(checkList)) return;
+    if (!checkList.length) return;
+    // 排除禁用项和已选中项
+    const newList = checkList.filter(item => {
+      if (isDisabled(item)) return false;
+      if (isChecked(item)) return false; // isChecked消耗比isDisabled高，所以用`||`判断
+      return true;
+    });
+
+    setChecked(prev => ([...prev, ...newList]))
+  });
+
+  const unCheckList = useFn((removeList: T[]) => {
+    if (!isArray(removeList)) return;
+    if (!removeList.length) return;
+    // 排除禁用项和未选中项
+    const rmList = removeList.filter(item => {
+      if (isDisabled(item)) return false;
+      if (!isChecked(item)) return false;
+      return true;
+    });
+
+    setChecked(prev => {
+      return _difference(prev, rmList);
+    });
   });
 
   const setCheck = useFn((nextChecked: T[]) => {
@@ -277,5 +311,7 @@ export function useCheck<T, OPTION = T>(
     toggleAll,
     setChecked: setCheck,
     setCheckBy,
+    checkList,
+    unCheckList,
   };
 }
