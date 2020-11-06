@@ -27,7 +27,7 @@ interface SetFormState<T, Ext = any> {
   (patch: T | ((prev: T) => T), extra?: Ext): void;
 }
 
-interface Config {
+export interface UseFormStateConfig {
   /** 'value' | 自定义获取value的key */
   valueKey?: string;
   /** 'defaultValue' | 自定义获取defaultValue的key */
@@ -36,14 +36,14 @@ interface Config {
   triggerKey?: string;
 }
 
-/** 便捷的实现统一接口的受控、非受控表单组件 */
+/** 便捷的实现统一接口的受控、非受控表单组件, 也可用于任何需要受控、非受控状态的场景 */
 export function useFormState<T, Ext = any>(
   /** 透传消费组件的props，该组件需要实现FormLike接口 */
   props: AnyObject,
-  /** 默认值，会被value与defaultValue覆盖*/
+  /** 默认值，会被value与defaultValue覆盖 */
   defaultValue: T,
   /** 其他配置 */
-  config?: Config
+  config?: UseFormStateConfig
 ) {
   const {
     valueKey = 'value',
@@ -107,4 +107,9 @@ export function useFormState<T, Ext = any>(
   };
 
   return [state, setFormState] as const;
+}
+
+// 别名
+export {
+  useFormState as useControllableValue,
 }

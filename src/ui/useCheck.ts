@@ -1,8 +1,9 @@
 import { FormLikeWithExtra, useFn, useFormState, useSelf } from '@lxjx/hooks';
 import { useMemo } from 'react';
+import { UseFormStateConfig } from 'src/state/useFormState';
 
 export interface UseCheckConf<T, OPTION>
-  extends FormLikeWithExtra<T[], OPTION[]> {
+  extends FormLikeWithExtra<T[], OPTION[]>, UseFormStateConfig {
   /** 选项数组 */
   options?: OPTION[];
   /** 所有禁用值 */
@@ -62,13 +63,15 @@ export function useCheck<T, OPTION = T>(
     notExistVal: {} as { [key: string]: { used: boolean; v: T } },
   });
 
+  const triggerKey = conf.triggerKey || 'onChange';
+
   const [checked, setChecked] = useFormState<T[], OPTION[]>(
     {
       ...conf,
       // 截获onChange并自定义更新逻辑
-      onChange(val: T[]) {
+      [triggerKey](val: T[]) {
         // valMapSync(val); 强控制时在这里同步会有问题，统一转移到effect中
-        conf.onChange?.(val, getCheckedOptions(val));
+        conf[triggerKey as 'onChange']?.(val, getCheckedOptions(val));
       },
     },
     []
