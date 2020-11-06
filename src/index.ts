@@ -37,7 +37,6 @@ export * from './state/usePrev';
 export * from './state/useMountExist';
 
 /* UI */
-export * from './ui/useBreakPoint';
 
 export * from './ui/useLockBodyScroll';
 

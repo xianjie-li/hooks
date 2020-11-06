@@ -22,7 +22,7 @@ export interface UseCheckReturns<T, OPTION> {
   partialChecked: boolean;
   /** 是否全部选中(只针对存在于options中的选项) */
   allChecked: boolean;
-  /** 没有任何值被选中 */
+  /** 没有任何值被选中 */ 
   noneChecked: boolean;
   /** 被选中值, 存在collector时所有check项都会先走collector */
   checked: T[];

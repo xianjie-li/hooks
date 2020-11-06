@@ -25,15 +25,15 @@ title: useCheck
 **conf**
 
 ```ts
-interface UseCheckConf<T, OPTION = T>
-  extends FormLikeWithExtra<T[], OPTION[]> {
+interface UseCheckConf<T, OPTION>
+  extends FormLikeWithExtra<T[], OPTION[]>, UseFormStateConfig {
   /** 选项数组 */
-  options: OPTION[];
+  options?: OPTION[];
   /** 所有禁用值 */
   disables?: T[];
   /** 当option子项为对象类型时，传入此项来决定从该对象中取何值作为实际的选项值  */
   collector?: (item: OPTION) => T;
-  /** 如果当前value中存在options中不存在的值，会触发此函数，用于从服务器或其他地方拉取不存在的选项 */
+  /** 如果当前value包含在options中不存在的值，会触发此函数，用于从服务器或其他地方拉取不存在的选项 */
   notExistValueTrigger?(val: T[]): void;
 }
 
