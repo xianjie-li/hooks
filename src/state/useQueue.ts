@@ -1,5 +1,5 @@
 import { AnyObject, createRandString, isArray, isNumber } from '@lxjx/utils';
-import { useFn, useSelf, useSetState } from '../index';
+import { useFn, useSelf, useSetState } from '@lxjx/hooks';
 import { useUpdate } from 'react-use';
 import { useEffect } from 'react';
 

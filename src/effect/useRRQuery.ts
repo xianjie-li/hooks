@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useLocation, useHistory } from 'react-router-dom';
 import qs from 'query-string';
 import { AnyObject } from '@lxjx/utils';
-import { useFn } from './useFn';
+import { useFn } from '@lxjx/hooks';
 
 interface UseQuerySet<Query> {
   (queryObject: Partial<Query>): void;

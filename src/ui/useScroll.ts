@@ -2,7 +2,7 @@ import { RefObject, useEffect, useRef } from 'react';
 
 import { isNumber, isDom } from '@lxjx/utils';
 import _clamp from 'lodash/clamp';
-import { useSelf, useThrottle } from '../index';
+import { useSelf, useThrottle } from '@lxjx/hooks';
 import { useSpring, config } from 'react-spring';
 
 interface UseScrollOptions {

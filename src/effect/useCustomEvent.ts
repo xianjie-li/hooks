@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 import { AnyFunction, isArray } from '@lxjx/utils';
-import { useFn } from './useFn';
+import { useFn } from '@lxjx/hooks';
 
 interface Event {
   [key: string]: {

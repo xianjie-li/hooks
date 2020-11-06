@@ -2,12 +2,8 @@ import { isEmpty, isFunction, isObject, __GLOBAL__ } from '@lxjx/utils';
 import _debounce from 'lodash/debounce';
 import _throttle from 'lodash/throttle';
 import { useEffect, useState } from 'react';
-import { useSelf } from '../state/useSelf';
-import { useSetState } from '../state/useSetState';
-import { useStorageState } from '../state/useStorageState';
+import { useSelf, useSetState, useStorageState, useEffectEqual, useFn } from '@lxjx/hooks';
 import { SetStateBase } from '../type';
-import { useEffectEqual } from './useEffectEqual';
-import { useFn } from './useFn';
 
 const GLOBAL = __GLOBAL__ as Window;
 

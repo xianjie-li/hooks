@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { StateInitState, UseSetStateTuple } from '../type';
 import { AnyObject } from '@lxjx/utils';
-import { UseStorageStateOptions, useStorageState } from './useStorageState';
+import { UseStorageStateOptions, useStorageState } from '@lxjx/hooks';
 
 export const useStorageSetState = <T extends AnyObject>(
   /** 缓存key */

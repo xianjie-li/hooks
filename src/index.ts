@@ -48,3 +48,5 @@ export * from './ui/useMeasure';
 
 /* UTILS */
 export * from './utils/utils';
+
+export * from './type';

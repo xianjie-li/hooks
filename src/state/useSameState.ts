@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createRandString, isArray } from '@lxjx/utils';
 import { useUpdateEffect, useUpdate } from 'react-use';
-import { useCustomEvent } from '../effect/useCustomEvent';
+import { useCustomEvent } from '@lxjx/hooks';
 
 /** 单个组件实例 */
 interface Item<Meta = any> {

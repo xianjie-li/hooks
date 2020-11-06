@@ -1,8 +1,7 @@
-import { FormLikeWithExtra, useFn, useFormState, useSelf } from '@lxjx/hooks';
+import { FormLikeWithExtra, useFn, useFormState, useSelf, UseFormStateConfig } from '@lxjx/hooks';
 import { isArray } from '@lxjx/utils';
 import _difference from 'lodash/difference';
 import { useMemo } from 'react';
-import { UseFormStateConfig } from 'src/state/useFormState';
 
 export interface UseCheckConf<T, OPTION>
   extends FormLikeWithExtra<T[], OPTION[]>, UseFormStateConfig {

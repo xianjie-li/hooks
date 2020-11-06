@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { AnyFunction, __GLOBAL__ } from '@lxjx/utils';
-import { useFn } from './useFn';
-import { useSelf } from '../state/useSelf';
+import { useFn, useSelf } from '@lxjx/hooks';
 
 export interface UseThrottleOption {
   /** true | 在节流开始前调用 */
