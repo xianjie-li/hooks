@@ -1,10 +1,17 @@
-import { FormLikeWithExtra, useFn, useFormState, useSelf, UseFormStateConfig } from '@lxjx/hooks';
+import {
+  FormLikeWithExtra,
+  useFn,
+  useFormState,
+  useSelf,
+  UseFormStateConfig,
+} from '@lxjx/hooks';
 import { isArray } from '@lxjx/utils';
 import _difference from 'lodash/difference';
 import { useMemo } from 'react';
 
 export interface UseCheckConf<T, OPTION>
-  extends FormLikeWithExtra<T[], OPTION[]>, UseFormStateConfig {
+  extends FormLikeWithExtra<T[], OPTION[]>,
+    UseFormStateConfig {
   /** 选项数组 */
   options?: OPTION[];
   /** 所有禁用值 */
@@ -21,7 +28,8 @@ export interface UseCheckReturns<T, OPTION> {
   partialChecked: boolean;
   /** 是否全部选中(只针对存在于options中的选项) */
   allChecked: boolean;
-  /** 没有任何值被选中 */ 
+  /** 没有任何值被选中 */
+
   noneChecked: boolean;
   /** 被选中值, 存在collector时所有check项都会先走collector */
   checked: T[];
@@ -79,7 +87,10 @@ export function useCheck<T, OPTION = T>(
         conf[triggerKey as 'onChange']?.(val, getCheckedOptions(val));
       },
     },
-    []
+    [],
+    {
+      ...conf,
+    }
   );
 
   /** 提取所有选项为基础类型值, 基础值数组操作更方便 */
@@ -160,7 +171,7 @@ export function useCheck<T, OPTION = T>(
     });
     setChecked(reverse);
   });
-  
+
   const checkList = useFn((checkList: T[]) => {
     if (!isArray(checkList)) return;
     if (!checkList.length) return;
@@ -171,7 +182,7 @@ export function useCheck<T, OPTION = T>(
       return true;
     });
 
-    setChecked(prev => ([...prev, ...newList]))
+    setChecked(prev => [...prev, ...newList]);
   });
 
   const unCheckList = useFn((removeList: T[]) => {
