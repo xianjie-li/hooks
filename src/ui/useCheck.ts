@@ -234,11 +234,9 @@ export function useCheck<T, OPTION = T>(
     const temp: OPTION[] = [];
 
     _checked.forEach(item => {
-      const k = String(item);
-
-      const c = self.valMap[k] || self.notExistVal[k];
+      const c = self.optMap[String(item)];
       if (c) {
-        temp.push(c.o);
+        temp.push(c);
       }
     });
 
