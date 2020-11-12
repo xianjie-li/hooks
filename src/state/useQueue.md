@@ -23,25 +23,17 @@ function useQueue<Item extends AnyObject = {}>(conf: UseQueueConfig): {
   * @param opt - 要添加的新项，可以是一个单独的项配置或配置数组
   * */
   push(item: Item | Item[]),
-  /**
-  * 切换到上一项
-  * */
+  /** 切换到上一项 */
   prev(),
-  /**
-  * 切换到下一项
-  * */
+  /** 切换到下一项 */
   next(),
   /** 完全移除指定id或一组id的项, 如果你要关闭当前消息，应当使用next而不是remove，因为此方法会破坏队列的完整性 */
   remove(id: id | id[]),
   /** 跳转到指定id项，该项左侧所有项会被移到历史列表，右侧所有项会移到待执行列表 */
   jump(id)
-  /**
-  * 指定id是否包含下一项, 不传id查当前项
-  * */
+  /** 指定id是否包含下一项, 不传id查当前项 */
   hasNext(id),
-  /**
-  * 指定id是否包含上一项, 不传id查当前项
-  * */
+  /** 指定id是否包含上一项, 不传id查当前项 */
   hasPrev(id),
   /** 清空队列 */
   clear,
