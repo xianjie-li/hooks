@@ -5,7 +5,7 @@ import { useFetch } from '../useFetch';
  * 模拟一个基于Promise的请求函数
  */
 function mockFn(delay = 1500, isSuccess = false, res?: any) {
-  return function(...arg: any) {
+  return function(/*...arg: any*/) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         isSuccess ? resolve(res || delay) : reject(res || delay);

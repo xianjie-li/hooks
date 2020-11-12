@@ -1,41 +1,54 @@
 import { AnyObject, createRandString, isArray, isNumber } from '@lxjx/utils';
 import { useFn, useSelf, useSetState } from '@lxjx/hooks';
+import _differenceBy from 'lodash/differenceBy';
 import { useUpdate } from 'react-use';
 import { useEffect } from 'react';
+
+type IDType = string | number;
 
 interface UseQueueConfig<ItemOption> {
   /** 初始列表 */
   list?: (ItemOption & UseQueueItem)[];
   /** 默认项配置 */
   defaultItemOption?: Partial<ItemOption & UseQueueItem>;
+  /** 是否默认为手动模式 */
+  defaultManual?: boolean;
+  /** 每次current变更时触发 */
+  onChange?: (current?: ItemOption & UseQueueItem) => void;
 }
 
 interface UseQueueItem {
-  /** 如果传入，会在指定延迟ms后自动跳转到下一条 */
+  /** 自动模式时，如果传入此项，会在此延迟(ms)后自动切换到下一项 */
   duration?: number;
+  /** 唯一id，如果未传入会由内部自动生成一个随机id */
+  id?: IDType;
 }
 
-interface UseQueueItemWithId extends UseQueueItem {
-  /** 唯一id，由组件内部生成 */
-  id: string;
+interface UseQueueItemWidthId extends UseQueueItem {
+  id: IDType;
 }
-
 
 /*
- * TODO: 如果有应用场景的话，添加按索引控制选中
+ * old[] <->  current  <-> list[]
  * */
+
 function useQueue<Item extends AnyObject = {}>(
-  { defaultItemOption, list = [] } = {} as UseQueueConfig<Item>,
+  {
+    defaultItemOption,
+    list = [],
+    defaultManual = false,
+    onChange,
+  } = {} as UseQueueConfig<Item>
 ) {
   /** 选项与用户扩展类型混合 */
-  type MixItem = Item & UseQueueItemWithId;
-  type MixItemWithoutId = Item & UseQueueItem;
+  type MixItem = Item & UseQueueItem;
+  type MixItemWithId = Item & UseQueueItemWidthId;
 
   const self = useSelf({
     /** 消息队列 */
-    list: [] as MixItem[],
+    list: [] as MixItemWithId[],
     /** 历史记录 */
-    oldList: [] as MixItem[],
+    oldList: [] as MixItemWithId[],
     /** 开启下一条的计时器 */
     timer: null as any,
     /** 设置计时器的时间 */
@@ -46,9 +59,9 @@ function useQueue<Item extends AnyObject = {}>(
 
   const [state, setState] = useSetState({
     /** 当前显示消息 */
-    current: null as MixItem | null,
+    current: null as MixItemWithId | null,
     /** 是否暂停 */
-    isPause: false,
+    manual: defaultManual,
   });
 
   const update = useUpdate();
@@ -60,8 +73,6 @@ function useQueue<Item extends AnyObject = {}>(
    * next()的实现版本，支持参数
    * */
   const nextIn = useFn((isPrev?: boolean) => {
-    // if (state.isPause) return;
-
     clearTimer();
 
     const nextCurrent = self.list[0] || null;
@@ -87,8 +98,10 @@ function useQueue<Item extends AnyObject = {}>(
       current: nextCurrent,
     });
 
+    onChange?.(nextCurrent);
+
     // 未暂停且配置了持续时间, 定时切换到下一条
-    if (isNumber(nextCurrent.duration) && !state.isPause) {
+    if (isNumber(nextCurrent.duration) && !state.manual) {
       self.timer = setTimeout(nextIn, nextCurrent.duration);
       self.timerSetTime = Date.now();
     }
@@ -98,17 +111,14 @@ function useQueue<Item extends AnyObject = {}>(
   });
 
   /**
-   * 关闭当前项, 然后选中列表下一项
-   * 如果配置了duration, 设置倒计时，计时结束后拉取下一项进行显示, 直到队列为空
+   * 切换到下一项
    * */
   const next = useFn(() => nextIn() /* 过滤参数 */);
 
   /**
-   * 显示上一项
+   * 切换到上一项
    * */
   const prev = useFn(() => {
-    // if (state.isPause) return;
-
     const lastOldInd = self.oldList.length - 1; // 最后一条是当前消息
 
     const old = self.oldList.splice(lastOldInd, 1);
@@ -125,24 +135,78 @@ function useQueue<Item extends AnyObject = {}>(
   });
 
   /**
-   * 推入一个新项，如果当前没有选中项，自动执行next()
+   * 推入一个或一组新项，如果当前没有选中项且非手动模式，自动执行next()
    * @param opt - 要添加的新项，可以是一个单独的项配置或配置数组
    * */
-  const push = useFn((opt: MixItemWithoutId | MixItemWithoutId[]) => {
+  const push = useFn((opt: MixItem | MixItem[]) => {
     if (isArray(opt)) {
-      const ls = opt.map(item => ({ ...defaultItemOption, ...item, id: createRandString() }));
+      const ls = opt.map(item => ({
+        ...defaultItemOption,
+        id: createRandString(),
+        ...item,
+      }));
       self.list.push(...ls);
     } else {
-      self.list.push({ ...defaultItemOption, ...opt, id: createRandString() });
+      self.list.push({ ...defaultItemOption, id: createRandString(), ...opt });
     }
 
-    state.current ? update() : next();
+    if (state.current || state.manual) update();
+    else next();
+  });
+
+  /**
+   * 跳转到指定id项，该项左侧所有项会被移到历史列表，右侧所有项会移到待执行列表
+   * */
+  const jump = useFn((id: IDType) => {
+    clearTimer();
+
+    const all = getAllList();
+
+    const cInd = findIndexById(id);
+
+    const leftList = all.slice(0, cInd);
+
+    const rightList = all.slice(cInd);
+
+    self.oldList = leftList;
+    self.list = rightList;
+    setState({
+      current: null,
+    });
+
+    nextIn();
+  });
+
+  /** 完全移除指定id或一组id的项, 如果你要关闭当前消息，应当使用next而不是remove，因为此方法会破坏队列的完整性 */
+  const remove = useFn((id: IDType | IDType[]) => {
+    const ids = isArray(id) ? id : [id];
+
+    if (!ids.length) return;
+
+    let diffList = (list: MixItemWithId[]) =>
+      _differenceBy(
+        list,
+        ids.map(item => ({ id: item })),
+        item => item.id
+      );
+
+    self.oldList = diffList(self.oldList);
+
+    self.list = diffList(self.list);
+
+    if (state.current && ids.includes(state.current.id)) {
+      setState({
+        current: null,
+      });
+    } else {
+      update();
+    }
   });
 
   // 启动初始list
   useEffect(() => {
     if (list.length) {
-      push(list);
+      push(list); // +执行next()
     }
   }, []);
 
@@ -158,18 +222,18 @@ function useQueue<Item extends AnyObject = {}>(
     clearTimer();
     setState({
       current: null,
-      isPause: false,
+      manual: false,
     });
   });
 
   /**
-   * 暂停，停止所有计时，依然可以通过push/next/prev等切换项，如果要禁止切换，使用isPause帮助判断
+   * 从自动模式切换为启用手动模式，暂停所有计时器
    * */
-  const pause = useFn(() => {
-    if (state.isPause) return;
+  const manual = useFn(() => {
+    if (state.manual) return;
 
     setState({
-      isPause: true,
+      manual: true,
     });
 
     clearTimeout(self.timer);
@@ -178,16 +242,16 @@ function useQueue<Item extends AnyObject = {}>(
   });
 
   /**
-   * 暂停时，重新启用
+   * 从手动模式切换为自动模式, 如果包含暂停的计时器，会从暂停位置重新开始
    * */
-  const start = useFn(() => {
-    if (!state.isPause) return;
-
-    const c = state.current;
+  const auto = useFn(() => {
+    if (!state.manual) return;
 
     setState({
-      isPause: false,
+      manual: false,
     });
+
+    const c = state.current;
 
     // 如果当前有选中项，且包含计时器, 根据打断时间重新设置计时器
     if (c) {
@@ -216,14 +280,14 @@ function useQueue<Item extends AnyObject = {}>(
   /**
    * 指定id是否包含下一项, 不传id查当前项
    * */
-  function hasNext(id?: string) {
-    let _id = id;
-
-    if (!_id && !state.current) return false;
-
-    if (!_id) {
-      _id = state.current?.id;
+  function hasNext(id?: IDType) {
+    if (!id && !state.current) {
+      return !!self.list.length;
     }
+
+    let _id = id || state.current?.id;
+
+    if (!_id) return false;
 
     const all = getAllList();
     const ind = findIndexById(_id!);
@@ -233,7 +297,7 @@ function useQueue<Item extends AnyObject = {}>(
   /**
    * 指定id是否包含上一项, 不传id查当前项
    * */
-  function hasPrev(id?: string) {
+  function hasPrev(id?: IDType) {
     let _id = id;
 
     if (!_id && !state.current) return false;
@@ -248,9 +312,9 @@ function useQueue<Item extends AnyObject = {}>(
   }
 
   /**
-   * 指定id在列表中的索引
+   * 查询指定id在列表中的索引
    * */
-  function findIndexById(id: string) {
+  function findIndexById(id: IDType) {
     const all = getAllList();
     return all.findIndex(item => item.id === id);
   }
@@ -259,7 +323,7 @@ function useQueue<Item extends AnyObject = {}>(
    * 获取所有列表和当前项组成的数组, 历史和当前列表
    * */
   function getAllList() {
-    const ls: MixItem[] = [];
+    const ls: MixItemWithId[] = [];
     ls.push(...self.oldList);
 
     if (state.current) {
@@ -282,22 +346,21 @@ function useQueue<Item extends AnyObject = {}>(
     push,
     prev,
     next,
+    jump,
     hasNext,
     hasPrev,
     clear,
     findIndexById,
-    isPause: state.isPause,
+    isManual: state.manual,
     current: state.current,
-    start,
-    pause,
+    auto,
+    manual,
     list: getAllList(),
+    leftList: self.oldList,
+    rightList: self.list,
     index: state.current ? findIndexById(state.current.id) : null,
+    remove,
   };
 }
 
-export {
-  useQueue,
-  UseQueueConfig, 
-  UseQueueItem, 
-  UseQueueItemWithId,
-}
+export { useQueue, UseQueueConfig, UseQueueItem };
