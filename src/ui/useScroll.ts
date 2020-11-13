@@ -40,9 +40,9 @@ export interface UseScrollMeta {
   x: number;
   /** y轴位置 */
   y: number;
-  /** 可接受的x轴滚动最大值(值大于0说明可滚动) */
+  /** 可接受的x轴滚动最大值(值大于0说明可滚动， 但不能保证开启了滚动) */
   xMax: number;
-  /** 可接受的y轴滚动最大值(值大于0说明可滚动) */
+  /** 可接受的y轴滚动最大值(值大于0说明可滚动， 但不能保证开启了滚动) */
   yMax: number;
   /** 元素高度 */
   height: number;
@@ -291,18 +291,24 @@ export function useScroll<ElType extends HTMLElement>(
 
     const sEl = getEl();
 
-    const x = isDoc
+    let x = isDoc
       ? self.docEl.scrollLeft + self.bodyEl.scrollLeft
       : sEl.scrollLeft;
-    const y = isDoc
+    let y = isDoc
       ? self.docEl.scrollTop + self.bodyEl.scrollTop
       : sEl.scrollTop;
+
+    /* chrome高分屏+缩放时，滚动值会是小数，想上取整防止计算错误 */
+    x = Math.ceil(x);
+    y = Math.ceil(y);
+
     const height = sEl.clientHeight;
     const width = sEl.clientWidth;
     const scrollHeight = sEl.scrollHeight;
     const scrollWidth = sEl.scrollWidth;
-    const xMax = scrollWidth - width;
-    const yMax = scrollHeight - height;
+    /* chrome下(高分屏+缩放),无滚动的情况下scrollWidth会大于width */
+    const xMax = Math.max(0, scrollWidth - width); 
+    const yMax = Math.max(0, scrollHeight - height);
 
     return {
       el: sEl,

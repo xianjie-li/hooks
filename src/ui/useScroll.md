@@ -33,9 +33,9 @@ export interface UseScrollMeta {
   x: number;
   /** y轴位置 */
   y: number;
-  /** 可接受的x轴滚动最大值(值大于0说明可滚动) */
+  /** 可接受的x轴滚动最大值(值大于0说明可滚动， 但不能保证开启了滚动) */
   xMax: number;
-  /** 可接受的y轴滚动最大值(值大于0说明可滚动) */
+  /** 可接受的y轴滚动最大值(值大于0说明可滚动， 但不能保证开启了滚动) */
   yMax: number;
   /** 元素高度 */
   height: number;
