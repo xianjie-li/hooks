@@ -1,5 +1,5 @@
 import React from 'react';
-import { useStorageState } from './useStorageState';
+import { useStorageState } from '@lxjx/hooks';
 
 const useStorageDemo = () => {
   const [state, setState] = useStorageState('usestorage_demo', 0);

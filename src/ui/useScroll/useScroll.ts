@@ -2,11 +2,11 @@ import { RefObject, useEffect, useRef } from 'react';
 
 import { isNumber, isDom } from '@lxjx/utils';
 import _clamp from 'lodash/clamp';
-import { useSelf, useThrottle } from '@lxjx/hooks';
+import { getRefDomOrDom, useSelf, useThrottle } from '@lxjx/hooks';
 import { useSpring, config } from 'react-spring';
 
 interface UseScrollOptions {
-  /** 直接以指定dom或refObj作为滚动元素, 默认的滚动元素是documentElement, 各参数的优先级为 return ref > dom el > ref el */
+  /** 指定滚动元素或ref，el、el.current、ref.current取值，只要有任意一个为dom元素则返回, 默认的滚动元素是documentElement */
   el?: HTMLElement | RefObject<any>;
   /** 滚动时触发 */
   onScroll?(meta: UseScrollMeta): void;
@@ -48,6 +48,10 @@ export interface UseScrollMeta {
   height: number;
   /** 元素宽度 */
   width: number;
+  /** 元素实际高度(包含边框/滚动条/内边距等) */
+  offsetWidth: number;
+  /** 元素实际宽度(包含边框/滚动条/内边距等) */
+  offsetHeight: number;
   /** 元素总高度 */
   scrollHeight: number;
   /** 元素总宽度 */
@@ -113,7 +117,7 @@ export function useScroll<ElType extends HTMLElement>(
     const sEl = getEl();
 
     /* 坑: 页面级滚动scroll事件绑在documentElement和body上无效, 只能绑在window上 */
-    const scrollEl = elIsDoc() ? window : sEl;
+    const scrollEl = elIsDoc(sEl) ? window : sEl;
 
     scrollEl.addEventListener('scroll', scrollHandle);
 
@@ -149,12 +153,7 @@ export function useScroll<ElType extends HTMLElement>(
 
   /** 根据参数获取滚动元素，默认为文档元素 */
   function getEl(): HTMLElement {
-    if (ref.current) return ref.current;
-    if (el) {
-      if (isDom(el)) return el;
-      if (el.current) return el.current;
-    }
-    return self.docEl;
+    return getRefDomOrDom(el, ref) || self.docEl;
   }
 
   /** 动画滚动到指定位置 */
@@ -306,8 +305,9 @@ export function useScroll<ElType extends HTMLElement>(
     const width = sEl.clientWidth;
     const scrollHeight = sEl.scrollHeight;
     const scrollWidth = sEl.scrollWidth;
+
     /* chrome下(高分屏+缩放),无滚动的情况下scrollWidth会大于width */
-    const xMax = Math.max(0, scrollWidth - width); 
+    const xMax = Math.max(0, scrollWidth - width);
     const yMax = Math.max(0, scrollHeight - height);
 
     return {
@@ -324,6 +324,8 @@ export function useScroll<ElType extends HTMLElement>(
       touchLeft: x <= touchOffset,
       touchRight: xMax - x - touchOffset <= 0, // 总宽度 - 宽度 = 滚动条实际宽度
       touchTop: y <= touchOffset,
+      offsetWidth: sEl.offsetWidth,
+      offsetHeight: sEl.offsetHeight,
     };
   }
 

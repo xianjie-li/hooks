@@ -96,7 +96,7 @@ return <div ref={ref}>...</div>;
 useScroll(option?: UseScrollOptions)
 
 interface UseScrollOptions {
-  /** 直接以指定dom或refObj作为滚动元素, 默认的滚动元素是documentElement, 各参数的优先级为 return ref > dom el > ref el */
+  /** 指定滚动元素或ref，el、el.current、ref.current取值，只要有任意一个为dom元素则返回, 默认的滚动元素是documentElement */
   el?: HTMLElement | RefObject<any>;
   /** 滚动时触发 */
   onScroll?(meta: UseScrollMeta): void;

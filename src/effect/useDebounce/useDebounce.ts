@@ -25,7 +25,6 @@ export function useDebounce<T extends AnyFunction>(fn: T, wait = 300) {
   });
 
   const memoFn = useFn((...args) => {
-
     cancel();
 
     self.timer = __GLOBAL__.setTimeout(() => {

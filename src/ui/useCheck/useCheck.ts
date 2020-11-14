@@ -262,6 +262,8 @@ export function useCheck<T, OPTION = T>(
 
   /** 同步valMap, 触发notExistVal  */
   function valMapSync(_checked: T[]) {
+    if (!isArray(_checked)) return; // 在rc-form库中使用时，热更新会报错
+
     const prevNotExits = { ...self.notExistVal };
 
     self.valMap = {};

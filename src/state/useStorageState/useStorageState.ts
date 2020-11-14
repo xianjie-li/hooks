@@ -1,7 +1,7 @@
 import { StateInitState, SetStateBase } from '../type';
 import { __GLOBAL__ } from '@lxjx/utils';
 import { useState } from 'react';
-import { useFn } from '../effect/useFn';
+import { useFn } from '../effect/useFn/useFn';
 
 export interface UseStorageStateOptions {
   /** 缓存类型 */

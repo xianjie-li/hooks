@@ -57,6 +57,8 @@ interface UseFetchOptions<Data, Payload> {
   manual?: boolean;
   /** 10000 | 超时时间 ms*/
   timeout?: number;
+  /** true | 只有为true时才会发起请求, 可以用来实现串联请求 */
+  pass?: boolean;
   /** 初始data */
   initData?: (() => Data) | Data;
   /** 初始payload, 在不存在param配置时，作为参数传递给请求方法 */
@@ -93,9 +95,9 @@ interface UseFetchReturns<Data, Payload> {
   /** 请求超时设置为true */
   timeout: boolean;
   /** method方法resolve的值或initData */
-  data: Data | undefined;
+  data: Data;
   /** 当前用于请求的payload或initPayload */
-  payload: Payload | undefined;
+  payload: Payload;
   /** 当前用于请求的param */
   param: Payload;
   /** 设置当前的data */
@@ -108,12 +110,14 @@ interface UseFetchReturns<Data, Payload> {
   setPolling(patch: boolean | ((prev: boolean) => boolean)): void;
   /**
    * 根据参数类型不同，会有不同效果:
-   * 带参数: 以新的payload发起请求并设置payload
-   * 无参数/参数为合成事件: 以当前参数发起更新
-   * 传入了param配置项: 当存在param配置，一律视为更新并以当前arg的值发起更新. 此时，传入的payload会被忽略
+   * - 带参数: 以新的payload发起请求并设置payload
+   * - 无参数/参数为合成事件: 以当前参数发起更新请求
+   * - 传入了param配置项: 当存在param配置，一律视为更新并以当前param的值发起更新. 此时，传入的payload会被忽略
    *
    * 返回错误优先的Promise:
-   * 如果该次请求有效，返回一个必定resolve数组[err, res]的Promise，err为reject的结果(不为null说明该次请求发生了错误)，res为resolve的结果 */
+   * - 如果该次请求有效，返回一个必定resolve数组[err, res]的Promise，err为reject的结果(不为null说明该次请求发生了错误)，res为resolve的结果
+   * - 如果请求被pass等阻断，返回数组的第一线会是一个错误对象
+   * */
   send: (
     newPayload?:
       | Payload

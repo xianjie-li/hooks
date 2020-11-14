@@ -1,8 +1,14 @@
-import { isEmpty, isFunction, isObject, __GLOBAL__ } from '@lxjx/utils';
+import { __GLOBAL__, isEmpty, isFunction, isObject } from '@lxjx/utils';
 import _debounce from 'lodash/debounce';
 import _throttle from 'lodash/throttle';
-import { useEffect, useState } from 'react';
-import { useSelf, useSetState, useStorageState, useEffectEqual, useFn } from '@lxjx/hooks';
+import React, { useEffect, useState } from 'react';
+import {
+  useEffectEqual,
+  useFn,
+  useSelf,
+  useSetState,
+  useStorageState,
+} from '@lxjx/hooks';
 import { SetStateBase } from '../type';
 
 const GLOBAL = __GLOBAL__ as Window;
@@ -18,6 +24,8 @@ interface UseFetchOptions<Data, Payload> {
   manual?: boolean;
   /** 10000 | 超时时间 ms*/
   timeout?: number;
+  /** true | 只有为true时才会发起请求, 可以用来实现串联请求 */
+  pass?: boolean;
   /** 初始data */
   initData?: (() => Data) | Data;
   /** 初始payload, 在不存在param配置时，作为参数传递给请求方法 */
@@ -50,9 +58,9 @@ interface UseFetchReturns<Data, Payload> {
   /** 请求超时设置为true */
   timeout: boolean;
   /** method方法resolve的值或initData */
-  data: Data | undefined;
+  data: Data;
   /** 当前用于请求的payload或initPayload */
-  payload: Payload | undefined;
+  payload: Payload;
   /** 当前用于请求的param */
   param: Payload;
   /** 设置当前的data */
@@ -65,12 +73,14 @@ interface UseFetchReturns<Data, Payload> {
   setPolling(patch: boolean | ((prev: boolean) => boolean)): void;
   /**
    * 根据参数类型不同，会有不同效果:
-   * 带参数: 以新的payload发起请求并设置payload
-   * 无参数/参数为合成事件: 以当前参数发起更新
-   * 传入了param配置项: 当存在param配置，一律视为更新并以当前param的值发起更新. 此时，传入的payload会被忽略
+   * - 带参数: 以新的payload发起请求并设置payload
+   * - 无参数/参数为合成事件: 以当前参数发起更新请求
+   * - 传入了param配置项: 当存在param配置，一律视为更新并以当前param的值发起更新. 此时，传入的payload会被忽略
    *
    * 返回错误优先的Promise:
-   * 如果该次请求有效，返回一个必定resolve数组[err, res]的Promise，err为reject的结果(不为null说明该次请求发生了错误)，res为resolve的结果 */
+   * - 如果该次请求有效，返回一个必定resolve数组[err, res]的Promise，err为reject的结果(不为null说明该次请求发生了错误)，res为resolve的结果
+   * - 如果请求被pass等阻断，返回数组的第一线会是一个错误对象
+   * */
   send: (
     newPayload?:
       | Payload
@@ -83,20 +93,15 @@ interface UseFetchReturns<Data, Payload> {
 function isSyntheticEvent(arg: any) {
   if (!arg) return false;
 
-  if (
-    isObject(arg) &&
-    'nativeEvent' in arg &&
-    'target' in arg &&
-    'type' in arg
-  ) {
-    return true;
-  }
-  return false;
+  return (
+    isObject(arg) && 'nativeEvent' in arg && 'target' in arg && 'type' in arg
+  );
 }
 
 function useFetch<Data = any, Payload = any>(
   /** 一个Promise return函数或async函数, 当不为函数时不会走请求流程 */
   method?: ((...arg: any[]) => Promise<Data>) | any,
+  /** 配置项 */
   options = {} as UseFetchOptions<Data, Payload>
 ) {
   const self = useSelf({
@@ -125,12 +130,15 @@ function useFetch<Data = any, Payload = any>(
     throttleInterval,
     debounceInterval,
     pollingInterval,
+    pass: aPass = true,
   } = options;
 
   const isCache = !!cacheKey; // 包含用于缓存的key并且非isPost时，缓存才会生效
 
+  const pass = aPass && isFunction(method);
+
   const [state, setState] = useSetState({
-    loading: !manual && isFunction(method),
+    loading: !manual && pass,
     error: undefined as any,
     timeout: false,
   });
@@ -159,9 +167,8 @@ function useFetch<Data = any, Payload = any>(
 
   const fetchHandel = useFn(
     async function _fetchHandel(args: any, isUpdate = false) {
-      const shouldFetch = isFunction(method);
-      if (!shouldFetch) {
-        return;
+      if (!pass) {
+        return [new Error('the request has been ignored'), null];
       }
 
       self.lastFetch = Date.now();
@@ -191,28 +198,34 @@ function useFetch<Data = any, Payload = any>(
 
       try {
         const res = await method(args);
-        if (cID !== self.fetchID) return;
-        setState({
-          ...getResetState('loading', false),
-        });
-        setData(res);
-        onSuccess?.(res, isUpdate);
-        return [undefined, res];
+        if (cID === self.fetchID) {
+          setState({
+            ...getResetState('loading', false),
+          });
+          setData(res);
+          onSuccess?.(res, isUpdate);
+          return [undefined, res];
+        }
       } catch (err) {
-        if (cID !== self.fetchID) return;
-        setState({
-          ...getResetState('error', err),
-        });
-        onError?.(err);
-        return [err, undefined];
+        if (cID === self.fetchID) {
+          setState({
+            ...getResetState('error', err),
+          });
+          onError?.(err);
+          return [err, undefined];
+        }
       } finally {
         // 清理当前计时器
         cTimeoutTimer && GLOBAL.clearTimeout(cTimeoutTimer);
 
-        if (cID !== self.fetchID) return;
-        onComplete?.();
-        self.fetchCount++;
+        if (cID === self.fetchID) {
+          onComplete?.();
+          self.fetchCount++;
+        }
       }
+
+      // 仅用于保证类型正确
+      return [new Error('never execute'), null];
     },
     fn => {
       if (throttleInterval) {
@@ -242,7 +255,7 @@ function useFetch<Data = any, Payload = any>(
 
   /** 执行一些自动触发请求的操作 */
   useEffect(() => {
-    if (manual) return;
+    if (manual || !pass) return;
     // 初次请求时，如果有数据且禁用了stale，取消请求
     if (!stale && self.fetchCount === 0 && !isEmpty(data)) {
       setState({
@@ -251,7 +264,7 @@ function useFetch<Data = any, Payload = any>(
       return;
     }
     fetchHandel(getActualPayload(), self.fetchCount !== 0);
-  }, [...deps]);
+  }, [pass, ...deps]);
 
   /** 轮询处理 */
   useEffect(

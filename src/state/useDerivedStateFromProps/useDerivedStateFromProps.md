@@ -1,5 +1,6 @@
 ---
 title: useDerivedStateFromProps
+order: 2
 ---
 
 # useDerivedStateFromProps
