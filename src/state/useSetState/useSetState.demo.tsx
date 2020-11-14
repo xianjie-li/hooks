@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useSetState } from './useSetState';
+import { useSetState } from '@lxjx/hooks';
 
 const UseSetStateDemo = () => {
   const [state, setState] = useSetState({ count: 0, other: 'lxj' });

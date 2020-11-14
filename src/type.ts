@@ -16,7 +16,7 @@ export type UseSetStateTuple<T> = [
   /** 当前状态 */
   T,
   /** 设置状态 */
-  SetState<T>
+  SetState<T>,
 ];
 
 /** useState通用返回 */
@@ -24,5 +24,5 @@ export type UseStateTuple<T> = [
   /** 当前状态 */
   T,
   /** 设置状态 */
-  SetStateBase<T>
+  SetStateBase<T>,
 ];

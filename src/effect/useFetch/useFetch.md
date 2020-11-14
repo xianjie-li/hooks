@@ -1,5 +1,8 @@
 ---
 title: useFetch
+group:
+  path: /effect
+  order: 2
 ---
 
 # useFetch
@@ -19,17 +22,17 @@ title: useFetch
 
 ## 基础示例
 
-<code src="./useFetch/Base.tsx" />
+<code src="./base.demo.tsx" />
 
 ## 节流/防抖
 
-<code src="./useFetch/ThrottleDebounce.tsx" />
+<code src="./throttleDebounce.demo.tsx" />
 
 ## 懒人模式
 
 调用`send`很麻烦，大部分业务中，理想的请求时机是某个依赖的值发生改变时，通过`param`，可以轻松的实现这一点
 
-<code src="./useFetch/Param.tsx" />
+<code src="./param.demo.tsx" />
 
 > 💡 内部通过\_.isEqual 来对比 param 相等性，保持 param 结构相对简单能够减少对比深度，从而提高性能
 
@@ -122,7 +125,7 @@ interface UseFetchReturns<Data, Payload> {
     newPayload?:
       | Payload
       | React.SyntheticEvent
-      | undefined /* SyntheticEvent是为了直接将send绑定给onClick等时不出现类型错误 */
+      | undefined /* SyntheticEvent是为了直接将send绑定给onClick等时不出现类型错误 */,
   ) => Promise<[any, Data]>;
 }
 ```

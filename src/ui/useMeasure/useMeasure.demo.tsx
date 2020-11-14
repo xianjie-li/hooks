@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMeasure } from './useMeasure';
+import { useMeasure } from '@lxjx/hooks';
 
 const size1 = {
   width: 160,

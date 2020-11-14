@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useDerivedStateFromProps } from './useDerivedStateFromProps';
+import { useDerivedStateFromProps } from '@lxjx/hooks';
 
 function Demo({ num }: any) {
   const [insideNum, setInsideNum] = useDerivedStateFromProps(num);

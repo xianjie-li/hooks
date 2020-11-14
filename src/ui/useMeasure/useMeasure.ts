@@ -1,9 +1,9 @@
 import { RefObject, useEffect, useRef, useState } from 'react';
 import ResizeObserver from 'resize-observer-polyfill';
-import { getRefDomOrDom } from '../utils/utils';
+import { getRefDomOrDom } from '@lxjx/hooks';
 
 export function useMeasure<T extends Element = HTMLElement>(
-  target?: HTMLElement | RefObject<HTMLElement>
+  target?: HTMLElement | RefObject<HTMLElement>,
 ) {
   const ref = useRef<T>(null!);
 
@@ -18,9 +18,7 @@ export function useMeasure<T extends Element = HTMLElement>(
     bottom: 0,
   });
 
-  const [ro] = useState(
-    () => new ResizeObserver(([entry]) => set(entry.contentRect))
-  );
+  const [ro] = useState(() => new ResizeObserver(([entry]) => set(entry.contentRect)));
 
   function getEl() {
     const el = getRefDomOrDom(target);

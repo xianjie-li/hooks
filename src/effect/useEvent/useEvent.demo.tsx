@@ -1,19 +1,28 @@
 import React, { useState } from 'react';
-import { useDebounce } from './useDebounce';
+import { createEvent } from '@lxjx/hooks';
+
+const { useEvent, emit } = createEvent<(arg: number) => void>();
+
+function AChild() {
+  const [count, setCount] = useState(0);
+
+  useEvent(num => {
+    setCount(num);
+  });
+
+  return <h3>{count}</h3>;
+}
+
+let count = 0;
 
 const useThrottleDemo = () => {
-  const [val, setVal] = useState('');
-
-  const handle = useDebounce((el: HTMLInputElement) => {
-    setVal(el.value);
-  }, 1000);
-  
   return (
     <div>
-      <h3>{val}</h3>
-      <div>输入一秒后同步状态</div>
-      <input type="text" onChange={({ target }) => handle(target)} />
-      <button onClick={handle.cancel}>cancle</button>
+      <AChild />
+      <hr />
+      <AChild />
+      <button onClick={() => emit(++count)}>emit++</button>
+      <button onClick={() => emit(--count)}>emit--</button>
     </div>
   );
 };

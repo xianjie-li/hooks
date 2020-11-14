@@ -9,10 +9,7 @@ import { IsEqualCustomizer } from 'lodash';
  *  @param prop - 需要派生为state的prop
  *  @param customizer - 可以通过此函数自定义对比方式, 如果相等返回 true，否则返回 false, 返回undefined时使用默认对比方式
  * */
-export function useDerivedStateFromProps<T>(
-  prop: T,
-  customizer?: IsEqualCustomizer
-) {
+export function useDerivedStateFromProps<T>(prop: T, customizer?: IsEqualCustomizer) {
   const [state, setState] = useState<T>(prop);
 
   useUpdateEffect(() => {

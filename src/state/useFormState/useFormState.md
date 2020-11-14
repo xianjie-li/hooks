@@ -1,5 +1,8 @@
 ---
 title: useFormState
+group:
+  path: /state
+  order: 3
 ---
 
 # useFormState
@@ -19,12 +22,12 @@ function useFormState<T, Ext = any>(
   /** 默认值，会被value与defaultValue覆盖*/
   defaultValue: T,
   /** 其他配置 */
-  config?: Config
+  config?: Config,
 ): [
   /** 当前值 */
   T,
   /** 设置新值、额外参数，调用时会触发onChange */
-  SetFormState<T, Ext>
+  SetFormState<T, Ext>,
 ];
 ```
 

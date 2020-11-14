@@ -1,5 +1,8 @@
 ---
 title: usePrev
+group:
+  path: /state
+  order: 3
 ---
 
 # usePrev
@@ -13,4 +16,3 @@ title: usePrev
 ## API
 
 **`function usePrev<T = any>(value: T): T`**
-

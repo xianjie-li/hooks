@@ -1,5 +1,5 @@
 import React from 'react';
-import { useScroll } from './useScroll';
+import { useScroll } from '@lxjx/hooks';
 
 const style2: React.CSSProperties = {
   height: 300,
@@ -55,23 +55,15 @@ const useScrollDemo = () => {
       </button>
       <div id="testWrap" style={style2} ref={ref}>
         {Array.from({ length: 20 }).map((_, index) => (
-          <p
-            id={`p-${index + 1}`}
-            style={{ width: 1000, border: '1px solid #eee' }}
-            key={index}
-          >
+          <p id={`p-${index + 1}`} style={{ width: 1000, border: '1px solid #eee' }} key={index}>
             {index + 1}
           </p>
         ))}
       </div>
       <hr />
       <h3>window滚动</h3>
-      <button onClick={() => windowS.scrollToElement('#示例')}>
-        滚动到 #示例
-      </button>
-      <button onClick={() => windowS.set({ x: 200, y: 200, raise: true })}>
-        +200
-      </button>
+      <button onClick={() => windowS.scrollToElement('#示例')}>滚动到 #示例</button>
+      <button onClick={() => windowS.set({ x: 200, y: 200, raise: true })}>+200</button>
     </div>
   );
 };

@@ -1,0 +1,1 @@
+{"version":3,"file":"useStorageSetState.d.ts","sourceRoot":"","sources":["../../../src/state/useStorageState/useStorageSetState.ts"],"names":[],"mappings":"AACA,OAAO,EACL,cAAc,EACd,gBAAgB,EAChB,sBAAsB,EAEvB,MAAM,aAAa,CAAC;AACrB,OAAO,EAAE,SAAS,EAAE,MAAM,aAAa,CAAC;AAExC,eAAO,MAAM,kBAAkB,6BAExB,MAAM,qGAmBZ,CAAC"}

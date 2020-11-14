@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": ["src/index.ts", "types"],
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "./dist",
+    "outDir": "./dist",
+    "declarationMap": true,
+    "skipLibCheck": true /* 暂时跳过检测, vfile包冲突 */
+  }
+}

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useFetch } from './useFetch';
+import { useFetch } from '@lxjx/hooks';
 
 /**
  * 模拟一个基于Promise的请求函数
  */
 function mockFn(delay = 1500, isSuccess = false, res?: any) {
-  return function(/*...arg: any*/) {
+  return (/* ...arg: any */) => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         isSuccess ? resolve(res || delay) : reject(res || delay);
@@ -32,7 +32,7 @@ const UseFetchBase = () => {
       timeout: 3000, // 超时时间
       pollingInterval: hasPoll ? 2000 : 0, // 轮询时间
       cacheKey: 'USEFETCHCHACHEKEY', // 开启缓存、SWR
-    }
+    },
   );
 
   const retry = (
@@ -48,9 +48,7 @@ const UseFetchBase = () => {
         <button onClick={() => send({ score: Math.random().toFixed(2) })}>
           send传入payload进行更新
         </button>
-        <button onClick={() => setCount(prev => prev + 1)}>
-          通过改变deps更新 {count}
-        </button>
+        <button onClick={() => setCount(prev => prev + 1)}>通过改变deps更新 {count}</button>
       </div>
       <div style={{ marginBottom: 12 }}>
         <button onClick={() => setError(prev => !prev)}>
@@ -61,9 +59,7 @@ const UseFetchBase = () => {
         </button>
       </div>
       <div style={{ marginBottom: 24 }}>
-        <button onClick={() => setPoll(prev => !prev)}>
-          轮询开关 {hasPoll.toString()}
-        </button>
+        <button onClick={() => setPoll(prev => !prev)}>轮询开关 {hasPoll.toString()}</button>
         <button onClick={cancel}>取消该次请求</button>
       </div>
       <div>
@@ -85,16 +81,13 @@ const UseFetchBase = () => {
       </div>
       <div>
         <strong>payload</strong>
-        <span style={{ fontSize: 14 }}>(作为参数传给请求方法)</span>:
-        {JSON.stringify(payload)}
+        <span style={{ fontSize: 14 }}>(作为参数传给请求方法)</span>:{JSON.stringify(payload)}
       </div>
       <p style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>
         * 当传入了 cacheKey
         后，会自动开启SWR(stale-while-revalidate)，当arg、data、payload发生变更时会将其缓存到session中，
         下次组件初始化时，会先读取缓存数据进行返回，然后再发起更新请求并替换掉"stale"的数据，
-        <span style={{ color: 'rgba(0,0,0,0.75)' }}>
-          刷新页面并查看data的变化来查看SWR的效果
-        </span>
+        <span style={{ color: 'rgba(0,0,0,0.75)' }}>刷新页面并查看data的变化来查看SWR的效果</span>
       </p>
 
       <p style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>

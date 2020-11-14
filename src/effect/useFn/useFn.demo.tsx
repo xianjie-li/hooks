@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useFn } from './useFn';
+import { useFn } from '@lxjx/hooks';
 import _throttle from 'lodash/throttle';
 
 const useFnDemo = () => {
@@ -12,9 +12,12 @@ const useFnDemo = () => {
   const oldFn = useRef(clickHandle);
 
   /* 如果需要对函数进行操作，请使用参数2 */
-  const throttleFn = useFn(() => {
-    setCount(count + 1);
-  }, f => _throttle(f, 1000));
+  const throttleFn = useFn(
+    () => {
+      setCount(count + 1);
+    },
+    f => _throttle(f, 1000),
+  );
 
   return (
     <div>

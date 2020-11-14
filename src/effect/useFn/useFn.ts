@@ -9,11 +9,7 @@ import { AnyFunction } from '@lxjx/utils';
  * @param deps - 依赖数组，如果传入，其中任意值改变都会重载缓存的fn，可以用来更新wraper包装的函数
  * @returns - 经过memo化的函数
  */
-export function useFn<T extends AnyFunction>(
-  fn: T,
-  wraper?: (fn: T) => T,
-  deps = [] as any[]
-) {
+export function useFn<T extends AnyFunction>(fn: T, wraper?: (fn: T) => T, deps = [] as any[]) {
   const fnRef = useRef<T>();
   const memoFnRef = useRef<T>(null!);
 

@@ -9,7 +9,7 @@ const UsePrevDemo = () => {
   return (
     <div>
       <div>
-        <button onClick={() => setCount(prev => prev + 1)}>add</button>
+        <button onClick={() => setCount(p => p + 1)}>add</button>
       </div>
 
       <hr />

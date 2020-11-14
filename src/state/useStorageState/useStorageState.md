@@ -1,6 +1,8 @@
 ---
 title: useStorageState
-order: 4
+group:
+  path: /state
+  order: 3
 ---
 
 # useStorageState
@@ -28,12 +30,12 @@ function useStorageBase<T = undefined>(
   /** 初始状态 */
   initState?: StateInitState<T>,
   /** 其他选项 */
-  options?: UseStorageStateOptions
+  options?: UseStorageStateOptions,
 ): [
   /** 状态 */
   T,
   /** 设置状态  */
-  SetStateBase<T>
+  SetStateBase<T>,
 ];
 ```
 

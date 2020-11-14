@@ -1,5 +1,8 @@
 ---
 title: useLockBodyScroll
+group:
+  path: /UI
+  order: 1
 ---
 
 # useLockBodyScroll

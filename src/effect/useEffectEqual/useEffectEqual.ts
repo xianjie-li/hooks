@@ -13,7 +13,7 @@ import { IsEqualCustomizer } from 'lodash';
 export function useEffectEqual(
   effect: React.EffectCallback,
   deps?: any[],
-  customizer?: IsEqualCustomizer
+  customizer?: IsEqualCustomizer,
 ) {
   const prev = usePrevious(deps);
   const dep = useRef(0);

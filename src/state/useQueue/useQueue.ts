@@ -33,12 +33,7 @@ interface UseQueueItemWidthId extends UseQueueItem {
  * */
 
 function useQueue<Item extends AnyObject = {}>(
-  {
-    defaultItemOption,
-    list = [],
-    defaultManual = false,
-    onChange,
-  } = {} as UseQueueConfig<Item>
+  { defaultItemOption, list = [], defaultManual = false, onChange } = {} as UseQueueConfig<Item>,
 ) {
   /** 选项与用户扩展类型混合 */
   type MixItem = Item & UseQueueItem;
@@ -183,11 +178,11 @@ function useQueue<Item extends AnyObject = {}>(
 
     if (!ids.length) return;
 
-    let diffList = (list: MixItemWithId[]) =>
+    const diffList = (ls: MixItemWithId[]) =>
       _differenceBy(
-        list,
+        ls,
         ids.map(item => ({ id: item })),
-        item => item.id
+        item => item.id,
       );
 
     self.oldList = diffList(self.oldList);
@@ -285,7 +280,7 @@ function useQueue<Item extends AnyObject = {}>(
       return !!self.list.length;
     }
 
-    let _id = id || state.current?.id;
+    const _id = id || state.current?.id;
 
     if (!_id) return false;
 

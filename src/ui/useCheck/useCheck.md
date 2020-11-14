@@ -1,6 +1,8 @@
 ---
 title: useCheck
-order: 1
+group:
+  path: /UI
+  order: 1
 ---
 
 # useCheck
@@ -8,8 +10,8 @@ order: 1
 一个高性能的选中状态管理 hook，支持像表单控件一样受控、非受控使用
 
 ✨ 支持绝大多数选择用例  
-✨ 通过onChange/value等表单式接口，可以无缝接入Checkbox/Radio/Select等组件  
-✨ 轻松处理十万级别的选项数据(i5-4210M的古董机上处理30万个选项无明显延迟)
+✨ 通过 onChange/value 等表单式接口，可以无缝接入 Checkbox/Radio/Select 等组件  
+✨ 轻松处理十万级别的选项数据(i5-4210M 的古董机上处理 30 万个选项无明显延迟)
 
 ## 示例
 
@@ -26,8 +28,7 @@ order: 1
 **conf**
 
 ```ts
-interface UseCheckConf<T, OPTION>
-  extends FormLikeWithExtra<T[], OPTION[]>, UseFormStateConfig {
+interface UseCheckConf<T, OPTION> extends FormLikeWithExtra<T[], OPTION[]>, UseFormStateConfig {
   /** 选项数组 */
   options?: OPTION[];
   /** 所有禁用值 */

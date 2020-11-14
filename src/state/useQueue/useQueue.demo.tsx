@@ -1,5 +1,5 @@
 import React from 'react';
-import { useQueue } from './useQueue';
+import { useQueue } from '@lxjx/hooks';
 
 let count = 0;
 
@@ -55,8 +55,7 @@ const UseQueueDemo = () => {
               onClick={() => queue.jump(item.id)}
               style={{
                 padding: '4px 12px',
-                border:
-                  item === queue.current ? '1px solid red' : '1px solid #ccc',
+                border: item === queue.current ? '1px solid red' : '1px solid #ccc',
               }}
             >
               {item.text}-{item.id}
@@ -75,8 +74,7 @@ const UseQueueDemo = () => {
               key={item.id}
               style={{
                 padding: '4px 12px',
-                border:
-                  item === queue.current ? '1px solid red' : '1px solid #ccc',
+                border: item === queue.current ? '1px solid red' : '1px solid #ccc',
               }}
             >
               {item.text}-{item.id}
@@ -95,8 +93,7 @@ const UseQueueDemo = () => {
               key={item.id}
               style={{
                 padding: '4px 12px',
-                border:
-                  item === queue.current ? '1px solid red' : '1px solid #ccc',
+                border: item === queue.current ? '1px solid red' : '1px solid #ccc',
               }}
             >
               {item.text}-{item.id}

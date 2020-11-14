@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useUpdateEffect } from 'react-use';
 import { isFunction, AnyObject } from '@lxjx/utils';
+import _isEqual from 'lodash/isEqual';
 
 /**
  * 表单组件的统一接口
@@ -34,6 +35,15 @@ export interface UseFormStateConfig {
   defaultValueKey?: string;
   /** 'onChange' | 自定义onChange的key */
   triggerKey?: string;
+  /**
+   * false | 对value执行深度对比，以支持引用类型，你只会在极少的情况下使用到此配置
+   * - 默认情况下，传入的value与上一个value全等判断成功时才会同步到本地并触发onChange，大部分时候这都没有问题，但是
+   * 如果你内联式的传入`value={[1, 2, 3]}`, 会造成每一次render都触发onChange,
+   * 此时你如果通过onChange更新状态则会造成内存泄露, 开启此项可以对引用类型的值进行深对比，从而避免这种情况
+   * - 🎉如果循正常用例，将value放到useState等hook中进行管理，是不需要开启这个配置的，因为引用只会在变更时改变
+   * - 如果value的层次结构过于复杂或者很大，不要使用此配置，因为大数据的深对比很消耗性能
+   * */
+  deep?: boolean;
 }
 
 /** 便捷的实现统一接口的受控、非受控表单组件, 也可用于任何需要受控、非受控状态的场景 */
@@ -43,19 +53,12 @@ export function useFormState<T, Ext = any>(
   /** 默认值，会被value与defaultValue覆盖 */
   defaultValue: T,
   /** 其他配置 */
-  config?: UseFormStateConfig
+  config?: UseFormStateConfig,
 ) {
-  const {
-    valueKey = 'value',
-    defaultValueKey = 'defaultValue',
-    triggerKey = 'onChange',
-  } = config || {};
+  const { valueKey = 'value', defaultValueKey = 'defaultValue', triggerKey = 'onChange', deep } =
+    config || {};
 
-  const {
-    [valueKey]: value,
-    [triggerKey]: onChange,
-    [defaultValueKey]: propDefaultValue,
-  } = props;
+  const { [valueKey]: value, [triggerKey]: onChange, [defaultValueKey]: propDefaultValue } = props;
 
   // 用于在一些特定的位置能立即获取到`state
   const stateRef = useRef<T>();
@@ -68,8 +71,7 @@ export function useFormState<T, Ext = any>(
       val = props[valueKey] === undefined ? defaultValue : value;
     }
     if (defaultValueKey in props) {
-      val =
-        props[defaultValueKey] === undefined ? defaultValue : propDefaultValue;
+      val = props[defaultValueKey] === undefined ? defaultValue : propDefaultValue;
     }
 
     return (stateRef.current = val);
@@ -78,8 +80,11 @@ export function useFormState<T, Ext = any>(
   /* 为受控组件同步状态 */
   useUpdateEffect(() => {
     if (valueKey in props) {
-      // 如果两次值显式相等则跳过 , 考虑使用深度对比?
-      value !== stateRef.current && setState((stateRef.current = value));
+      if (deep) {
+        !_isEqual(value, stateRef.current) && setState((stateRef.current = value));
+      } else {
+        value !== stateRef.current && setState((stateRef.current = value));
+      }
     }
   }, [value]);
 
@@ -110,6 +115,4 @@ export function useFormState<T, Ext = any>(
 }
 
 // 别名
-export {
-  useFormState as useControllableValue,
-}
+export { useFormState as useControllableValue };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMountExist } from './useMountExist';
+import { useMountExist } from '@lxjx/hooks';
 
 const box = {
   width: 160,
@@ -21,18 +21,12 @@ const UseMountExistDemo = () => {
   return (
     <div>
       <div>
-        <button onClick={() => set(prev => !prev)}>
-          开关 | {toggle.toString()}
-        </button>
+        <button onClick={() => set(prev => !prev)}>开关 | {toggle.toString()}</button>
       </div>
 
       <hr />
 
-      {mount && (
-        <div style={{ ...box, border: '1px solid green' }}>
-          设置了MountExist状态的盒子
-        </div>
-      )}
+      {mount && <div style={{ ...box, border: '1px solid green' }}>设置了MountExist状态的盒子</div>}
       <div style={box}>未设置MountExist状态的盒子</div>
     </div>
   );

@@ -24,11 +24,7 @@ const defaultOption = {
  * @returns throttleFn - 经过节流处理后的函数
  * @returns throttleFn.cancel() - 取消节流调用
  */
-export function useThrottle<T extends AnyFunction>(
-  fn: T,
-  wait = 300,
-  options?: UseThrottleOption
-) {
+export function useThrottle<T extends AnyFunction>(fn: T, wait = 300, options?: UseThrottleOption) {
   const self = useSelf({
     last: 0,
     timer: undefined as any,

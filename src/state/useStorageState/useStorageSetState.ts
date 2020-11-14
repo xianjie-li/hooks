@@ -1,7 +1,11 @@
 import { useState, useCallback } from 'react';
-import { StateInitState, UseSetStateTuple } from '../type';
+import {
+  StateInitState,
+  UseSetStateTuple,
+  UseStorageStateOptions,
+  useStorageState,
+} from '@lxjx/hooks';
 import { AnyObject } from '@lxjx/utils';
-import { UseStorageStateOptions, useStorageState } from '@lxjx/hooks';
 
 export const useStorageSetState = <T extends AnyObject>(
   /** 缓存key */
@@ -9,20 +13,18 @@ export const useStorageSetState = <T extends AnyObject>(
   /** 初始状态 */
   initState = {} as StateInitState<T>,
   /** 其他选项 */
-  options?: UseStorageStateOptions
+  options?: UseStorageStateOptions,
 ): UseSetStateTuple<T> => {
   const [, update] = useState(0);
   const [state, set] = useStorageState<T>(key, initState, options);
   const setState = useCallback(
     patch => {
       // 关键是使用Object.assign保证引用不变
-      set(
-        Object.assign(state, patch instanceof Function ? patch(state) : patch)
-      );
+      set(Object.assign(state, patch instanceof Function ? patch(state) : patch));
       // 引用相同useState是不会更新的，需要手动触发更新
       update(prev => prev + 1);
     },
-    [set]
+    [set],
   );
 
   return [state, setState];

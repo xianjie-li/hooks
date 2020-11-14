@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useRefize } from './useRefize';
+import { useRefize } from '@lxjx/hooks';
 
 const useRefizeDemo = () => {
   const [count, setCount] = useState(0);

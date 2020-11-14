@@ -1,5 +1,8 @@
 ---
 title: useRRQuery
+group:
+  path: /effect
+  order: 2
 ---
 
 # useRRQuery

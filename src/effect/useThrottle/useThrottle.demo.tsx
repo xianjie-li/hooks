@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useThrottle } from './useThrottle';
+import { useThrottle } from '@lxjx/hooks';
 
 const useThrottleDemo = () => {
   const [count, setCount] = useState(0);

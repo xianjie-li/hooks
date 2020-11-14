@@ -1,7 +1,6 @@
-import { StateInitState, SetStateBase } from '../type';
+import { StateInitState, SetStateBase, useFn } from '@lxjx/hooks';
 import { __GLOBAL__ } from '@lxjx/utils';
 import { useState } from 'react';
-import { useFn } from '../effect/useFn/useFn';
 
 export interface UseStorageStateOptions {
   /** 缓存类型 */
@@ -17,31 +16,21 @@ const storagMethod = {
   session: (__GLOBAL__ as Window).sessionStorage,
 };
 
-function setStorage(
-  key: string,
-  val: any,
-  type = 'session' as UseStorageStateOptions['type']
-) {
+function setStorage(key: string, val: any, type = 'session' as UseStorageStateOptions['type']) {
   if (val === undefined) return;
   const method = storagMethod[type!];
   if (!method) return;
   method.setItem(`${BASE_KEY}_${key.toUpperCase()}`, JSON.stringify(val));
 }
 
-function getStorage(
-  key: string,
-  type = 'session' as UseStorageStateOptions['type']
-) {
+function getStorage(key: string, type = 'session' as UseStorageStateOptions['type']) {
   const method = storagMethod[type!];
   if (!method) return;
   const cache = method.getItem(`${BASE_KEY}_${key.toUpperCase()}`);
   return cache === null ? cache : JSON.parse(cache);
 }
 
-function remove(
-  key: string,
-  type = 'session' as UseStorageStateOptions['type']
-) {
+function remove(key: string, type = 'session' as UseStorageStateOptions['type']) {
   const method = storagMethod[type!];
   if (!method) return;
   method.removeItem(`${BASE_KEY}_${key.toUpperCase()}`);
@@ -58,7 +47,7 @@ function useStorageBase<T = undefined>(
   /** 初始状态 */
   initState?: StateInitState<T>,
   /** 其他选项 */
-  options?: UseStorageStateOptions
+  options?: UseStorageStateOptions,
 ): [T, SetStateBase<T>] {
   const opt = {
     ...defaultOptions,

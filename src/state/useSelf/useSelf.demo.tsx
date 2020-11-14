@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useSelf } from './useSelf';
+import { useSelf } from '@lxjx/hooks';
 
 const UseSetStateDemo = () => {
   const self = useSelf({ count: 0, other: 'lxj' });

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFormState, FormLike } from './useFormState';
+import { useFormState, FormLike } from '@lxjx/hooks';
 
 const Input: React.FC<FormLike<string>> = props => {
   const [state, setState] = useFormState(props, '');

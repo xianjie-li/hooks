@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createRandString, isArray } from '@lxjx/utils';
 import { useUpdateEffect, useUpdate } from 'react-use';
-import { useCustomEvent } from '@lxjx/hooks';
+import { createEvent } from '@lxjx/hooks';
 
 /** 单个组件实例 */
 interface Item<Meta = any> {
@@ -18,9 +18,22 @@ interface Same {
 /** 所有共享数据 */
 const sameMap: Same = {};
 
+/** 所有事件对象 */
+const events: {
+  [key: string]: ReturnType<typeof createEvent>;
+} = {};
+
 const defaultConfig = {
   deps: [],
   enable: true,
+};
+
+/** 以指定key获取事件对象，不存在时创建并返回 */
+function getEvent(key: string) {
+  const e = events[key];
+  if (e) return e;
+  events[key] = createEvent();
+  return events[key];
 }
 
 /**
@@ -42,24 +55,24 @@ const defaultConfig = {
 export function useSameState<Meta = any>(
   key: string,
   config?: {
-    meta?: Meta,
-    deps?: any[],
-    enable?: boolean,
-  }
+    meta?: Meta;
+    deps?: any[];
+    enable?: boolean;
+  },
 ) {
   const conf = {
     ...defaultConfig,
     ...config,
-  }
+  };
 
   const id = useMemo(() => createRandString(2), []);
   const [cIndex, setCIndex] = useState(depChangeHandel);
 
   /* 在某个组件更新了sameMap后，需要通知其他相应的以最新状态更新组件 */
   const update = useUpdate();
-  const eventKey = `${key}_same_custom_event`;
+  const { emit, useEvent } = getEvent(`${key}_same_custom_event`);
 
-  const emitUpdate = useCustomEvent(eventKey, (_id: string) => {
+  useEvent((_id: string) => {
     // 触发更新的实例和未激活的不更新
     if (_id === id) return;
     update();
@@ -97,7 +110,7 @@ export function useSameState<Meta = any>(
 
   /* cIndex变更时，通知其他钩子进行更新 */
   useUpdateEffect(() => {
-    emitUpdate(eventKey, id);
+    emit(id);
   }, [cIndex, ...conf.deps]);
 
   /**

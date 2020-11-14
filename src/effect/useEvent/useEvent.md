@@ -1,28 +1,28 @@
 ---
-title: useCustomEvent
-order: 0
+title: useEvent
+group:
+  path: /effect
+  order: 2
 ---
 
-# useCustomEvent
+# useEvent
 
-自定义事件，用于多个组件间进行通讯和传值，当你的项目没有引入`redux`等状态管理方案，但又需要跨多组件进行通讯时会非常很有用。
+自定义事件，用于多个组件间或组件外进行通讯
 
 ## 示例
 
-<code src="./useCustomEvent.demo.tsx" />
+<code src="./useEvent.demo.tsx" />
 
 ## API
 
 ```ts
-const emit = useCustomEvent(eventKey?: string, handle?: AnyFunction);
+const { useEvent, on, off, emit } = createEvent<ListenerType>();
 ```
 
-**emit** - 触发一个自定义事件
+**useEvent** - 以 hook 的形式注册一个事件监听器，会在 unmount 时自动解绑事件
 
-该方法是`import { customEventEmit } from '@lxjx/hooks'`的直接引用
+**emit** - 触发所有正在监听的事件
 
-`function customEventEmit(eventKey: string, payload?: any): void`
+**on** - 注册一个事件监听器
 
-**eventKey** - 事件名称
-
-**handle** - 事件处理函数，参数为`emit`时传入的值
+**off** - 解绑指定的事件监听器

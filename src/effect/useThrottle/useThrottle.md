@@ -1,6 +1,8 @@
 ---
 title: useThrottle
-order: 1
+group:
+  path: /effect
+  order: 2
 ---
 
 # useThrottle
@@ -12,11 +14,12 @@ order: 1
 <code src="./useThrottle.demo.tsx" />
 
 ## API
+
 ```ts
 function useThrottle<T extends AnyFunction>(
   fn: T,
   wait = 300,
-  options?: UseThrottleOption
+  options?: UseThrottleOption,
 ): throttleFn;
 
 interface UseThrottleOption {
@@ -34,4 +37,3 @@ interface UseThrottleOption {
 **throttleFn** - 经过节流处理后的函数
 
 **throttleFn.cancel()** - 取消节流调用
-

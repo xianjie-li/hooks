@@ -80,7 +80,7 @@ export function useScroll<ElType extends HTMLElement>(
     offsetX,
     offsetY,
     touchOffset = 0,
-  } = {} as UseScrollOptions
+  } = {} as UseScrollOptions,
 ) {
   // const defaultEl = useMemo(() => {
   //   return el || document.documentElement;
@@ -146,8 +146,8 @@ export function useScroll<ElType extends HTMLElement>(
   }, [el, ref.current]);
 
   /** 检测元素是否是body或html节点 */
-  function elIsDoc(el?: HTMLElement) {
-    const sEl = el || getEl();
+  function elIsDoc(_el?: HTMLElement) {
+    const sEl = _el || getEl();
     return sEl === self.docEl || sEl === self.bodyEl;
   }
 
@@ -157,11 +157,7 @@ export function useScroll<ElType extends HTMLElement>(
   }
 
   /** 动画滚动到指定位置 */
-  function animateTo(
-    sEl: HTMLElement,
-    next: UseScrollPosBase,
-    now: UseScrollPosBase
-  ) {
+  function animateTo(sEl: HTMLElement, next: UseScrollPosBase, now: UseScrollPosBase) {
     const isDoc = elIsDoc(sEl);
 
     update({
@@ -290,12 +286,8 @@ export function useScroll<ElType extends HTMLElement>(
 
     const sEl = getEl();
 
-    let x = isDoc
-      ? self.docEl.scrollLeft + self.bodyEl.scrollLeft
-      : sEl.scrollLeft;
-    let y = isDoc
-      ? self.docEl.scrollTop + self.bodyEl.scrollTop
-      : sEl.scrollTop;
+    let x = isDoc ? self.docEl.scrollLeft + self.bodyEl.scrollLeft : sEl.scrollLeft;
+    let y = isDoc ? self.docEl.scrollTop + self.bodyEl.scrollTop : sEl.scrollTop;
 
     /* chrome高分屏+缩放时，滚动值会是小数，想上取整防止计算错误 */
     x = Math.ceil(x);
@@ -303,8 +295,8 @@ export function useScroll<ElType extends HTMLElement>(
 
     const height = sEl.clientHeight;
     const width = sEl.clientWidth;
-    const scrollHeight = sEl.scrollHeight;
-    const scrollWidth = sEl.scrollWidth;
+    const { scrollHeight } = sEl;
+    const { scrollWidth } = sEl;
 
     /* chrome下(高分屏+缩放),无滚动的情况下scrollWidth会大于width */
     const xMax = Math.max(0, scrollWidth - width);

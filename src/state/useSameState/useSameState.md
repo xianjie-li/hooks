@@ -1,5 +1,8 @@
 ---
 title: useSameState
+group:
+  path: /state
+  order: 3
 ---
 
 # useSameState
@@ -33,9 +36,9 @@ title: useSameState
 export function useSameState<Meta = any>(
   key: string,
   config?: {
-    meta?: Meta,
-    deps?: any[],
-    enable?: boolean,
-  }
-): state
+    meta?: Meta;
+    deps?: any[];
+    enable?: boolean;
+  },
+): state;
 ```

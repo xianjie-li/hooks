@@ -1,5 +1,5 @@
 import React from 'react';
-import { useRRQuery } from './useRRQuery';
+import { useRRQuery } from '@lxjx/hooks';
 
 const useRRQueryDemo = () => {
   const qs = useRRQuery({
@@ -11,13 +11,9 @@ const useRRQueryDemo = () => {
   return (
     <div>
       <div>useRRQueryDemo</div>
-      <button onClick={() => qs.set({ name: `lxj${Math.random()}` })}>
-        set name
-      </button>
+      <button onClick={() => qs.set({ name: `lxj${Math.random()}` })}>set name</button>
       <button onClick={() => qs.set({ id: Math.random() })}>set id</button>
-      <button onClick={() => qs.coverSet({ name: `lxj${Math.random()}` })}>
-        coverSet
-      </button>
+      <button onClick={() => qs.coverSet({ name: `lxj${Math.random()}` })}>coverSet</button>
     </div>
   );
 };

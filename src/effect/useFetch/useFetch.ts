@@ -8,8 +8,8 @@ import {
   useSelf,
   useSetState,
   useStorageState,
+  SetStateBase,
 } from '@lxjx/hooks';
-import { SetStateBase } from '../type';
 
 const GLOBAL = __GLOBAL__ as Window;
 
@@ -22,7 +22,7 @@ interface UseFetchOptions<Data, Payload> {
   param?: Payload;
   /** false | 只能通过send来触发请求 */
   manual?: boolean;
-  /** 10000 | 超时时间 ms*/
+  /** 10000 | 超时时间 ms */
   timeout?: number;
   /** true | 只有为true时才会发起请求, 可以用来实现串联请求 */
   pass?: boolean;
@@ -85,7 +85,7 @@ interface UseFetchReturns<Data, Payload> {
     newPayload?:
       | Payload
       | React.SyntheticEvent
-      | undefined /* SyntheticEvent是为了直接将send绑定给onClick等时不出现类型错误 */
+      | undefined /* SyntheticEvent是为了直接将send绑定给onClick等时不出现类型错误 */,
   ) => Promise<[any, Data]>;
 }
 
@@ -93,16 +93,14 @@ interface UseFetchReturns<Data, Payload> {
 function isSyntheticEvent(arg: any) {
   if (!arg) return false;
 
-  return (
-    isObject(arg) && 'nativeEvent' in arg && 'target' in arg && 'type' in arg
-  );
+  return isObject(arg) && 'nativeEvent' in arg && 'target' in arg && 'type' in arg;
 }
 
 function useFetch<Data = any, Payload = any>(
   /** 一个Promise return函数或async函数, 当不为函数时不会走请求流程 */
   method?: ((...arg: any[]) => Promise<Data>) | any,
   /** 配置项 */
-  options = {} as UseFetchOptions<Data, Payload>
+  options = {} as UseFetchOptions<Data, Payload>,
 ) {
   const self = useSelf({
     /** 请求的唯一标示，在每一次请求开始前更新，并作为请求有效性的凭据 */
@@ -151,13 +149,9 @@ function useFetch<Data = any, Payload = any>(
     };
   }, []);
 
-  const [payload, setPayload] = useStorageState(
-    `${cacheKey}_FETCH_PAYLOAD`,
-    initPayload,
-    {
-      disabled: !isCache,
-    }
-  );
+  const [payload, setPayload] = useStorageState(`${cacheKey}_FETCH_PAYLOAD`, initPayload, {
+    disabled: !isCache,
+  });
 
   const [data, setData] = useStorageState(`${cacheKey}_FETCH_DATA`, initData, {
     disabled: !isCache,
@@ -229,15 +223,15 @@ function useFetch<Data = any, Payload = any>(
     },
     fn => {
       if (throttleInterval) {
-        return _throttle(fn, throttleInterval, { trailing: false }); //对于请求，应该禁止尾随调用
+        return _throttle(fn, throttleInterval, { trailing: false }); // 对于请求，应该禁止尾随调用
       }
 
       if (debounceInterval) {
         return _debounce(fn, debounceInterval);
       }
 
-      return fn;
-    }
+      return fn as any;
+    },
   );
 
   /** 手动发起请求 */
@@ -284,7 +278,7 @@ function useFetch<Data = any, Payload = any>(
         timer && clearInterval(timer);
       };
     },
-    [pollingInterval, polling]
+    [pollingInterval, polling],
   );
 
   /** 接受可选的新payload，并根据条件返回传递给fetchHandel的参数(使用param或payload) */

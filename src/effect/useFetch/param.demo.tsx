@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFetch } from './useFetch';
+import { useFetch } from '@lxjx/hooks';
 
 /**
  * 模拟一个基于Promise的请求函数
@@ -34,8 +34,7 @@ const ParamDemo = () => {
       </div>
       <div>
         <strong>data</strong>
-        <span style={{ fontSize: 14 }}>(返回请求时的参数):</span>{' '}
-        {JSON.stringify(data)}
+        <span style={{ fontSize: 14 }}>(返回请求时的参数):</span> {JSON.stringify(data)}
       </div>
     </div>
   );

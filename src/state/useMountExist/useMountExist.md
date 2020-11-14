@@ -1,11 +1,13 @@
 ---
 title: useMountExist
+group:
+  path: /state
+  order: 3
 ---
 
 # useMountExist
 
 便捷的提供`mountOnEnter`、`unmountOnExit`状态。(用于控制元素渲染时机以提高性能)
-
 
 ## 示例
 
@@ -16,7 +18,6 @@ title: useMountExist
 **`useMountExist(UseMountExistOption): [mount]`**
 
 ```ts
-
 interface UseMountExistBase {
   /** true | 如果为true，在第一次启用时才真正挂载内容 */
   mountOnEnter?: boolean;

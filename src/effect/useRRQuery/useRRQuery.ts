@@ -26,16 +26,14 @@ interface UseQuerySet<Query> {
  * @return result.set - 将包含一个或多个查询值的对象设置到当前url查询上
  * @return result.coverSet - 类似set，区别是会重置掉所有search并设置为传入的查询对象(仍包含默认查询)
  * */
-export function useRRQuery<Query extends object = any>(
-  defaultQuery?: string | AnyObject
-) {
+export function useRRQuery<Query extends object = any>(defaultQuery?: string | AnyObject) {
   const { replace } = useHistory();
   const { search, pathname, hash } = useLocation();
   /** 取默认查询 */
   const _default = useMemo<Partial<Query>>(() => {
     if (defaultQuery) {
       if (typeof defaultQuery === 'string') {
-        return qs.parse(defaultQuery) as Partial<Query>;
+        return (qs.parse(defaultQuery) as unknown) as Partial<Query>;
       }
       return defaultQuery as Partial<Query>;
     }
@@ -51,7 +49,7 @@ export function useRRQuery<Query extends object = any>(
 
   /** 传入一个查询对象，将其转换为查询串后替换当前url */
   function navWithNewSearch(newQO: Partial<Query>) {
-    replace(`${pathname}?${qs.stringify(newQO)}${hash}`);
+    replace(`${pathname}?${qs.stringify(newQO as any)}${hash}`);
   }
 
   const set: UseQuerySet<Query> = useFn(queryItem => {

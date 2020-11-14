@@ -1,10 +1,4 @@
-import {
-  FormLikeWithExtra,
-  useFn,
-  useFormState,
-  useSelf,
-  UseFormStateConfig,
-} from '@lxjx/hooks';
+import { FormLikeWithExtra, useFn, useFormState, useSelf, UseFormStateConfig } from '@lxjx/hooks';
 import { isArray } from '@lxjx/utils';
 import _difference from 'lodash/difference';
 import { useMemo } from 'react';
@@ -61,9 +55,7 @@ export interface UseCheckReturns<T, OPTION> {
   unCheckList: (checkList: T[]) => void;
 }
 
-export function useCheck<T, OPTION = T>(
-  conf: UseCheckConf<T, OPTION>
-): UseCheckReturns<T, OPTION> {
+export function useCheck<T, OPTION = T>(conf: UseCheckConf<T, OPTION>): UseCheckReturns<T, OPTION> {
   const { options = [], disables = [], collector, notExistValueTrigger } = conf;
 
   /* ⚠ 用最少的循环实现功能，因为option可能包含巨量的数据 */
@@ -90,7 +82,7 @@ export function useCheck<T, OPTION = T>(
     [],
     {
       ...conf,
-    }
+    },
   );
 
   /** 提取所有选项为基础类型值, 基础值数组操作更方便 */
@@ -172,11 +164,11 @@ export function useCheck<T, OPTION = T>(
     setChecked(reverse);
   });
 
-  const checkList = useFn((checkList: T[]) => {
-    if (!isArray(checkList)) return;
-    if (!checkList.length) return;
+  const checkList = useFn((list: T[]) => {
+    if (!isArray(list)) return;
+    if (!list.length) return;
     // 排除禁用项和已选中项
-    const newList = checkList.filter(item => {
+    const newList = list.filter(item => {
       if (isDisabled(item)) return false;
       if (isChecked(item)) return false; // isChecked消耗比isDisabled高，所以用`||`判断
       return true;
@@ -246,7 +238,7 @@ export function useCheck<T, OPTION = T>(
   /** 判断是否局部选中, 是否所有选中 */
   function getCheckStatus() {
     let checkLen = 0;
-    let maxLength = items.length;
+    const maxLength = items.length;
     items.forEach(item => {
       if (isChecked(item)) {
         checkLen++;
@@ -293,6 +285,7 @@ export function useCheck<T, OPTION = T>(
     if (notExistValueTrigger) {
       const notOptionValues: T[] = [];
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       Object.entries(self.notExistVal).forEach(([_, v]) => {
         if (!v.used) {
           v.used = true;
