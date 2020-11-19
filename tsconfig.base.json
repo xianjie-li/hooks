@@ -2,6 +2,9 @@
   "files": [
     "node_modules/@types/jest/index.d.ts"
   ],
+  "include": [
+    "types"
+  ],
   "exclude": [
     "node_modules/@types/vfile-message/index.d.ts",
     "node_modules/@types/vfile/index.d.ts",
@@ -19,6 +22,6 @@
     "esModuleInterop": true,
     "jsx": "react",
     "lib": ["dom", "esnext"],
-    "sourceMap": true
+    // "sourceMap": true
   }
 }

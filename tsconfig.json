@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.base.json",
   // 新版的eslint会对不再include的文件报错
-  "include": ["src", "types", "test", ".eslintrc.js"]
+  "include": ["src", "test", ".eslintrc.js"]
 }
