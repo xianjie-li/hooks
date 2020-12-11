@@ -36,4 +36,3 @@ export function useFn(fn, wraper, deps) {
     }
     return memoFnRef.current;
 }
-//# sourceMappingURL=useFn.js.map

@@ -234,4 +234,3 @@ export function useCheck(conf) {
         checkList: checkList,
         unCheckList: unCheckList });
 }
-//# sourceMappingURL=useCheck.js.map

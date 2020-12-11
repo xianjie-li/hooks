@@ -66,15 +66,13 @@ export const useLockBodyScroll = (locked: boolean) => {
         bodyEl.style.position = 'fixed';
         bodyEl.style.top = `-${scrollPosition}px`;
       }
-    } else {
-      if (hasLockFlag()) {
-        bodyEl.setAttribute('data-locked', '0');
-        bodyEl.style.width = '';
-        bodyEl.style.overflow = '';
-        bodyEl.style.position = '';
-        bodyEl.style.top = '';
-        window.scrollTo(0, scrollPosition);
-      }
+    } else if (hasLockFlag()) {
+      bodyEl.setAttribute('data-locked', '0');
+      bodyEl.style.width = '';
+      bodyEl.style.overflow = '';
+      bodyEl.style.position = '';
+      bodyEl.style.top = '';
+      window.scrollTo(0, scrollPosition);
     }
   }
 

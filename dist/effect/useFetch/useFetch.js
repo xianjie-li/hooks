@@ -203,4 +203,3 @@ options) {
         setPolling: setPolling });
 }
 export { useFetch };
-//# sourceMappingURL=useFetch.js.map

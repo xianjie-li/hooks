@@ -32,4 +32,3 @@ export function useMountExist(_a) {
     }, [toggle]);
     return [mount];
 }
-//# sourceMappingURL=useMountExist.js.map

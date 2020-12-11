@@ -18,4 +18,3 @@ options) {
     }, [set]);
     return [state, setState];
 };
-//# sourceMappingURL=useStorageSetState.js.map

@@ -18,4 +18,3 @@ export var useSetState = function (initState) {
     }, [set]);
     return [ref.current, setState];
 };
-//# sourceMappingURL=useSetState.js.map

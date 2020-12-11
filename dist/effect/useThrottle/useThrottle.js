@@ -59,4 +59,3 @@ export function useThrottle(fn, wait, options) {
     });
     return bundle;
 }
-//# sourceMappingURL=useThrottle.js.map

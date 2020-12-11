@@ -17,4 +17,3 @@ export function useDerivedStateFromProps(prop, customizer) {
     }, [prop]);
     return [state, setState];
 }
-//# sourceMappingURL=useDerivedStateFromProps.js.map

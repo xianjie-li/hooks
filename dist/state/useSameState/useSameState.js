@@ -28,7 +28,7 @@ function getEvent(key) {
  * @param key - 标识该组件的唯一key
  * @param config - 额外配置
  * @param config.meta - 用于共享的组件源数据，可以在同组件的其他实例中获取到
- * @param config.deps - [] | 出于性能考虑，各组件共享的meta只在该实例index变更时更新，以通过此项传入依赖项数组在任意一个依赖变更后更新meta
+ * @param config.deps - [] | 出于性能考虑，各组件共享的meta只在该实例index变更时更新，可以通过此项传入依赖项数组在任意一个依赖变更后更新meta
  * @param config.enable - true | 只有在dep的值为true时，该实例才算启用并被钩子接受, 通常为Modal等组件的toggle参数
  * @return state - 同类型启用组件共享的状态
  * @return state[0] index - 该组件实例处于所有实例中的第几位，未启用的组件返回-1
@@ -99,7 +99,7 @@ export function useSameState(key, config) {
             current[index].meta = _meta;
         }
     }
-    /* 在sameMap[key]长度改变时更新 */
+    /* 在sameMap[key]长度改变时/deps变更时更新 */
     useEffect(function () {
         var _a = getCurrent(), newIndex = _a[1];
         if (newIndex !== cIndex) {
@@ -109,4 +109,3 @@ export function useSameState(key, config) {
     }, [(_a = sameMap[key]) === null || _a === void 0 ? void 0 : _a.length]);
     return [cIndex, sameMap[key], id];
 }
-//# sourceMappingURL=useSameState.js.map

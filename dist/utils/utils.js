@@ -12,4 +12,3 @@ export function getRefDomOrDom(target, ref) {
         return ref.current;
     return undefined;
 }
-//# sourceMappingURL=utils.js.map

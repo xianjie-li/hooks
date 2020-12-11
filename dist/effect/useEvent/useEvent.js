@@ -38,4 +38,3 @@ export function createEvent() {
         emit: emit,
     };
 }
-//# sourceMappingURL=useEvent.js.map

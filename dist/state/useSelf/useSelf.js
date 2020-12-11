@@ -9,4 +9,3 @@ export function useSelf(init) {
     var self = useRef(init);
     return self.current;
 }
-//# sourceMappingURL=useSelf.js.map

@@ -4,4 +4,3 @@ export function useRefize(refState) {
     ref.current = Object.assign(ref.current, refState);
     return ref.current;
 }
-//# sourceMappingURL=useRefize.js.map

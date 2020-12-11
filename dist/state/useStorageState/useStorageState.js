@@ -79,4 +79,3 @@ export var useStorageState = Object.assign(useStorageBase, {
     set: setStorage,
     remove: remove,
 });
-//# sourceMappingURL=useStorageState.js.map

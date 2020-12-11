@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { usePrevious } from 'react-use';
 import _isEqualWith from 'lodash/isEqualWith';
 /**
@@ -11,10 +11,9 @@ import _isEqualWith from 'lodash/isEqualWith';
 export function useEffectEqual(effect, deps, customizer) {
     var prev = usePrevious(deps);
     var dep = useRef(0);
-    var isEqual = _isEqualWith(deps, prev, customizer);
+    var isEqual = useMemo(function () { return _isEqualWith(deps, prev, customizer); }, deps);
     if (!isEqual) {
         dep.current++;
     }
     useEffect(effect, [dep.current]);
 }
-//# sourceMappingURL=useEffectEqual.js.map

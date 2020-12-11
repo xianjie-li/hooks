@@ -14,7 +14,7 @@ interface Item<Meta = any> {
  * @param key - 标识该组件的唯一key
  * @param config - 额外配置
  * @param config.meta - 用于共享的组件源数据，可以在同组件的其他实例中获取到
- * @param config.deps - [] | 出于性能考虑，各组件共享的meta只在该实例index变更时更新，以通过此项传入依赖项数组在任意一个依赖变更后更新meta
+ * @param config.deps - [] | 出于性能考虑，各组件共享的meta只在该实例index变更时更新，可以通过此项传入依赖项数组在任意一个依赖变更后更新meta
  * @param config.enable - true | 只有在dep的值为true时，该实例才算启用并被钩子接受, 通常为Modal等组件的toggle参数
  * @return state - 同类型启用组件共享的状态
  * @return state[0] index - 该组件实例处于所有实例中的第几位，未启用的组件返回-1

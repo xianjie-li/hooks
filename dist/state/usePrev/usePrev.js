@@ -4,4 +4,3 @@ export function usePrev(value) {
     useEffect(function () { return void (ref.current = value); }, [value]);
     return ref.current;
 }
-//# sourceMappingURL=usePrev.js.map

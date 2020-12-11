@@ -1364,10 +1364,10 @@
     "@umijs/fabric" "2.2.0"
     prettier "^2.0.5"
 
-"@lxjx/utils@^1.7.1":
-  version "1.10.2"
-  resolved "https://registry.npm.taobao.org/@lxjx/utils/download/@lxjx/utils-1.10.2.tgz#8db8ba33c9a2a3debe8a89e23aa15d07ace7fdb6"
-  integrity sha1-jbi6M8mio96+ioniOqFdB6zn/bY=
+"@lxjx/utils@^1.11.0":
+  version "1.11.0"
+  resolved "https://registry.npmjs.org/@lxjx/utils/-/utils-1.11.0.tgz#18a9bfdd5ebd95fbe0a5c30bf6ab9d5fea0c8d9c"
+  integrity sha512-2uVpZMNsvfCwVdMkrcEP9TgumX8crNQWFfoRjsRmnRO8sKh8phdJsPwVM/DunmGyKA/9yboLwbm25HEkSHo1sA==
   dependencies:
     "@babel/runtime" "^7.7.6"
     "@types/node" "^13.11.0"

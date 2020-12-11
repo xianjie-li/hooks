@@ -31,4 +31,3 @@ export function useMeasure(target) {
     }, []);
     return [ref, bounds];
 }
-//# sourceMappingURL=useMeasure.js.map

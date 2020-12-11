@@ -26,4 +26,3 @@ export * from './ui/useMeasure/useMeasure';
 /* UTILS */
 export * from './utils/utils';
 export * from './type';
-//# sourceMappingURL=index.js.map
