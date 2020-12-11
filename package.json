@@ -1,7 +1,7 @@
 {
   "name": "@lxjx/hooks",
   "version": "1.15.0",
-  "description": "react hooks library",
+  "description": "react hooks library, Use Your Imagination",
   "keywords": [
     "react",
     "react hooks"
@@ -56,7 +56,7 @@
     "typescript": "^3.9.6"
   },
   "dependencies": {
-    "@lxjx/utils": "^1.7.1",
+    "@lxjx/utils": "^1.11.0",
     "@types/lodash": "^4.14.149",
     "@types/react": "^16.9.23",
     "@types/react-dom": "^16.9.5",

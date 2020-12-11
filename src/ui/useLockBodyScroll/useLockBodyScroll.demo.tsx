@@ -4,12 +4,14 @@ import { useLockBodyScroll } from '@lxjx/hooks';
 
 const UseLockBodyScrollDemo = () => {
   const [bool, set] = useToggle(false);
-  const [bool2, set2] = useToggle(false);
+  const [bool2, set2] = useToggle(true);
   const [bool3, set3] = useToggle(false);
 
-  useLockBodyScroll(bool);
-  useLockBodyScroll(bool2);
-  useLockBodyScroll(bool3);
+  const lock1 = useLockBodyScroll(bool);
+  const lock2 = useLockBodyScroll(bool2);
+  const lock3 = useLockBodyScroll(bool3);
+
+  console.log(lock1, lock2, lock3);
 
   return (
     <div>
