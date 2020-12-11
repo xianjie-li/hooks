@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePrevious } from 'react-use';
 import _isEqualWith from 'lodash/isEqualWith';
 /**
@@ -11,7 +11,7 @@ import _isEqualWith from 'lodash/isEqualWith';
 export function useEffectEqual(effect, deps, customizer) {
     var prev = usePrevious(deps);
     var dep = useRef(0);
-    var isEqual = useMemo(function () { return _isEqualWith(deps, prev, customizer); }, deps);
+    var isEqual = _isEqualWith(deps, prev, customizer);
     if (!isEqual) {
         dep.current++;
     }

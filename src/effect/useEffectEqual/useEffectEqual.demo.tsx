@@ -10,7 +10,7 @@ const useEffectWithEqualDemo = () => {
     return () => {
       console.log('unmount');
     };
-  }, [state]);
+  }, [state, [1, 2], ['login', 'admin'], undefined]);
 
   return (
     <div>
