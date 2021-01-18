@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useUpdateEffect } from 'react-use';
-import { isFunction } from '@lxjx/utils';
+import { isFunction, defer } from '@lxjx/utils';
 import _isEqual from 'lodash/isEqual';
 /** 便捷的实现统一接口的受控、非受控表单组件, 也可用于任何需要受控、非受控状态的场景 */
 export function useFormState(
@@ -45,7 +45,9 @@ config) {
             if (!hasValue) {
                 setState(function (prev) {
                     var patchResult = patch(prev);
-                    onChange && onChange(patchResult, extra);
+                    defer(function () {
+                        onChange && onChange(patchResult, extra);
+                    });
                     return patchResult;
                 });
             }

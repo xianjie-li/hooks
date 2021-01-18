@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useUpdateEffect } from 'react-use';
-import { isFunction, AnyObject } from '@lxjx/utils';
+import { isFunction, AnyObject, defer } from '@lxjx/utils';
 import _isEqual from 'lodash/isEqual';
 
 /**
@@ -96,7 +96,11 @@ export function useFormState<T, Ext = any>(
       if (!hasValue) {
         setState(prev => {
           const patchResult = patch(prev);
-          onChange && onChange(patchResult, extra);
+
+          defer(() => {
+            onChange && onChange(patchResult, extra);
+          });
+
           return patchResult;
         });
       } else {
