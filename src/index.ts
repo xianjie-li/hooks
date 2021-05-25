@@ -9,7 +9,7 @@ export * from './effect/useFetch/useFetch';
 
 export * from './effect/useFn/useFn';
 
-export * from './effect/useRRQuery/useRRQuery';
+// export * from './effect/useRRQuery/useRRQuery';
 
 export * from './effect/useThrottle/useThrottle';
 

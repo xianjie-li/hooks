@@ -1,1 +1,0 @@
-{"version":3,"file":"useRRQuery.d.ts","sourceRoot":"","sources":["../../../src/effect/useRRQuery/useRRQuery.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,SAAS,EAAE,MAAM,aAAa,CAAC;AAGxC,UAAU,WAAW,CAAC,KAAK;IACzB,CAAC,WAAW,EAAE,OAAO,CAAC,KAAK,CAAC,GAAG,IAAI,CAAC;CACrC;AAUD;;;;;;;;;KASK;AACL,wBAAgB,UAAU,CAAC,KAAK,SAAS,MAAM,GAAG,GAAG,EAAE,YAAY,CAAC,EAAE,MAAM,GAAG,SAAS;;;;;EA4CvF"}

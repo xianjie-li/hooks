@@ -3,7 +3,6 @@ export * from './effect/useDebounce/useDebounce';
 export * from './effect/useEffectEqual/useEffectEqual';
 export * from './effect/useFetch/useFetch';
 export * from './effect/useFn/useFn';
-export * from './effect/useRRQuery/useRRQuery';
 export * from './effect/useThrottle/useThrottle';
 export * from './state/useDerivedStateFromProps/useDerivedStateFromProps';
 export * from './state/useFormState/useFormState';
