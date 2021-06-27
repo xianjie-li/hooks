@@ -1,0 +1,8 @@
+.container {
+  overflow: auto;
+}
+
+.item {
+  height: 50px;
+  border: 1px solid red;
+}
