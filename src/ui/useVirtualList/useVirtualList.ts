@@ -1,344 +1,248 @@
-import { RefObject, useEffect, useRef } from 'react';
+import { RefObject, useEffect, useMemo, useRef } from 'react';
+import { isFunction } from '@lxjx/utils';
+import {
+  createEvent,
+  getRefDomOrDom,
+  useFn,
+  useScroll,
+  UseScrollMeta,
+  useSelf,
+  useSetState,
+} from '@lxjx/hooks';
+import _debounce from 'lodash/debounce';
 
-import { isNumber, isDom } from '@lxjx/utils';
-import _clamp from 'lodash/clamp';
-import { getRefDomOrDom, useSelf, useThrottle } from '@lxjx/hooks';
-import { useSpring, config } from 'react-spring';
-
-interface UseScrollOptions {
-  /** 指定滚动元素或ref，el、el.current、ref.current取值，只要有任意一个为dom元素则返回, 默认的滚动元素是documentElement */
-  el?: HTMLElement | RefObject<any>;
-  /** 滚动时触发 */
-  onScroll?(meta: UseScrollMeta): void;
-  /** 100 | 配置了onScroll时，设置throttle时间, 单位(ms) */
-  throttleTime?: number;
-  /** 0 | 滚动偏移值, 使用scrollToElement时，会根据此值进行修正 */
-  offset?: number;
-  /** y轴的偏移距离，优先级高于offset */
-  offsetX?: number;
-  /** x轴的偏移距离，优先级高于offset */
-  offsetY?: number;
-  /** 0 | touch系列属性的触发修正值 */
-  touchOffset?: number;
+export interface UseVirtualListOption<Item> {
+  /** 需要进行虚拟滚动的列表 */
+  list: Item[];
+  /** 每项的尺寸 */
+  size: number | ((item: Item, index: number) => number);
+  /** 滚动区域两侧预渲染的节点数 */
+  overscan?: number;
+  /**
+   * 项的唯一key, 建议始终明确的指定key, 除非:
+   * - 列表永远不会排序或更改
+   * - 不需要使用keepAlive等高级特性
+   * */
+  key?: (item: Item, index: number) => string;
+  /** 返回true的项将始终被渲染 */
+  keepAlive?: (item: Item, index: number) => boolean;
+  /** 预留空间, 需要插入其他节点到列表上/下方时传入此项，值为插入内容的总高度 */
+  space?: number;
+  /** 当有一个已存在的ref或html时，用来代替containerRef获取滚动容器 */
+  containerTarget?: HTMLElement | RefObject<HTMLElement>;
+  /** 当有一个已存在的ref或html时，用来代替wrapRef获取包裹容器 */
+  wrapRef?: HTMLElement | RefObject<HTMLElement>;
 }
 
-export interface UseScrollSetArg {
-  /** 指定滚动的x轴 */
-  x?: number;
-  /** 指定滚动的y轴 */
-  y?: number;
-  /** 以当前滚动位置为基础进行增减滚动 */
-  raise?: boolean;
-  /** 为true时阻止动画 */
-  immediate?: boolean;
+export type VirtualList<Item> = {
+  /** 该项索引 */
+  index: number;
+  /** 该项的key, 如果未配置key(), 则等于index */
+  key: string;
+  /** 该项的数据 */
+  data: Item;
+  /** 应该应位于的位置 */
+  position: number;
+  /** 改项的尺寸 */
+  size: number;
+}[];
+
+interface State<Item> {
+  /** 虚拟列表 */
+  list: VirtualList<Item>;
+  /** 是否处于滚动状态中 */
+  scrolling: boolean;
 }
 
-export interface UseScrollMeta {
-  /** 滚动元素 */
-  el: HTMLElement;
-  /** x轴位置 */
-  x: number;
-  /** y轴位置 */
-  y: number;
-  /** 可接受的x轴滚动最大值(值大于0说明可滚动， 但不能保证开启了滚动) */
-  xMax: number;
-  /** 可接受的y轴滚动最大值(值大于0说明可滚动， 但不能保证开启了滚动) */
-  yMax: number;
-  /** 元素高度 */
-  height: number;
-  /** 元素宽度 */
-  width: number;
-  /** 元素实际高度(包含边框/滚动条/内边距等) */
-  offsetWidth: number;
-  /** 元素实际宽度(包含边框/滚动条/内边距等) */
-  offsetHeight: number;
-  /** 元素总高度 */
-  scrollHeight: number;
-  /** 元素总宽度 */
-  scrollWidth: number;
-  /** 滚动条位于最底部 */
-  touchBottom: boolean;
-  /** 滚动条位于最右侧 */
-  touchRight: boolean;
-  /** 滚动条位于最顶部 */
-  touchTop: boolean;
-  /** 滚动条位于最左侧 */
-  touchLeft: boolean;
+interface RenderProps<Item> {
+  children: (state: State<Item>) => JSX.Element | any;
 }
 
-interface UseScrollPosBase {
-  x?: number;
-  y?: number;
-}
+export function useVirtualList<Item = any>(option: UseVirtualListOption<Item>) {
+  const { list, size, overscan = 5, key, space = 0, keepAlive, containerTarget } = option;
 
-export function useScroll<ElType extends HTMLElement>(
-  {
-    el,
-    onScroll,
-    throttleTime = 100,
-    offset = 0,
-    offsetX,
-    offsetY,
-    touchOffset = 0,
-  } = {} as UseScrollOptions,
-) {
-  // const defaultEl = useMemo(() => {
-  //   return el || document.documentElement;
-  // }, [el]);
+  const wrapRef = useRef<any>(null!);
 
-  // 用于返回的节点获取ref
-  const ref = useRef<ElType>(null);
+  // 统一通知Render更新状态
+  const updateEvent = useMemo(() => createEvent<(state: Partial<State<Item>>) => void>(), []);
 
-  // 获取documentElement和body, 放到useEffect以兼容SSR
   const self = useSelf({
-    docEl: null! as HTMLElement,
-    bodyEl: null! as HTMLElement,
+    scrolling: false,
   });
 
-  const [spValue, update, stop] = useSpring<{ y: number; x: number }>(() => ({
-    y: 0,
-    x: 0,
-    config: { clamp: true, ...config.stiff },
-  }));
+  const [fmtList, height] = useMemo(() => {
+    let h = 0;
 
-  /** 滚动处理 */
-  const scrollHandle = useThrottle(() => {
-    onScroll && onScroll(get());
-  }, throttleTime);
+    const ls: VirtualList<Item> = list.map((item, index) => {
+      const _size = getSize(item, index);
+      h += _size;
 
-  /** 初始化获取根节点 */
+      return {
+        data: item,
+        index,
+        key: getKey(item, index),
+        position: h,
+        size: _size,
+      };
+    });
+
+    return [ls, h] as const;
+  }, [list]);
+
+  const scroller = useScroll<any>({
+    el: containerTarget,
+    throttleTime: 0,
+    onScroll: handleScroll,
+  });
+
+  /** 使用render组件来减少hook对消费组件的频繁更新 */
+  const Render = useMemo(
+    () => ({ children }: RenderProps<Item>) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const [state, setState] = useSetState<State<Item>>({
+        list: [],
+        scrolling: false,
+      });
+
+      updateEvent.useEvent(setState);
+
+      return children(state);
+    },
+    [],
+  );
+
   useEffect(() => {
-    self.docEl = document.documentElement;
-    self.bodyEl = document.body;
+    if (!getRefDomOrDom(option.wrapRef, wrapRef) || !scroller.ref.current) {
+      throw Error('useVirtualList(...) -> wrap or container is not gets');
+    }
   }, []);
 
-  /** 绑定滚动事件 */
   useEffect(() => {
-    const sEl = getEl();
+    handleScroll(scroller.get());
+    scroller.ref.current && (scroller.ref.current.style.overflowY = 'auto');
+  }, []);
 
-    /* 坑: 页面级滚动scroll事件绑在documentElement和body上无效, 只能绑在window上 */
-    const scrollEl = elIsDoc(sEl) ? window : sEl;
+  // 通知滚动结束
+  const emitScrolling = useFn(
+    () => {
+      self.scrolling = false;
+      updateEvent.emit({
+        scrolling: false,
+      });
+    },
+    fn => _debounce(fn, 100),
+  );
 
-    scrollEl.addEventListener('scroll', scrollHandle);
-
-    return () => {
-      scrollEl.removeEventListener('scroll', scrollHandle);
-    };
-  }, [el, ref.current]);
-
-  /** 执行滚动、拖动操作时，停止当前正在进行的滚动操作 */
-  useEffect(() => {
-    const sEl = getEl();
-
-    function wheelHandle() {
-      if (spValue.x.is('ACTIVE') || spValue.y.is('ACTIVE')) {
-        stop();
-      }
+  /** 核心混动逻辑 */
+  function handleScroll(meta: UseScrollMeta) {
+    // 通知滚动开始
+    if (!self.scrolling) {
+      self.scrolling = true;
+      updateEvent.emit({
+        scrolling: true,
+      });
     }
 
-    sEl.addEventListener('wheel', wheelHandle);
-    sEl.addEventListener('touchmove', wheelHandle);
+    emitScrolling();
 
-    return () => {
-      sEl.removeEventListener('wheel', wheelHandle);
-      sEl.removeEventListener('touchmove', wheelHandle);
-    };
-  }, [el, ref.current]);
+    // keep列表需要实时计算
+    let keepAliveList: VirtualList<Item> = [];
+    const wrapEl = getRefDomOrDom(option.wrapRef, wrapRef);
 
-  /** 检测元素是否是body或html节点 */
-  function elIsDoc(_el?: HTMLElement) {
-    const sEl = _el || getEl();
-    return sEl === self.docEl || sEl === self.bodyEl;
-  }
+    if (!wrapEl || !meta.el) return;
 
-  /** 根据参数获取滚动元素，默认为文档元素 */
-  function getEl(): HTMLElement {
-    return getRefDomOrDom(el, ref) || self.docEl;
-  }
+    if (keepAlive) {
+      keepAliveList = fmtList.filter((item, index) => keepAlive(item.data, index));
+    }
 
-  /** 动画滚动到指定位置 */
-  function animateTo(sEl: HTMLElement, next: UseScrollPosBase, now: UseScrollPosBase) {
-    const isDoc = elIsDoc(sEl);
+    // 开始索引
+    let start = 0;
 
-    update({
-      ...next,
-      from: now,
-      onChange(props) {
-        if (isDoc) {
-          setDocPos(props.x, props.y);
-        } else {
-          sEl.scrollTop = props.y;
-          sEl.scrollLeft = props.x;
+    // 计算开始索引
+    for (let i = 0; i < fmtList.length; i++) {
+      const position = fmtList[i].position;
+
+      start = i;
+      if (position > meta.y) break;
+    }
+
+    // 计算结束索引
+    let contHeight = 0;
+    let end = start;
+
+    for (let i = 0; i < fmtList.length; i++) {
+      if (contHeight > meta.el.offsetHeight || end >= fmtList.length) break;
+
+      contHeight += fmtList[end].size;
+      end += 1;
+    }
+
+    if (overscan) {
+      const [nextStart, nextEnd] = getOverscanSize(start, end);
+      start = nextStart;
+      end = nextEnd;
+    }
+
+    const nextList: VirtualList<Item> = fmtList.slice(start, end);
+
+    if (keepAliveList.length) {
+      keepAliveList.forEach(item => {
+        const has = nextList.find(it => it.key === item.key);
+
+        if (!has) {
+          if (item.index < start) nextList.unshift(item);
+          else nextList.push(item);
         }
-      },
-    });
-  }
-
-  /** 根据传入的x、y值设置滚动位置 */
-  function set({ x, y, raise, immediate }: UseScrollSetArg) {
-    const scroller = getEl();
-
-    const { xMax, yMax, x: oldX, y: oldY } = get();
-
-    const nextPos: UseScrollPosBase = {};
-    const nowPos: UseScrollPosBase = {
-      x: oldX,
-      y: oldY,
-    };
-
-    if (isNumber(x)) {
-      let nextX = x;
-
-      if (raise) {
-        nextX = _clamp(oldX + x, 0, xMax);
-      }
-
-      if (nextX !== oldX) {
-        nextPos.x = nextX;
-      }
+      });
     }
 
-    if (isNumber(y)) {
-      let nextY = y;
+    // 顶部偏移
+    let top = 0;
 
-      if (raise) {
-        nextY = _clamp(oldY + y, 0, yMax);
-      }
-
-      if (nextY !== oldY) {
-        nextPos.y = nextY;
-      }
+    for (let i = 0; i < start; i++) {
+      top += fmtList[i].size;
     }
 
-    if ('x' in nextPos || 'y' in nextPos) {
-      const isDoc = elIsDoc(scroller);
+    const h = `${height - top + space}px`;
+    const t = `${top}px`;
 
-      if (immediate) {
-        if (isNumber(nextPos.x)) {
-          if (isDoc) {
-            setDocPos(nextPos.x);
-          } else {
-            scroller.scrollLeft = nextPos.x;
-          }
-        }
-        if (isNumber(nextPos.y)) {
-          if (isDoc) {
-            setDocPos(undefined, nextPos.y);
-          } else {
-            scroller.scrollTop = nextPos.y;
-          }
-        }
-      } else {
-        animateTo(scroller, nextPos, nowPos);
-      }
-    }
-  }
-
-  /**
-   * 传入选择器或者dom元素
-   * @param selector | target
-   *    selector - 滚动到以该选择器命中的第一个元素
-   *    element - 滚动到指定元素
-   * @param immediate - 是否跳过动画
-   * */
-  function scrollToElement(selector: string, immediate?: boolean): void;
-  function scrollToElement(element: HTMLElement, immediate?: boolean): void;
-  function scrollToElement(arg: string | HTMLElement, immediate?: boolean) {
-    const sEl = getEl();
-    const isDoc = elIsDoc(sEl);
-
-    let targetEl: HTMLElement | null;
-
-    if (!sEl.getBoundingClientRect) {
-      console.warn('The browser does not support `getBoundingClientRect` API');
-      return;
-    }
-
-    if (typeof arg === 'string') {
-      targetEl = getEl().querySelector(arg);
+    // 设置wrap样式
+    if (wrapEl.style.cssText !== undefined) {
+      wrapEl.style.cssText = `margin-top: ${t};height: ${h};`;
     } else {
-      targetEl = arg;
+      wrapEl.style.marginTop = t;
+      wrapEl.style.height = h;
     }
 
-    if (!isDom(targetEl)) return;
-
-    const { top: cTop, left: cLeft } = targetEl.getBoundingClientRect();
-    const { top: fTop, left: fLeft } = sEl.getBoundingClientRect();
-
-    /**
-     * 使用offsetTop等属性只能获取到元素相对于第一个非常规定位父元素的距离，所以需要单独计算
-     * 计算规则: eg. 子元素距离顶部比父元素多100px，滚动条位置应该减少100px让两者等值
-     * */
-    const xOffset = offsetX || offset;
-    const yOffset = offsetY || offset;
-
-    set({
-      x: cLeft - fLeft + xOffset,
-      y: cTop - fTop + yOffset,
-      raise: !isDoc, // 如果滚动节点为html元素, 可以直接取计算结果
-      immediate,
-    });
+    updateEvent.emit({ list: nextList });
   }
 
-  /** 获取各种有用的滚动信息 */
-  function get(): UseScrollMeta {
-    const isDoc = elIsDoc();
+  /** 将开始和结束索引根据overscan进行修正，参数3会返回顶部应减少的偏移 */
+  function getOverscanSize(start: number, end: number) {
+    const nextStart = Math.max(start - overscan, 0);
 
-    const sEl = getEl();
+    const nextEnd = Math.min(
+      /* 索引为0时不添加 */
+      end + overscan /* slice是尾闭合的，所以要多取一位 */,
+      fmtList.length,
+    );
 
-    let x = isDoc ? self.docEl.scrollLeft + self.bodyEl.scrollLeft : sEl.scrollLeft;
-    let y = isDoc ? self.docEl.scrollTop + self.bodyEl.scrollTop : sEl.scrollTop;
-
-    /* chrome高分屏+缩放时，滚动值会是小数，想上取整防止计算错误 */
-    x = Math.ceil(x);
-    y = Math.ceil(y);
-
-    const height = sEl.clientHeight;
-    const width = sEl.clientWidth;
-    const { scrollHeight } = sEl;
-    const { scrollWidth } = sEl;
-
-    /* chrome下(高分屏+缩放),无滚动的情况下scrollWidth会大于width */
-    const xMax = Math.max(0, scrollWidth - width);
-    const yMax = Math.max(0, scrollHeight - height);
-
-    return {
-      el: sEl,
-      x,
-      y,
-      xMax,
-      yMax,
-      height,
-      width,
-      scrollHeight,
-      scrollWidth,
-      touchBottom: yMax - y - touchOffset <= 0,
-      touchLeft: x <= touchOffset,
-      touchRight: xMax - x - touchOffset <= 0, // 总宽度 - 宽度 = 滚动条实际宽度
-      touchTop: y <= touchOffset,
-      offsetWidth: sEl.offsetWidth,
-      offsetHeight: sEl.offsetHeight,
-    };
+    return [nextStart, nextEnd] as const;
   }
 
-  /** 设置根级的滚动位置 */
-  function setDocPos(x?: number, y?: number) {
-    if (isNumber(x)) {
-      // 只有一个会生效
-      self.bodyEl.scrollLeft = x;
-      self.docEl.scrollLeft = x;
-    }
+  function getSize(item: Item, index: number) {
+    if (!isFunction(size)) return size;
+    return size(item, index);
+  }
 
-    if (isNumber(y)) {
-      self.bodyEl.scrollTop = y;
-      self.docEl.scrollTop = y;
-    }
+  function getKey(item: Item, index: number) {
+    if (!isFunction(key)) return String(index);
+    return key(item, index);
   }
 
   return {
-    set,
-    get,
-    scrollToElement,
-    ref,
+    containerRef: scroller.ref,
+    wrapRef,
+    Render,
   };
 }

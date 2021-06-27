@@ -6,18 +6,23 @@ import sty from './style.module.css';
 const list = Array.from({ length: 300000 }).map((it, ind) => ind);
 
 function Item(item: VirtualList<number>[0]) {
-  const [count, setCount] = useState(0);
+  const [toggle, setToggle] = useState(false);
 
   return (
     <div
-      onClick={() => setCount(prev => prev + 1)}
+      onClick={() => setToggle(prev => !prev)}
       className={sty.item}
       style={{
         height: item.size,
         backgroundColor: item.index % 2 === 0 ? '#f8f8f0' : undefined,
       }}
     >
-      Row: {item.data} - {item.index} - {count} size: large
+      <span style={{ marginRight: 12 }}>Row: {item.data}</span>
+      {toggle ? (
+        <span style={{ color: 'green' }}>active</span>
+      ) : (
+        <span style={{ color: 'red' }}>inactive</span>
+      )}
     </div>
   );
 }
@@ -25,20 +30,23 @@ function Item(item: VirtualList<number>[0]) {
 const useVirtualListDemo = () => {
   const virtual = useVirtualList({
     list,
-    // size: (i, ind) => (ind % 2 === 0 ? 150 : 50),
     keepAlive: item => item === 2 || item === 6 || item === 299999,
     size: 50,
-    // space: 100,
   });
 
   return (
-    <div className={sty.container} ref={virtual.containerRef}>
+    <div
+      style={{
+        height: 300, // 滚动容器必须包含高度
+        width: 400,
+      }}
+      className={sty.container}
+      ref={virtual.containerRef}
+    >
       <div className={sty.wrap} ref={virtual.wrapRef}>
-        {/*<div style={{ border: '1px solid blue', height: 50 }} />*/}
-        {virtual.list.map(item => (
-          <Item {...item} key={item.key} />
-        ))}
-        {/*<div style={{ border: '1px solid blue', height: 50 }} />*/}
+        <virtual.Render>
+          {state => state.list.map(item => <Item {...item} key={item.key} />)}
+        </virtual.Render>
       </div>
     </div>
   );

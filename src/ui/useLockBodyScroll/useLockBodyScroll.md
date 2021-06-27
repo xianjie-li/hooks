@@ -7,8 +7,6 @@ group:
 
 # useLockBodyScroll
 
-锁定滚动条并对滚动条宽度进行修正, 支持多个实例同时使用
-
 ## 示例
 
 <code src="./useLockBodyScroll.demo.tsx" />

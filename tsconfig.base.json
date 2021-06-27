@@ -22,6 +22,7 @@
     "esModuleInterop": true,
     "jsx": "react",
     "lib": ["dom", "esnext"],
+    "skipLibCheck": true
     // "sourceMap": true
   }
 }

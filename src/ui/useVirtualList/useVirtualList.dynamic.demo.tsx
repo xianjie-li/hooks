@@ -8,7 +8,7 @@ const list = Array.from({ length: 300000 }).map((it, ind) => ind);
 const useVirtualListDemo = () => {
   const virtual = useVirtualList({
     list,
-    size: (item, index) => (index % 2 === 0 ? 120 : 50),
+    size: (item, index) => (index % 2 === 0 ? 80 : 50),
   });
 
   return (

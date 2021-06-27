@@ -46,6 +46,8 @@ export * from './ui/useCheck/useCheck';
 
 export * from './ui/useMeasure/useMeasure';
 
+export * from './ui/useVirtualList/useVirtualList';
+
 /* UTILS */
 export * from './utils/utils';
 

@@ -16,6 +16,7 @@ const useVirtualListDemo = () => {
       style={{
         height: 300, // 滚动容器必须包含高度
         width: 400,
+        overflowX: 'hidden',
       }}
       className={sty.container}
       ref={virtual.containerRef}
@@ -26,7 +27,7 @@ const useVirtualListDemo = () => {
             state.list.map(item => (
               <div
                 key={item.key}
-                className={sty.item}
+                className={`${sty.item} ${sty.animeItem}`}
                 style={{
                   height: item.size,
                   backgroundColor: item.index % 2 === 0 ? '#f8f8f0' : undefined,

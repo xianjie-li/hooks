@@ -9,6 +9,7 @@ const useVirtualListDemo = () => {
   const virtual = useVirtualList({
     list,
     size: 50,
+    space: 100, // 传入额外节点占用总空间即可
   });
 
   return (
@@ -21,6 +22,19 @@ const useVirtualListDemo = () => {
       ref={virtual.containerRef}
     >
       <div className={sty.wrap} ref={virtual.wrapRef}>
+        <div
+          style={{
+            position: 'sticky',
+            top: 0,
+            border: '1px solid red',
+            height: 60,
+            lineHeight: '60px',
+            textAlign: 'center',
+            backgroundColor: '#fff',
+          }}
+        >
+          这里放一些额外的节点
+        </div>
         <virtual.Render>
           {state =>
             state.list.map(item => (
@@ -37,6 +51,11 @@ const useVirtualListDemo = () => {
             ))
           }
         </virtual.Render>
+        <div
+          style={{ border: '1px solid red', height: 60, lineHeight: '60px', textAlign: 'center' }}
+        >
+          这里放一些额外的节点
+        </div>
       </div>
     </div>
   );

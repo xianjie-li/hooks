@@ -7,24 +7,24 @@ const UseLockBodyScrollDemo = () => {
   const [bool2, set2] = useToggle(true);
   const [bool3, set3] = useToggle(false);
 
-  const lock1 = useLockBodyScroll(bool);
-  const lock2 = useLockBodyScroll(bool2);
-  const lock3 = useLockBodyScroll(bool3);
-
-  console.log(lock1, lock2, lock3);
+  useLockBodyScroll(bool);
+  useLockBodyScroll(bool2);
+  useLockBodyScroll(bool3);
 
   return (
     <div>
       <h3>UseLockBodyScrollDemo</h3>
       <button type="button" onClick={() => set(!bool)}>
-        toggle | {bool.toString()}
+        lock | {bool.toString()}
       </button>
       <button type="button" onClick={() => set2(!bool2)}>
-        toggle2 | {bool2.toString()}
+        lock2 | {bool2.toString()}
       </button>
       <button type="button" onClick={() => set3(!bool3)}>
-        toggle3 | {bool3.toString()}
+        lock3 | {bool3.toString()}
       </button>
+      <div>请解锁滚动条</div>
+      <div style={{ height: 1000 }} />
     </div>
   );
 };

@@ -1,71 +1,45 @@
 import React from 'react';
-import { useScroll } from '@lxjx/hooks';
+import { useVirtualList } from '@lxjx/hooks';
 
-const style2: React.CSSProperties = {
-  height: 300,
-  border: '1px solid red',
-  overflow: 'auto',
-  padding: 40,
-};
+import sty from './style.module.css';
 
-const useScrollDemo = () => {
-  const { set, get, scrollToElement, ref } = useScroll<HTMLDivElement>({
-    onScroll(meta) {
-      console.log(meta);
-    },
-  });
+const list = Array.from({ length: 300000 }).map((it, ind) => ind);
 
-  const windowS = useScroll<HTMLDivElement>({
-    onScroll(meta) {
-      console.log('window: ', meta);
-    },
+const useVirtualListDemo = () => {
+  const virtual = useVirtualList({
+    list,
+    size: 50,
   });
 
   return (
-    <div>
-      UseScroll
-      <h3>元素滚动</h3>
-      <button
-        type="button"
-        onClick={() => {
-          set({
-            x: 200,
-            y: 1000,
-            raise: true,
-          });
-        }}
-      >
-        +200
-      </button>
-      <button
-        type="button"
-        onClick={() => {
-          console.log(get());
-        }}
-      >
-        get
-      </button>
-      <button
-        type="button"
-        onClick={() => {
-          scrollToElement('#p-5');
-        }}
-      >
-        scrollToElement
-      </button>
-      <div id="testWrap" style={style2} ref={ref}>
-        {Array.from({ length: 20 }).map((_, index) => (
-          <p id={`p-${index + 1}`} style={{ width: 1000, border: '1px solid #eee' }} key={index}>
-            {index + 1}
-          </p>
-        ))}
+    <div
+      style={{
+        height: 300, // 滚动容器必须包含高度
+        width: 400,
+      }}
+      className={sty.container}
+      ref={virtual.containerRef}
+    >
+      <div className={sty.wrap} ref={virtual.wrapRef}>
+        <virtual.Render>
+          {state =>
+            state.list.map(item => (
+              <div
+                key={item.key}
+                className={sty.item}
+                style={{
+                  height: item.size,
+                  backgroundColor: item.index % 2 === 0 ? '#f8f8f0' : undefined,
+                }}
+              >
+                Row: {item.data}
+              </div>
+            ))
+          }
+        </virtual.Render>
       </div>
-      <hr />
-      <h3>window滚动</h3>
-      <button onClick={() => windowS.scrollToElement('#示例')}>滚动到 #示例</button>
-      <button onClick={() => windowS.set({ x: 200, y: 200, raise: true })}>+200</button>
     </div>
   );
 };
 
-export default useScrollDemo;
+export default useVirtualListDemo;

@@ -32,7 +32,7 @@ const useVirtualListDemo = () => {
                   backgroundColor: item.index % 2 === 0 ? '#f8f8f0' : undefined,
                 }}
               >
-                Row: {item.data}
+                {state.scrolling ? <span>loading</span> : <span>Row: {item.data}</span>}
               </div>
             ))
           }

@@ -1,117 +1,115 @@
 ---
-title: useScroll
+title: useVirtualList
 group:
   path: /UI
   order: 1
 ---
 
-# useScroll
+# useVirtualList
 
-获取、设置滚动条位置，支持滚动到点、滚动到元素、增值滚动
+强大的虚拟列表 hook
+
+- 由于无 UI 的特点，可以非常简单的与现有组件集成
+- 适用于表格等特殊 html 结构
+- 非 absolute 方式实现, 不会对动画、表格等特定场景等造成破坏
 
 ## 示例
 
-<code src="./useScroll.demo.tsx" />
+最简单的使用方式，绑定`containerRef`和`wrapRef`并正确设置容器高度
+
+<code src="./useVirtualList.demo.tsx" />
+
+## 动态高度
+
+动态获取项高度(处于性能考虑，尺寸只在 list 变更时统一获取一次)
+
+<code src="./useVirtualList.dynamic.demo.tsx" />
+
+## 滚动占位节点
+
+使用滚动占位节点来延迟加载列表项，建议在列表项渲染非常耗费性能时使用
+
+<code src="./useVirtualList.scrolling.demo.tsx" />
+
+## keepAlive
+
+在某些场景下，我们不希望某个列表项在滚动出视口时被卸载(实现拖动排序等功能时), 可以通过配置 keepAlive 来防止列表项卸载
+
+> 大部分场景下，保证列表项是无状态组件，将状态保存到父组件会更好
+
+第 2、6、299999 项不会被卸载
+
+<code src="./useVirtualList.keepAlive.demo.tsx" />
+
+## 动画
+
+仅作为动画实现可能的演示
+
+<code src="./useVirtualList.anime.demo.tsx" />
+
+## 放置额外节点
+
+当需要在列表上下方放置额外节点时使用
+
+<code src="./useVirtualList.plh.demo.tsx" />
 
 ## API
 
-```tsx | pure
-const { get, set, scrollToElement, ref } =
-      useScroll<HTMLDivElement>(option?: UseScrollOptions);
-
-return (
-	<div ref={ref}>...</div>
-)
-```
-
-**get** - 获取滚动位置信息
-
-```ts
-function get(): UseScrollMeta;
-
-export interface UseScrollMeta {
-  /** 滚动元素 */
-  el: HTMLElement;
-  /** x轴位置 */
-  x: number;
-  /** y轴位置 */
-  y: number;
-  /** 可接受的x轴滚动最大值(值大于0说明可滚动， 但不能保证开启了滚动) */
-  xMax: number;
-  /** 可接受的y轴滚动最大值(值大于0说明可滚动， 但不能保证开启了滚动) */
-  yMax: number;
-  /** 元素高度 */
-  height: number;
-  /** 元素宽度 */
-  width: number;
-  /** 元素总高度 */
-  scrollHeight: number;
-  /** 元素总宽度 */
-  scrollWidth: number;
-  /** 滚动条位于最底部 */
-  touchBottom: boolean;
-  /** 滚动条位于最右侧 */
-  touchRight: boolean;
-  /** 滚动条位于最顶部 */
-  touchTop: boolean;
-  /** 滚动条位于最左侧 */
-  touchLeft: boolean;
-}
-```
-
-**set** - 设置滚动条位置
-
-```ts
-function set(options: UseScrollSetArg);
-
-interface UseScrollSetArg {
-  /** 指定滚动的x轴 */
-  x?: number;
-  /** 指定滚动的y轴 */
-  y?: number;
-  /** 以当前滚动位置为基础进行增减滚动 */
-  raise?: boolean;
-  /** 为true时阻止动画 */
-  immediate?: boolean;
-}
-```
-
-**scrollToElement** - 滚动到指定元素
-
-```ts
-// selector - 滚动到以该选择器命中的第一个元素
-function scrollToElement(selector: string, immediate?: boolean): void;
-// element - 滚动到指定元素
-function scrollToElement(element: HTMLElement, immediate?: boolean): void;
-```
-
-**ref** - 默认使用`document.documentElement`作为滚动元素，可以通过这个属性自行指定滚动元素
+**useVirtualList()**
 
 ```tsx | pure
-const { set, ref } = useScroll<HTMLDivElement>();
-
-return <div ref={ref}>...</div>;
+function useVirtualList<Item = any>(option: UseVirtualListOption<Item>) {
+  return {
+    // 用来绑定滚动容器的ref
+    containerRef,
+    // 用来绑定元素容器的ref
+    wrapRef,
+    // 用来渲染虚拟列表的组件(使用单独的组件渲染是为了减少hooks上下文在滚动时无谓的更新)
+    Render,
+  };
+}
 ```
 
-**option** - 其他选项
+**Option**
 
 ```ts
-useScroll(option?: UseScrollOptions)
-
-interface UseScrollOptions {
-  /** 指定滚动元素或ref，el、el.current、ref.current取值，只要有任意一个为dom元素则返回, 默认的滚动元素是documentElement */
-  el?: HTMLElement | RefObject<any>;
-  /** 滚动时触发 */
-  onScroll?(meta: UseScrollMeta): void;
-  /** 100 | 配置了onScroll时，设置throttle时间, 单位(ms) */
-  throttleTime?: number;
-  /** 0 | 滚动偏移值, 使用scrollToElement时，会根据此值进行修正 */
-  offset?: number;
-  /** y轴的偏移距离，优先级高于offset */
-  offsetX?: number;
-  /** x轴的偏移距离，优先级高于offset */
-  offsetY?: number;
-  /** 0 | touch系列属性的触发修正值 */
-  touchOffset?: number;
+interface UseVirtualListOption<Item> {
+  /** 需要进行虚拟滚动的列表 */
+  list: Item[];
+  /** 每项的尺寸 */
+  size: number | ((item: Item, index: number) => number);
+  /** 滚动区域两侧预渲染的节点数 */
+  overscan?: number;
+  /**
+   * 项的唯一key, 建议始终明确的指定key, 除非:
+   * - 列表永远不会排序或更改
+   * - 不需要使用keepAlive等高级特性
+   * */
+  key?: (item: Item, index: number) => string;
+  /** 返回true的项将始终被渲染 */
+  keepAlive?: (item: Item, index: number) => boolean;
+  /** 预留空间, 需要插入其他节点到列表上/下方时传入此项，值为插入内容的总高度 */
+  space?: number;
+  /** 当有一个已存在的ref或html时，用来代替containerRef获取滚动容器 */
+  containerTarget?: HTMLElement | RefObject<HTMLElement>;
+  /** 当有一个已存在的ref或html时，用来代替wrapRef获取包裹容器 */
+  wrapRef?: HTMLElement | RefObject<HTMLElement>;
 }
+```
+
+**VirtualList**
+
+```ts
+type VirtualList<Item> = {
+  /** 该项索引 */
+  index: number;
+  /** 该项的key, 如果未配置key(), 则等于index */
+  key: string;
+  /** 该项的数据 */
+  data: Item;
+  /** 应该应位于的位置 */
+  position: number;
+  /** 改项的尺寸 */
+  size: number;
+}[];
 ```
