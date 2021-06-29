@@ -119,7 +119,7 @@ export function useVirtualList<Item = any>(option: UseVirtualListOption<Item>) {
 
   // 检测必须的dom是否存在，不存在时抛异常
   useEffect(() => {
-    if (!disabled) return;
+    if (disabled) return;
     if (!getRefDomOrDom(option.wrapRef, wrapRef) || !scroller.ref.current) {
       throw Error('useVirtualList(...) -> wrap or container is not gets');
     }
@@ -127,7 +127,7 @@ export function useVirtualList<Item = any>(option: UseVirtualListOption<Item>) {
 
   // 设置容器节点为可滚动和设置滚动的首帧位置
   useEffect(() => {
-    if (!disabled) return;
+    if (disabled) return;
     handleScroll(scroller.get());
     scroller.ref.current && (scroller.ref.current.style.overflowY = 'auto');
   }, [disabled]);
