@@ -78,7 +78,7 @@ interface UseVirtualListOption<Item> {
   list: Item[];
   /** 每项的尺寸 */
   size: number | ((item: Item, index: number) => number);
-  /** 滚动区域两侧预渲染的节点数 */
+  /** 1 | 滚动区域两侧预渲染的节点数 */
   overscan?: number;
   /**
    * 项的唯一key, 建议始终明确的指定key, 除非:
@@ -86,6 +86,9 @@ interface UseVirtualListOption<Item> {
    * - 不需要使用keepAlive等高级特性
    * */
   key?: (item: Item, index: number) => string;
+  /** 是否禁用, 禁用时list为[]切不监听任何时间 */
+  disabled?: boolean;
+
   /** 返回true的项将始终被渲染 */
   keepAlive?: (item: Item, index: number) => boolean;
   /** 预留空间, 需要插入其他节点到列表上/下方时传入此项，值为插入内容的总高度 */

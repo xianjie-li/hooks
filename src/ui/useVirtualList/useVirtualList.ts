@@ -16,7 +16,7 @@ export interface UseVirtualListOption<Item> {
   list: Item[];
   /** 每项的尺寸 */
   size: number | ((item: Item, index: number) => number);
-  /** 滚动区域两侧预渲染的节点数 */
+  /** 1 | 滚动区域两侧预渲染的节点数 */
   overscan?: number;
   /**
    * 项的唯一key, 建议始终明确的指定key, 除非:
@@ -24,6 +24,9 @@ export interface UseVirtualListOption<Item> {
    * - 不需要使用keepAlive等高级特性
    * */
   key?: (item: Item, index: number) => string;
+  /** 是否禁用, 禁用时list为[]切不监听任何时间 */
+  disabled?: boolean;
+
   /** 返回true的项将始终被渲染 */
   keepAlive?: (item: Item, index: number) => boolean;
   /** 预留空间, 需要插入其他节点到列表上/下方时传入此项，值为插入内容的总高度 */
@@ -59,7 +62,7 @@ interface RenderProps<Item> {
 }
 
 export function useVirtualList<Item = any>(option: UseVirtualListOption<Item>) {
-  const { list, size, overscan = 5, key, space = 0, keepAlive, containerTarget } = option;
+  const { list, size, overscan = 1, key, space = 0, keepAlive, containerTarget, disabled } = option;
 
   const wrapRef = useRef<any>(null!);
 
@@ -70,8 +73,11 @@ export function useVirtualList<Item = any>(option: UseVirtualListOption<Item>) {
     scrolling: false,
   });
 
+  // 格式化list为虚拟list格式，并获取计算得到的总高度, 禁用时两个值分别为[]和0
   const [fmtList, height] = useMemo(() => {
     let h = 0;
+
+    if (disabled) return [[], h] as [VirtualList<Item>, number];
 
     const ls: VirtualList<Item> = list.map((item, index) => {
       const _size = getSize(item, index);
@@ -87,7 +93,7 @@ export function useVirtualList<Item = any>(option: UseVirtualListOption<Item>) {
     });
 
     return [ls, h] as const;
-  }, [list]);
+  }, [list, disabled]);
 
   const scroller = useScroll<any>({
     el: containerTarget,
@@ -111,16 +117,20 @@ export function useVirtualList<Item = any>(option: UseVirtualListOption<Item>) {
     [],
   );
 
+  // 检测必须的dom是否存在，不存在时抛异常
   useEffect(() => {
+    if (!disabled) return;
     if (!getRefDomOrDom(option.wrapRef, wrapRef) || !scroller.ref.current) {
       throw Error('useVirtualList(...) -> wrap or container is not gets');
     }
-  }, []);
+  }, [disabled]);
 
+  // 设置容器节点为可滚动和设置滚动的首帧位置
   useEffect(() => {
+    if (!disabled) return;
     handleScroll(scroller.get());
     scroller.ref.current && (scroller.ref.current.style.overflowY = 'auto');
-  }, []);
+  }, [disabled]);
 
   // 通知滚动结束
   const emitScrolling = useFn(
@@ -135,6 +145,8 @@ export function useVirtualList<Item = any>(option: UseVirtualListOption<Item>) {
 
   /** 核心混动逻辑 */
   function handleScroll(meta: UseScrollMeta) {
+    if (disabled) return;
+
     // 通知滚动开始
     if (!self.scrolling) {
       self.scrolling = true;
