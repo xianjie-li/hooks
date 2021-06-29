@@ -3,15 +3,18 @@ import { isFunction } from '@lxjx/utils';
 import { createEvent, getRefDomOrDom, useFn, useScroll, useSelf, useSetState, } from '@lxjx/hooks';
 import _debounce from 'lodash/debounce';
 export function useVirtualList(option) {
-    var list = option.list, size = option.size, _a = option.overscan, overscan = _a === void 0 ? 5 : _a, key = option.key, _b = option.space, space = _b === void 0 ? 0 : _b, keepAlive = option.keepAlive, containerTarget = option.containerTarget;
+    var list = option.list, size = option.size, _a = option.overscan, overscan = _a === void 0 ? 1 : _a, key = option.key, _b = option.space, space = _b === void 0 ? 0 : _b, keepAlive = option.keepAlive, containerTarget = option.containerTarget, disabled = option.disabled;
     var wrapRef = useRef(null);
     // 统一通知Render更新状态
     var updateEvent = useMemo(function () { return createEvent(); }, []);
     var self = useSelf({
         scrolling: false,
     });
+    // 格式化list为虚拟list格式，并获取计算得到的总高度, 禁用时两个值分别为[]和0
     var _c = useMemo(function () {
         var h = 0;
+        if (disabled)
+            return [[], h];
         var ls = list.map(function (item, index) {
             var _size = getSize(item, index);
             h += _size;
@@ -24,7 +27,7 @@ export function useVirtualList(option) {
             };
         });
         return [ls, h];
-    }, [list]), fmtList = _c[0], height = _c[1];
+    }, [list, disabled]), fmtList = _c[0], height = _c[1];
     var scroller = useScroll({
         el: containerTarget,
         throttleTime: 0,
@@ -41,15 +44,21 @@ export function useVirtualList(option) {
         updateEvent.useEvent(setState);
         return children(state);
     }; }, []);
+    // 检测必须的dom是否存在，不存在时抛异常
     useEffect(function () {
+        if (!disabled)
+            return;
         if (!getRefDomOrDom(option.wrapRef, wrapRef) || !scroller.ref.current) {
             throw Error('useVirtualList(...) -> wrap or container is not gets');
         }
-    }, []);
+    }, [disabled]);
+    // 设置容器节点为可滚动和设置滚动的首帧位置
     useEffect(function () {
+        if (!disabled)
+            return;
         handleScroll(scroller.get());
         scroller.ref.current && (scroller.ref.current.style.overflowY = 'auto');
-    }, []);
+    }, [disabled]);
     // 通知滚动结束
     var emitScrolling = useFn(function () {
         self.scrolling = false;
@@ -59,6 +68,8 @@ export function useVirtualList(option) {
     }, function (fn) { return _debounce(fn, 100); });
     /** 核心混动逻辑 */
     function handleScroll(meta) {
+        if (disabled)
+            return;
         // 通知滚动开始
         if (!self.scrolling) {
             self.scrolling = true;
