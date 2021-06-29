@@ -9,6 +9,7 @@ const useVirtualListDemo = () => {
   const virtual = useVirtualList({
     list,
     size: 50,
+    disabled: false,
   });
 
   return (

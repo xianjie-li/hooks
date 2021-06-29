@@ -56,9 +56,9 @@ export function useVirtualList(option) {
     useEffect(function () {
         if (disabled)
             return;
-        handleScroll(scroller.get());
+        handleScroll(scroller.get(), true);
         scroller.ref.current && (scroller.ref.current.style.overflowY = 'auto');
-    }, [disabled]);
+    }, [disabled, fmtList, height]);
     // 通知滚动结束
     var emitScrolling = useFn(function () {
         self.scrolling = false;
@@ -67,17 +67,17 @@ export function useVirtualList(option) {
         });
     }, function (fn) { return _debounce(fn, 100); });
     /** 核心混动逻辑 */
-    function handleScroll(meta) {
+    function handleScroll(meta, skipScrollingEmit) {
         if (disabled)
             return;
         // 通知滚动开始
-        if (!self.scrolling) {
+        if (!skipScrollingEmit && !self.scrolling) {
             self.scrolling = true;
             updateEvent.emit({
                 scrolling: true,
             });
         }
-        emitScrolling();
+        !skipScrollingEmit && emitScrolling();
         // keep列表需要实时计算
         var keepAliveList = [];
         var wrapEl = getRefDomOrDom(option.wrapRef, wrapRef);

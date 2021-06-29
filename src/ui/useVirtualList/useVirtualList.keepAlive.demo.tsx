@@ -32,6 +32,7 @@ const useVirtualListDemo = () => {
     list,
     keepAlive: item => item === 2 || item === 6 || item === 299999,
     size: 50,
+    overscan: 5, // 超过可能被keepAlive的项
   });
 
   return (

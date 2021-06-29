@@ -128,9 +128,9 @@ export function useVirtualList<Item = any>(option: UseVirtualListOption<Item>) {
   // 设置容器节点为可滚动和设置滚动的首帧位置
   useEffect(() => {
     if (disabled) return;
-    handleScroll(scroller.get());
+    handleScroll(scroller.get(), true);
     scroller.ref.current && (scroller.ref.current.style.overflowY = 'auto');
-  }, [disabled]);
+  }, [disabled, fmtList, height]);
 
   // 通知滚动结束
   const emitScrolling = useFn(
@@ -144,18 +144,18 @@ export function useVirtualList<Item = any>(option: UseVirtualListOption<Item>) {
   );
 
   /** 核心混动逻辑 */
-  function handleScroll(meta: UseScrollMeta) {
+  function handleScroll(meta: UseScrollMeta, skipScrollingEmit?: boolean) {
     if (disabled) return;
 
     // 通知滚动开始
-    if (!self.scrolling) {
+    if (!skipScrollingEmit && !self.scrolling) {
       self.scrolling = true;
       updateEvent.emit({
         scrolling: true,
       });
     }
 
-    emitScrolling();
+    !skipScrollingEmit && emitScrolling();
 
     // keep列表需要实时计算
     let keepAliveList: VirtualList<Item> = [];
