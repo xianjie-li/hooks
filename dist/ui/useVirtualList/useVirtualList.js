@@ -129,15 +129,16 @@ export function useVirtualList(option) {
         }
         var h = height - top + space;
         var t = top + "px";
+        // 高度为有效数值时才设置，这样list为空时内容高度就不会为0了
+        var hStr = h > space ? h + "px" : undefined;
         // 设置wrap样式
         if (wrapEl.style.cssText !== undefined) {
-            // 高度为有效数值时才设置，这样list为空时内容高度就不会为0了
-            wrapEl.style.cssText = "margin-top: " + t + ";height: " + (h ? h + "px" : undefined) + ";";
+            wrapEl.style.cssText = "margin-top: " + t + ";height: " + hStr + ";";
         }
         else {
             wrapEl.style.marginTop = t;
-            if (h)
-                wrapEl.style.height = h + "px";
+            if (hStr)
+                wrapEl.style.height = hStr;
         }
         updateEvent.emit({ list: nextList });
     }
