@@ -127,15 +127,17 @@ export function useVirtualList(option) {
         for (var i = 0; i < start; i++) {
             top += fmtList[i].size;
         }
-        var h = height - top + space + "px";
+        var h = height - top + space;
         var t = top + "px";
         // 设置wrap样式
         if (wrapEl.style.cssText !== undefined) {
-            wrapEl.style.cssText = "margin-top: " + t + ";height: " + h + ";";
+            // 高度为有效数值时才设置，这样list为空时内容高度就不会为0了
+            wrapEl.style.cssText = "margin-top: " + t + ";height: " + (h ? h + "px" : undefined) + ";";
         }
         else {
             wrapEl.style.marginTop = t;
-            wrapEl.style.height = h;
+            if (h)
+                wrapEl.style.height = h + "px";
         }
         updateEvent.emit({ list: nextList });
     }

@@ -228,15 +228,16 @@ export function useVirtualList<Item = any>(option: UseVirtualListOption<Item>) {
       top += fmtList[i].size;
     }
 
-    const h = `${height - top + space}px`;
+    const h = height - top + space;
     const t = `${top}px`;
 
     // 设置wrap样式
     if (wrapEl.style.cssText !== undefined) {
-      wrapEl.style.cssText = `margin-top: ${t};height: ${h};`;
+      // 高度为有效数值时才设置，这样list为空时内容高度就不会为0了
+      wrapEl.style.cssText = `margin-top: ${t};height: ${h ? `${h}px` : undefined};`;
     } else {
       wrapEl.style.marginTop = t;
-      wrapEl.style.height = h;
+      if (h) wrapEl.style.height = `${h}px`;
     }
 
     updateEvent.emit({ list: nextList });
