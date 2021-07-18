@@ -12,15 +12,17 @@ export interface UseVirtualListOption<Item> {
      * - 不需要使用keepAlive等高级特性
      * */
     key?: (item: Item, index: number) => string;
-    /** 是否禁用, 禁用时list为[]切不监听任何时间 */
-    disabled?: boolean;
     /** 返回true的项将始终被渲染 */
     keepAlive?: (item: Item, index: number) => boolean;
+    /** 一个可选配置，默认情况下，高度从containerTarget获取，如果containerTarget没有实际高度或需要实现"最大高度"效果时，使用此配置 */
+    height?: number;
+    /** 是否禁用, 禁用时list为[]且不监听任何事件 */
+    disabled?: boolean;
     /** 预留空间, 需要插入其他节点到列表上/下方时传入此项，值为插入内容的总高度 */
     space?: number;
-    /** 当有一个已存在的ref或html时，用来代替containerRef获取滚动容器 */
+    /** 当有一个已存在的ref或html时，用来代替returns.containerRef获取滚动容器 */
     containerTarget?: HTMLElement | RefObject<HTMLElement>;
-    /** 当有一个已存在的ref或html时，用来代替wrapRef获取包裹容器 */
+    /** 当有一个已存在的ref或html时，用来代替用来代替returns.wrapRef获取包裹容器 */
     wrapRef?: HTMLElement | RefObject<HTMLElement>;
 }
 export declare type VirtualList<Item> = {

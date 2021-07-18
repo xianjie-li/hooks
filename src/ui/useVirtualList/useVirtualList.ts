@@ -24,16 +24,18 @@ export interface UseVirtualListOption<Item> {
    * - 不需要使用keepAlive等高级特性
    * */
   key?: (item: Item, index: number) => string;
-  /** 是否禁用, 禁用时list为[]切不监听任何时间 */
-  disabled?: boolean;
 
   /** 返回true的项将始终被渲染 */
   keepAlive?: (item: Item, index: number) => boolean;
+  /** 一个可选配置，默认情况下，高度从containerTarget获取，如果containerTarget没有实际高度或需要实现"最大高度"效果时，使用此配置 */
+  height?: number;
+  /** 是否禁用, 禁用时list为[]且不监听任何事件 */
+  disabled?: boolean;
   /** 预留空间, 需要插入其他节点到列表上/下方时传入此项，值为插入内容的总高度 */
   space?: number;
-  /** 当有一个已存在的ref或html时，用来代替containerRef获取滚动容器 */
+  /** 当有一个已存在的ref或html时，用来代替returns.containerRef获取滚动容器 */
   containerTarget?: HTMLElement | RefObject<HTMLElement>;
-  /** 当有一个已存在的ref或html时，用来代替wrapRef获取包裹容器 */
+  /** 当有一个已存在的ref或html时，用来代替用来代替returns.wrapRef获取包裹容器 */
   wrapRef?: HTMLElement | RefObject<HTMLElement>;
 }
 
@@ -62,7 +64,17 @@ interface RenderProps<Item> {
 }
 
 export function useVirtualList<Item = any>(option: UseVirtualListOption<Item>) {
-  const { list, size, overscan = 1, key, space = 0, keepAlive, containerTarget, disabled } = option;
+  const {
+    list,
+    size,
+    overscan = 1,
+    key,
+    space = 0,
+    keepAlive,
+    containerTarget,
+    disabled,
+    height: optionHeight,
+  } = option;
 
   const wrapRef = useRef<any>(null!);
 
@@ -179,11 +191,12 @@ export function useVirtualList<Item = any>(option: UseVirtualListOption<Item>) {
     }
 
     // 计算结束索引
+    const contActualHeight = optionHeight || meta.el.offsetHeight;
     let contHeight = 0;
     let end = start;
 
     for (let i = 0; i < fmtList.length; i++) {
-      if (contHeight > meta.el.offsetHeight || end >= fmtList.length) break;
+      if (contHeight > contActualHeight || end >= fmtList.length) break;
 
       contHeight += fmtList[end].size;
       end += 1;

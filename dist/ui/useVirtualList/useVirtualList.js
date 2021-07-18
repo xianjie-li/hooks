@@ -3,7 +3,7 @@ import { isFunction } from '@lxjx/utils';
 import { createEvent, getRefDomOrDom, useFn, useScroll, useSelf, useSetState, } from '@lxjx/hooks';
 import _debounce from 'lodash/debounce';
 export function useVirtualList(option) {
-    var list = option.list, size = option.size, _a = option.overscan, overscan = _a === void 0 ? 1 : _a, key = option.key, _b = option.space, space = _b === void 0 ? 0 : _b, keepAlive = option.keepAlive, containerTarget = option.containerTarget, disabled = option.disabled;
+    var list = option.list, size = option.size, _a = option.overscan, overscan = _a === void 0 ? 1 : _a, key = option.key, _b = option.space, space = _b === void 0 ? 0 : _b, keepAlive = option.keepAlive, containerTarget = option.containerTarget, disabled = option.disabled, optionHeight = option.height;
     var wrapRef = useRef(null);
     // 统一通知Render更新状态
     var updateEvent = useMemo(function () { return createEvent(); }, []);
@@ -96,10 +96,11 @@ export function useVirtualList(option) {
                 break;
         }
         // 计算结束索引
+        var contActualHeight = optionHeight || meta.el.offsetHeight;
         var contHeight = 0;
         var end = start;
         for (var i = 0; i < fmtList.length; i++) {
-            if (contHeight > meta.el.offsetHeight || end >= fmtList.length)
+            if (contHeight > contActualHeight || end >= fmtList.length)
                 break;
             contHeight += fmtList[end].size;
             end += 1;

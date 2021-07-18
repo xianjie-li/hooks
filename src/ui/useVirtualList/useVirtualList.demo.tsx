@@ -10,12 +10,13 @@ const useVirtualListDemo = () => {
     list,
     size: 50,
     disabled: false,
+    height: 300,
   });
 
   return (
     <div
       style={{
-        height: 300, // 滚动容器必须包含高度
+        maxHeight: 300, // 滚动容器必须包含高度
         width: 400,
       }}
       className={sty.container}
