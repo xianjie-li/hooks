@@ -5,9 +5,6 @@ import _clamp from 'lodash/clamp';
 import { getRefDomOrDom, useSelf, useThrottle } from '@lxjx/hooks';
 import { useSpring, config } from 'react-spring';
 export function useScroll(_a) {
-    // const defaultEl = useMemo(() => {
-    //   return el || document.documentElement;
-    // }, [el]);
     var _b = _a === void 0 ? {} : _a, el = _b.el, onScroll = _b.onScroll, _c = _b.throttleTime, throttleTime = _c === void 0 ? 100 : _c, _d = _b.offset, offset = _d === void 0 ? 0 : _d, offsetX = _b.offsetX, offsetY = _b.offsetY, _e = _b.touchOffset, touchOffset = _e === void 0 ? 0 : _e;
     // 用于返回的节点获取ref
     var ref = useRef(null);
@@ -20,7 +17,7 @@ export function useScroll(_a) {
         y: 0,
         x: 0,
         config: __assign({ clamp: true }, config.stiff),
-    }); }), spValue = _f[0], update = _f[1], stop = _f[2];
+    }); }), spValue = _f[0], spApi = _f[1];
     /** 滚动处理 */
     var scrollHandle = useThrottle(function () {
         onScroll && onScroll(get());
@@ -44,8 +41,9 @@ export function useScroll(_a) {
     useEffect(function () {
         var sEl = getEl();
         function wheelHandle() {
-            if (spValue.x.is('ACTIVE') || spValue.y.is('ACTIVE')) {
-                stop();
+            if (spValue.x.isAnimating || spValue.y.isAnimating) {
+                // @ts-ignore
+                spApi.stop();
             }
         }
         sEl.addEventListener('wheel', wheelHandle);
@@ -67,13 +65,15 @@ export function useScroll(_a) {
     /** 动画滚动到指定位置 */
     function animateTo(sEl, next, now) {
         var isDoc = elIsDoc(sEl);
-        update(__assign(__assign({}, next), { from: now, onChange: function (props) {
+        spApi(__assign(__assign({}, next), { from: now, onChange: function (result) {
+                var x = result.value.x;
+                var y = result.value.y;
                 if (isDoc) {
-                    setDocPos(props.x, props.y);
+                    setDocPos(x, y);
                 }
                 else {
-                    sEl.scrollTop = props.y;
-                    sEl.scrollLeft = props.x;
+                    sEl.scrollTop = y;
+                    sEl.scrollLeft = x;
                 }
             } }));
     }

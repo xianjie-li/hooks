@@ -82,10 +82,6 @@ export function useScroll<ElType extends HTMLElement>(
     touchOffset = 0,
   } = {} as UseScrollOptions,
 ) {
-  // const defaultEl = useMemo(() => {
-  //   return el || document.documentElement;
-  // }, [el]);
-
   // 用于返回的节点获取ref
   const ref = useRef<ElType>(null);
 
@@ -95,7 +91,7 @@ export function useScroll<ElType extends HTMLElement>(
     bodyEl: null! as HTMLElement,
   });
 
-  const [spValue, update, stop] = useSpring<{ y: number; x: number }>(() => ({
+  const [spValue, spApi] = useSpring<{ y: number; x: number }>(() => ({
     y: 0,
     x: 0,
     config: { clamp: true, ...config.stiff },
@@ -131,8 +127,9 @@ export function useScroll<ElType extends HTMLElement>(
     const sEl = getEl();
 
     function wheelHandle() {
-      if (spValue.x.is('ACTIVE') || spValue.y.is('ACTIVE')) {
-        stop();
+      if (spValue.x.isAnimating || spValue.y.isAnimating) {
+        // @ts-ignore
+        spApi.stop();
       }
     }
 
@@ -160,15 +157,18 @@ export function useScroll<ElType extends HTMLElement>(
   function animateTo(sEl: HTMLElement, next: UseScrollPosBase, now: UseScrollPosBase) {
     const isDoc = elIsDoc(sEl);
 
-    update({
+    spApi({
       ...next,
       from: now,
-      onChange(props) {
+      onChange(result: any) {
+        const x = result.value.x;
+        const y = result.value.y;
+
         if (isDoc) {
-          setDocPos(props.x, props.y);
+          setDocPos(x, y);
         } else {
-          sEl.scrollTop = props.y;
-          sEl.scrollLeft = props.x;
+          sEl.scrollTop = y;
+          sEl.scrollLeft = x;
         }
       },
     });
