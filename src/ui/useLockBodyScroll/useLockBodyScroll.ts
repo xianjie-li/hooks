@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { createRandString, getScrollBarWidth } from '@lxjx/utils';
+import { createRandString, hasScroll } from '@lxjx/utils';
 
 let scrollPosition = 0; // 保存锁定时的滚动位置
 
@@ -14,12 +14,10 @@ export const useLockBodyScroll = (locked: boolean) => {
 
   const instance = useRef({
     bodyEl: null! as HTMLElement,
-    scrollBarWidth: 0,
   });
 
   useEffect(() => {
     instance.current.bodyEl = document.body;
-    instance.current.scrollBarWidth = getScrollBarWidth();
   }, []);
 
   // 存取list
@@ -38,12 +36,19 @@ export const useLockBodyScroll = (locked: boolean) => {
 
   function lock() {
     const bodyEl = instance.current.bodyEl;
-    const scrollBarWidth = instance.current.scrollBarWidth;
+
+    // 不同浏览器会使用不同的根滚动，这里需要进行一下兼容
+    const bodyScrollInfo = hasScroll(bodyEl);
+    const docScrollInfo = hasScroll(document.documentElement);
+
+    const hasX = bodyScrollInfo.x || docScrollInfo.x;
+    const hasY = bodyScrollInfo.y || docScrollInfo.y;
 
     bodyEl.setAttribute('data-locked', '1');
     scrollPosition = window.pageYOffset;
-    bodyEl.style.width = `calc(100% - ${scrollBarWidth}px)`;
-    bodyEl.style.overflow = 'hidden';
+    bodyEl.style.width = '100%';
+    bodyEl.style.overflowY = hasY ? 'scroll' : 'hidden';
+    bodyEl.style.overflowX = hasX ? 'scroll' : 'hidden';
     bodyEl.style.position = 'fixed';
     bodyEl.style.top = `-${scrollPosition}px`;
   }
@@ -53,7 +58,8 @@ export const useLockBodyScroll = (locked: boolean) => {
 
     bodyEl.setAttribute('data-locked', '0');
     bodyEl.style.width = '';
-    bodyEl.style.overflow = '';
+    bodyEl.style.overflowY = '';
+    bodyEl.style.overflowX = '';
     bodyEl.style.position = '';
     bodyEl.style.top = '';
     window.scrollTo(0, scrollPosition);

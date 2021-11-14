@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { createRandString, getScrollBarWidth } from '@lxjx/utils';
+import { createRandString, hasScroll } from '@lxjx/utils';
 var scrollPosition = 0; // 保存锁定时的滚动位置
 var list = [];
 /**
@@ -10,11 +10,9 @@ export var useLockBodyScroll = function (locked) {
     var id = useMemo(function () { return createRandString(); }, []);
     var instance = useRef({
         bodyEl: null,
-        scrollBarWidth: 0,
     });
     useEffect(function () {
         instance.current.bodyEl = document.body;
-        instance.current.scrollBarWidth = getScrollBarWidth();
     }, []);
     // 存取list
     useEffect(function () {
@@ -35,11 +33,16 @@ export var useLockBodyScroll = function (locked) {
     }, [locked]);
     function lock() {
         var bodyEl = instance.current.bodyEl;
-        var scrollBarWidth = instance.current.scrollBarWidth;
+        // 不同浏览器会使用不同的根滚动，这里需要进行一下兼容
+        var bodyScrollInfo = hasScroll(bodyEl);
+        var docScrollInfo = hasScroll(document.documentElement);
+        var hasX = bodyScrollInfo.x || docScrollInfo.x;
+        var hasY = bodyScrollInfo.y || docScrollInfo.y;
         bodyEl.setAttribute('data-locked', '1');
         scrollPosition = window.pageYOffset;
-        bodyEl.style.width = "calc(100% - " + scrollBarWidth + "px)";
-        bodyEl.style.overflow = 'hidden';
+        bodyEl.style.width = '100%';
+        bodyEl.style.overflowY = hasY ? 'scroll' : 'hidden';
+        bodyEl.style.overflowX = hasX ? 'scroll' : 'hidden';
         bodyEl.style.position = 'fixed';
         bodyEl.style.top = "-" + scrollPosition + "px";
     }
@@ -47,7 +50,8 @@ export var useLockBodyScroll = function (locked) {
         var bodyEl = instance.current.bodyEl;
         bodyEl.setAttribute('data-locked', '0');
         bodyEl.style.width = '';
-        bodyEl.style.overflow = '';
+        bodyEl.style.overflowY = '';
+        bodyEl.style.overflowX = '';
         bodyEl.style.position = '';
         bodyEl.style.top = '';
         window.scrollTo(0, scrollPosition);
