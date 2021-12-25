@@ -1,10 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
+import { useFirstMountState } from '@lxjx/hooks';
 
 export const useUpdateEffect: typeof useEffect = (effect, deps) => {
-  const r = useRef(0);
+  const isFirstMount = useFirstMountState();
 
   useEffect(() => {
-    if (r.current !== 0) return effect();
-    r.current += 1;
+    if (!isFirstMount) return effect();
   }, deps);
 };

@@ -44,6 +44,8 @@ export * from './state/useDelayToggle/useDelayToggle';
 
 export * from './state/useMountState/useMountState';
 
+export * from './state/useFirstMountState/useFirstMountState';
+
 /* UI */
 
 export * from './ui/useLockBodyScroll/useLockBodyScroll';
