@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useUpdateEffect } from 'react-use';
+import { useUpdateEffect } from '@lxjx/hooks';
 import { isFunction, defer } from '@lxjx/utils';
 import _isEqual from 'lodash/isEqual';
 /** 便捷的实现统一接口的受控、非受控表单组件, 也可用于任何需要受控、非受控状态的场景 */

@@ -2,6 +2,8 @@
 interface Item<Meta = any> {
     /** 该组件的唯一key */
     id: string;
+    /** 该组件的递增值, 用于排序, 组件挂载得越早, 值越小 */
+    sort: number;
     /** 该组件需要共享给其他组件的元信息 */
     meta: Meta;
 }
@@ -14,17 +16,17 @@ interface Item<Meta = any> {
  * @param key - 标识该组件的唯一key
  * @param config - 额外配置
  * @param config.meta - 用于共享的组件源数据，可以在同组件的其他实例中获取到
- * @param config.deps - [] | 出于性能考虑，各组件共享的meta只在该实例index变更时更新，可以通过此项传入依赖项数组在任意一个依赖变更后更新meta
- * @param config.enable - true | 只有在dep的值为true时，该实例才算启用并被钩子接受, 通常为Modal等组件的toggle参数
+ * @param config.deps - [] | 出于性能考虑, 只有组件index变更后才会通知其他组件更新, 设置后, 此数组中的值变更也会触发更新
+ * @param config.enable - true | 只有在enable的值为true时，该实例才算启用并被钩子接受, 通常为Modal等组件的toggle参数
  * @return state - 同类型启用组件共享的状态
  * @return state[0] index - 该组件实例处于所有实例中的第几位，未启用的组件返回-1
  * @return state[1] instances - 所有启用状态的组件<Item>组成的数组，正序
  * @return state[2] id - 该组件实例的唯一标识
  * */
-export declare function useSameState<Meta = any>(key: string, config?: {
+export declare function useSame<Meta = any>(key: string, config?: {
     meta?: Meta;
     deps?: any[];
     enable?: boolean;
 }): [number, Item<Meta>[], string];
 export {};
-//# sourceMappingURL=useSameState.d.ts.map
+//# sourceMappingURL=useSame.d.ts.map

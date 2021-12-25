@@ -1,8 +1,7 @@
 import { __assign } from "tslib";
 import { createRandString, isArray, isNumber } from '@lxjx/utils';
-import { useFn, useSelf, useSetState } from '@lxjx/hooks';
+import { useFn, useSelf, useSetState, useUpdate } from '@lxjx/hooks';
 import _differenceBy from 'lodash/differenceBy';
-import { useUpdate } from 'react-use';
 import { useEffect } from 'react';
 /*
  * old[] <->  current  <-> list[]

@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { usePrevious } from 'react-use';
+import { useEffect, useMemo, useRef } from 'react';
+import { usePrev } from '@lxjx/hooks';
 import _isEqualWith from 'lodash/isEqualWith';
 /**
  *  支持对deps进行深度对比的`useEffect`
@@ -9,9 +9,9 @@ import _isEqualWith from 'lodash/isEqualWith';
  *  @param customizer - 可以通过此函数自定义对比方式, 如果相等返回 true，否则返回 false, 返回undefined时使用默认对比方式
  * */
 export function useEffectEqual(effect, deps, customizer) {
-    var prev = usePrevious(deps);
+    var prev = usePrev(deps);
     var dep = useRef(0);
-    var isEqual = _isEqualWith(deps, prev, customizer);
+    var isEqual = useMemo(function () { return _isEqualWith(deps, prev, customizer); }, [deps]);
     if (!isEqual) {
         dep.current++;
     }

@@ -1,8 +1,8 @@
 ---
 title: useUpdate
 group:
-    path: /effect
-    order: 2
+  path: /effect
+  order: 2
 ---
 
 # useUpdate

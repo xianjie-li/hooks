@@ -1,4 +1,4 @@
-/// <reference types="react" />
+import React from 'react';
 import { IsEqualCustomizer } from 'lodash';
 /**
  *  支持对deps进行深度对比的`useEffect`

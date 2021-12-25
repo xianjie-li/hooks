@@ -6,18 +6,23 @@ export * from './effect/useFetch/useFetch';
 export * from './effect/useFn/useFn';
 // export * from './effect/useRRQuery/useRRQuery';
 export * from './effect/useThrottle/useThrottle';
+export * from './effect/useUpdateEffect/useUpdateEffect';
+export * from './effect/useUpdate/useUpdate';
 /* state */
 export * from './state/useDerivedStateFromProps/useDerivedStateFromProps';
 export * from './state/useFormState/useFormState';
 export * from './state/useRefize/useRefize';
-export * from './state/useSameState/useSameState';
+export * from './state/useSame/useSame';
 export * from './state/useSelf/useSelf';
 export * from './state/useSetState/useSetState';
 export * from './state/useStorageState/useStorageSetState';
 export * from './state/useStorageState/useStorageState';
 export * from './state/useQueue/useQueue';
 export * from './state/usePrev/usePrev';
-export * from './state/useMountExist/useMountExist';
+export * from './state/useToggle/useToggle';
+export * from './state/useDelayToggle/useDelayToggle';
+export * from './state/useMountState/useMountState';
+export * from './state/useFirstMountState/useFirstMountState';
 /* UI */
 export * from './ui/useLockBodyScroll/useLockBodyScroll';
 export * from './ui/useScroll/useScroll';

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useUpdateEffect } from 'react-use';
+import { useUpdateEffect } from '@lxjx/hooks';
 import _isEqualWith from 'lodash/isEqualWith';
 /**
  *  实现类似getDerivedStateFromProps的效果，接收prop并将其同步为内部状态，

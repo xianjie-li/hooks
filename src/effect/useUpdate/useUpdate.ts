@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useFn } from '@lxjx/hooks';
 
 export const useUpdate = () => {
