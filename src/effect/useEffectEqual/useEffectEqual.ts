@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { usePrevious } from 'react-use';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { usePrev } from '@lxjx/hooks';
 import _isEqualWith from 'lodash/isEqualWith';
 import { IsEqualCustomizer } from 'lodash';
 
@@ -15,10 +15,10 @@ export function useEffectEqual(
   deps?: any[],
   customizer?: IsEqualCustomizer,
 ) {
-  const prev = usePrevious(deps);
+  const prev = usePrev(deps);
   const dep = useRef(0);
 
-  const isEqual = _isEqualWith(deps, prev, customizer);
+  const isEqual = useMemo(() => _isEqualWith(deps, prev, customizer), [deps]);
 
   if (!isEqual) {
     dep.current++;

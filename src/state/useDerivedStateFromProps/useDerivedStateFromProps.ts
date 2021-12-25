@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useUpdateEffect } from 'react-use';
+import { useUpdateEffect } from '@lxjx/hooks';
 import _isEqualWith from 'lodash/isEqualWith';
 import { IsEqualCustomizer } from 'lodash';
 

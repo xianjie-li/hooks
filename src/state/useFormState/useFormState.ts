@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useUpdateEffect } from 'react-use';
+import { useUpdateEffect } from '@lxjx/hooks';
 import { isFunction, AnyObject, defer } from '@lxjx/utils';
 import _isEqual from 'lodash/isEqual';
 

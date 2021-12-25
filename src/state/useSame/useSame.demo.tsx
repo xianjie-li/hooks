@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSameState } from '@lxjx/hooks';
+import { useSame } from '@lxjx/hooks';
 
 interface SameComponentProps {
   flag: string;
@@ -9,7 +9,7 @@ interface SameComponentProps {
 function SameComponent({ flag, show = false }: SameComponentProps) {
   const [num, setNum] = useState(() => Math.random());
 
-  const [index, instances, id] = useSameState('same_component', {
+  const [index, instances, id] = useSame('same_component', {
     meta: {
       flag,
       show,
@@ -30,7 +30,7 @@ function SameComponent({ flag, show = false }: SameComponentProps) {
   );
 }
 
-const useSameStateDemo = () => {
+const useSameDemo = () => {
   const [show1, set1] = useState(false);
   const [show2, set2] = useState(false);
   const [show3, set3] = useState(false);
@@ -48,4 +48,4 @@ const useSameStateDemo = () => {
   );
 };
 
-export default useSameStateDemo;
+export default useSameDemo;

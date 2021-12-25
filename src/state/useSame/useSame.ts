@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { createRandString, isArray } from '@lxjx/utils';
-import { useUpdateEffect, useUpdate } from 'react-use';
-import { createEvent } from '@lxjx/hooks';
+import { createEvent, useUpdateEffect, useUpdate } from '@lxjx/hooks';
 
 /** 单个组件实例 */
 interface Item<Meta = any> {
   /** 该组件的唯一key */
   id: string;
+  /** 该组件的递增值, 用于排序, 组件挂载得越早, 值越小 */
+  sort: number;
   /** 该组件需要共享给其他组件的元信息 */
   meta: Meta;
 }
@@ -28,6 +29,9 @@ const defaultConfig = {
   enable: true,
 };
 
+/** 递增值, 用于存储组件第一次挂载的时间点 */
+let increment = 0;
+
 /** 以指定key获取事件对象，不存在时创建并返回 */
 function getEvent(key: string) {
   const e = events[key];
@@ -45,14 +49,14 @@ function getEvent(key: string) {
  * @param key - 标识该组件的唯一key
  * @param config - 额外配置
  * @param config.meta - 用于共享的组件源数据，可以在同组件的其他实例中获取到
- * @param config.deps - [] | 出于性能考虑，各组件共享的meta只在该实例index变更时更新，可以通过此项传入依赖项数组在任意一个依赖变更后更新meta
- * @param config.enable - true | 只有在dep的值为true时，该实例才算启用并被钩子接受, 通常为Modal等组件的toggle参数
+ * @param config.deps - [] | 出于性能考虑, 只有组件index变更后才会通知其他组件更新, 设置后, 此数组中的值变更也会触发更新
+ * @param config.enable - true | 只有在enable的值为true时，该实例才算启用并被钩子接受, 通常为Modal等组件的toggle参数
  * @return state - 同类型启用组件共享的状态
  * @return state[0] index - 该组件实例处于所有实例中的第几位，未启用的组件返回-1
  * @return state[1] instances - 所有启用状态的组件<Item>组成的数组，正序
  * @return state[2] id - 该组件实例的唯一标识
  * */
-export function useSameState<Meta = any>(
+export function useSame<Meta = any>(
   key: string,
   config?: {
     meta?: Meta;
@@ -66,11 +70,12 @@ export function useSameState<Meta = any>(
   };
 
   const id = useMemo(() => createRandString(2), []);
+  const sort = useMemo(() => ++increment, []);
   const [cIndex, setCIndex] = useState(depChangeHandel);
 
   /* 在某个组件更新了sameMap后，需要通知其他相应的以最新状态更新组件 */
   const update = useUpdate();
-  const { emit, useEvent } = getEvent(`${key}_same_custom_event`);
+  const { emit, useEvent } = useMemo(() => getEvent(`${key}_same_custom_event`), []);
 
   useEvent((_id: string) => {
     // 触发更新的实例和未激活的不更新
@@ -78,40 +83,48 @@ export function useSameState<Meta = any>(
     update();
   });
 
-  setCurrentMeta(conf.meta);
+  /** 保持meta最新 */
+  useMemo(() => setCurrentMeta(conf.meta), [conf.meta]);
 
-  /* 获取当前实例在实例组中的索引或添加当前实例到实例组中，未启用组件索引返回-1 */
+  /* enable改变时。更新索引信息 */
+  useUpdateEffect(() => {
+    setCIndex(depChangeHandel());
+  }, [conf.enable]);
+
+  /* cIndex变更时，通知其他钩子进行更新 */
+  useUpdateEffect(() => emit(id), [cIndex, ...conf.deps]);
+
+  /* 根据enable移除或添加实例并更新其meta, 根据sort排序示例数组后返回组件现在所处id */
   function depChangeHandel() {
     const [current, index] = getCurrent();
 
+    const item = current[index];
+
     // 执行后续操作前，先移除已有实例
-    if (index !== -1) {
+    if (item) {
       current.splice(index, 1);
     }
 
     // 当依赖值为true时才添加实例到组中
     if (conf.enable) {
-      sameMap[key].push({
+      const eItem = item || {
         id,
+        sort,
         meta: conf.meta || {},
-      });
+      };
+
+      current.push(eItem);
+
+      setCurrentMeta(conf.meta);
     }
+
+    current.sort((a, b) => a.sort - b.sort);
 
     // 从更新后的实例组中获取当前索引
     const [, newIndex] = getCurrent();
 
     return newIndex;
   }
-
-  /* dep改变时。更新索引信息 */
-  useUpdateEffect(() => {
-    setCIndex(depChangeHandel());
-  }, [conf.enable]);
-
-  /* cIndex变更时，通知其他钩子进行更新 */
-  useUpdateEffect(() => {
-    emit(id);
-  }, [cIndex, ...conf.deps]);
 
   /**
    * 获取当前组件在sameMap中的实例组和该组件在实例中的索引并确保sameMap[key]存在
@@ -132,23 +145,12 @@ export function useSameState<Meta = any>(
 
   /* 设置当前实例的meta状态 */
   function setCurrentMeta(_meta?: Meta) {
-    if (typeof _meta === 'undefined') return;
-
     const [current, index] = getCurrent();
 
     if (index !== -1) {
-      current[index].meta = _meta;
+      Object.assign(current[index].meta, _meta);
     }
   }
-
-  /* 在sameMap[key]长度改变时/deps变更时更新 */
-  useEffect(() => {
-    const [, newIndex] = getCurrent();
-    if (newIndex !== cIndex) {
-      setCIndex(newIndex);
-    }
-    // eslint-disable-next-line
-  }, [sameMap[key]?.length]);
 
   return [cIndex, sameMap[key], id] as [number, Array<Item<Meta>>, string];
 }

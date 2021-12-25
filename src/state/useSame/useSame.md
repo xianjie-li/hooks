@@ -1,11 +1,11 @@
 ---
-title: useSameState
+title: useSame
 group:
   path: /state
   order: 3
 ---
 
-# useSameState
+# useSame
 
 用于对同组件的不同实例进行管理，获取其他已渲染组件的共享数据以及当前处在启用实例中的顺序
 
@@ -17,7 +17,7 @@ group:
 
 ## 示例
 
-<code src="./useSameState.demo.tsx" />
+<code src="./useSame.demo.tsx" />
 
 ## API
 
@@ -33,7 +33,7 @@ group:
  * @return state[1] instances - 所有启用状态的组件<Item>组成的数组，正序
  * @return state[2] id - 该组件实例的唯一标识
  * */
-export function useSameState<Meta = any>(
+export function useSame<Meta = any>(
   key: string,
   config?: {
     meta?: Meta;
