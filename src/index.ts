@@ -58,6 +58,8 @@ export * from './ui/useMeasure/useMeasure';
 
 export * from './ui/useVirtualList/useVirtualList';
 
+export * from './ui/useClickAway/useClickAway';
+
 /* UTILS */
 export * from './utils/utils';
 

@@ -25,6 +25,7 @@ export * from './ui/useScroll/useScroll';
 export * from './ui/useCheck/useCheck';
 export * from './ui/useMeasure/useMeasure';
 export * from './ui/useVirtualList/useVirtualList';
+export * from './ui/useClickAway/useClickAway';
 export * from './utils/utils';
 export * from './type';
 //# sourceMappingURL=index.d.ts.map
