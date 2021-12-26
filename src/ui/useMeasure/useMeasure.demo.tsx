@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useMeasure } from '@lxjx/hooks';
 
 const size1 = {
@@ -14,7 +14,9 @@ const size2 = {
 const UseMeasureDemo = () => {
   const [sty, setS] = useState<any>(size1);
 
-  const [ref, bound] = useMeasure<HTMLDivElement>();
+  const ref = useRef<HTMLDivElement>(null!);
+
+  const [bound] = useMeasure<HTMLDivElement>(ref, 2000);
 
   return (
     <div>

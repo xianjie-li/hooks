@@ -22,7 +22,7 @@ const UseLockBodyScrollDemo = () => {
       <button type="button" onClick={() => set3(!bool3)}>
         lock3 | {bool3.toString()}
       </button>
-      <div>请解锁滚动条</div>
+      {(bool || bool2 || bool3) && <div>请解锁滚动条</div>}
       <div style={{ height: 1000 }} />
     </div>
   );

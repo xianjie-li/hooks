@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createRandString, isArray } from '@lxjx/utils';
 import { createEvent, useUpdateEffect, useUpdate } from '@lxjx/hooks';
 
@@ -15,6 +15,8 @@ interface Item<Meta = any> {
 interface Same {
   [key: string]: Array<Item>;
 }
+
+type Returns<Meta> = [number, Array<Item<Meta>>, string];
 
 /** 所有共享数据 */
 const sameMap: Same = {};
@@ -49,7 +51,7 @@ function getEvent(key: string) {
  * @param key - 标识该组件的唯一key
  * @param config - 额外配置
  * @param config.meta - 用于共享的组件源数据，可以在同组件的其他实例中获取到
- * @param config.deps - [] | 出于性能考虑, 只有组件index变更后才会通知其他组件更新, 设置后, 此数组中的值变更也会触发更新
+ * @param config.deps - [] | 出于性能考虑, 只有index和instances变更才会通知其他组件更新, meta是不会通知的, 可以通过配置此项使deps任意一项变更后都通知其他组件
  * @param config.enable - true | 只有在enable的值为true时，该实例才算启用并被钩子接受, 通常为Modal等组件的toggle参数
  * @return state - 同类型启用组件共享的状态
  * @return state[0] index - 该组件实例处于所有实例中的第几位，未启用的组件返回-1
@@ -63,7 +65,7 @@ export function useSame<Meta = any>(
     deps?: any[];
     enable?: boolean;
   },
-) {
+): Returns<Meta> {
   const conf = {
     ...defaultConfig,
     ...config,
@@ -72,27 +74,58 @@ export function useSame<Meta = any>(
   const id = useMemo(() => createRandString(2), []);
   const sort = useMemo(() => ++increment, []);
   const [cIndex, setCIndex] = useState(depChangeHandel);
+  /** 最后一次返回的信息, 用于对比验证是否需要更新 */
+  const lastReturn = useRef<Returns<Meta> | undefined>();
 
   /* 在某个组件更新了sameMap后，需要通知其他相应的以最新状态更新组件 */
   const update = useUpdate();
   const { emit, useEvent } = useMemo(() => getEvent(`${key}_same_custom_event`), []);
 
-  useEvent((_id: string) => {
+  /** 接收组件更新通知 */
+  useEvent((_id: string, force?: boolean) => {
     // 触发更新的实例和未激活的不更新
-    if (_id === id) return;
-    update();
+    if (_id === id || !conf.enable) return;
+    // 强制更新, 不添加额外条件, 因为主要目的是同步meta
+    if (force) {
+      update();
+      return;
+    }
+
+    if (!lastReturn.current) return;
+
+    const [current, index] = getCurrent();
+    const [lastIndex, lastList] = lastReturn.current;
+
+    // 索引/长度不同, 直接更新组件
+    if (index !== lastIndex || current.length !== lastList.length) {
+      update();
+      return;
+    }
+
+    // 实例组与最新的不同则更新
+    for (let i = 0; i < current.length; i++) {
+      const n = current[i];
+      const o = lastList[i];
+      if (n !== o) {
+        update();
+        return;
+      }
+    }
   });
 
   /** 保持meta最新 */
   useMemo(() => setCurrentMeta(conf.meta), [conf.meta]);
 
   /* enable改变时。更新索引信息 */
-  useUpdateEffect(() => {
-    setCIndex(depChangeHandel());
-  }, [conf.enable]);
+  useUpdateEffect(() => setCIndex(depChangeHandel()), [conf.enable]);
 
   /* cIndex变更时，通知其他钩子进行更新 */
-  useUpdateEffect(() => emit(id), [cIndex, ...conf.deps]);
+  useUpdateEffect(() => emit(id, true), [...conf.deps]);
+
+  useEffect(() => {
+    emit(id);
+    return () => emit(id);
+  });
 
   /* 根据enable移除或添加实例并更新其meta, 根据sort排序示例数组后返回组件现在所处id */
   function depChangeHandel() {
@@ -152,5 +185,7 @@ export function useSame<Meta = any>(
     }
   }
 
-  return [cIndex, sameMap[key], id] as [number, Array<Item<Meta>>, string];
+  lastReturn.current = [cIndex, [...sameMap[key]] /* 保存副本 */, id];
+
+  return [cIndex, sameMap[key], id] as Returns<Meta>;
 }

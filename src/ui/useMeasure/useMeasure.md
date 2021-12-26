@@ -16,11 +16,16 @@ group:
 ## API
 
 ```tsx | pure
-const [ref, bounds] =
-  useMeasure<ElType>(target?: HTMLElement | RefObject<HTMLElement>);
+/**
+ * 实时测量一个元素的尺寸
+ * @param target - 目标节点
+ * @param debounceDelay - 延迟设置的时间, 对于变更频繁的节点可以通过此项提升性能
+ * @return
+ *  - return[0] - 元素的尺寸, 位置等信息
+ *  - return[1] - 用于直接绑定的ref
+ * */
+function useMeasure<T>(
+  target?: HTMLElement | RefObject<HTMLElement>,
+  debounceDelay?: number,
+): readonly [DOMRectReadOnly, MutableRefObject<T>];
 ```
-
-- `ref` - 用于绑定到带侦听节点的 ref
-- `bounds` - 元素的位置、尺寸信息
-- `ElType` - ref 指向元素的类型
-- `target` - 一个 dom 元素或指向 dom 元素的 ref 对象

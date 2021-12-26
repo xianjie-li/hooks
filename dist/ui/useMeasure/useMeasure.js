@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import ResizeObserver from 'resize-observer-polyfill';
-import { getRefDomOrDom } from '@lxjx/hooks';
-export function useMeasure(target) {
+import debounce from 'lodash/debounce';
+import { getRefDomOrDom, useFn } from '@lxjx/hooks';
+/**
+ * 实时测量一个元素的尺寸
+ * @param target - 目标节点
+ * @param debounceDelay - 延迟设置的时间, 对于变更频繁的节点可以通过此项提升性能
+ * @return
+ *  - return[0] - 元素的尺寸, 位置等信息
+ *  - return[1] - 用于直接绑定的ref
+ * */
+export function useMeasure(target, debounceDelay) {
     var ref = useRef(null);
     var _a = useState({
         left: 0,
@@ -13,10 +22,16 @@ export function useMeasure(target) {
         right: 0,
         bottom: 0,
     }), bounds = _a[0], set = _a[1];
-    var ro = useState(function () { return new ResizeObserver(function (_a) {
+    var cb = useFn(function (_a) {
         var entry = _a[0];
         return set(entry.contentRect);
-    }); })[0];
+    }, function (fn) {
+        if (debounceDelay) {
+            return debounce(fn, debounceDelay);
+        }
+        return fn;
+    }, [debounceDelay]);
+    var ro = useState(function () { return new ResizeObserver(cb); })[0];
     function getEl() {
         var el = getRefDomOrDom(target);
         if (el)
@@ -29,5 +44,5 @@ export function useMeasure(target) {
             ro.observe(el);
         return function () { return ro.disconnect(); };
     }, []);
-    return [ref, bounds];
+    return [bounds, ref];
 }
