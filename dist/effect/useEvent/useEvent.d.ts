@@ -1,15 +1,15 @@
-import { AnyFunction } from '@lxjx/utils';
+import { AnyFunction, CustomEvent } from '@lxjx/utils';
+export interface CustomEventWithHook<Listener extends AnyFunction> extends CustomEvent<Listener> {
+    useEvent(listener: Listener): void;
+}
+/** 增强一个现有事件对象 */
+export declare function enhance<Listener extends AnyFunction = AnyFunction>(event: CustomEvent<Listener>): CustomEventWithHook<Listener>;
 /**
  * 自定义事件，用于多个组件间或组件外进行通讯
  * */
-export declare function createEvent<Listener extends AnyFunction = AnyFunction>(): {
-    /** 以hook的形式注册一个事件监听器，会在unmount时自动解绑事件 */
-    useEvent: (listener: Listener) => void;
-    /** 注册一个事件监听器 */
-    on: (listener: Listener) => void;
-    /** 解绑指定的事件监听器 */
-    off: (listener: Listener) => void;
-    /** 触发所有正在监听的事件 */
-    emit: (...args: any) => void;
-};
+declare function createEvent<Listener extends AnyFunction = AnyFunction>(): CustomEventWithHook<Listener>;
+declare namespace createEvent {
+    var enhance: typeof import("./useEvent").enhance;
+}
+export { createEvent };
 //# sourceMappingURL=useEvent.d.ts.map

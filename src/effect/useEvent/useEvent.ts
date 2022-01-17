@@ -2,7 +2,7 @@ import { useFn } from '@lxjx/hooks';
 import { useEffect } from 'react';
 import { AnyFunction, CustomEvent, createEvent as create } from '@lxjx/utils';
 
-interface CustomEventWithHook<Listener extends AnyFunction> extends CustomEvent<Listener> {
+export interface CustomEventWithHook<Listener extends AnyFunction> extends CustomEvent<Listener> {
   useEvent(listener: Listener): void;
 }
 
