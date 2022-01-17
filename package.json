@@ -1,6 +1,6 @@
 {
   "name": "@lxjx/hooks",
-  "version": "1.26.2",
+  "version": "1.27.0",
   "description": "react hooks library, Use Your Imagination",
   "keywords": [
     "react",
@@ -60,7 +60,7 @@
     "typescript": "^3.9.6"
   },
   "dependencies": {
-    "@lxjx/utils": "^1.15.0",
+    "@lxjx/utils": "^1.16.0",
     "lodash": "^4.17.15",
     "query-string": "^7.0.1",
     "react-spring": "^9.3.3",

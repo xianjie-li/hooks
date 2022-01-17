@@ -1371,10 +1371,10 @@
     "@umijs/fabric" "2.2.0"
     prettier "^2.0.5"
 
-"@lxjx/utils@^1.15.0":
-  version "1.15.0"
-  resolved "https://registry.npmjs.org/@lxjx/utils/-/utils-1.15.0.tgz#3f3c6e4184a994a64e1b85f3f1f78b8a56f78c20"
-  integrity sha512-CTFf3pIzuU9YOWrCtIROB7hBBM+TrslxcY1kF2vbJmDe3NjddGo8DKE/M0D5/K91G4Og6ZhR9Aq2H0cQSyIfPA==
+"@lxjx/utils@^1.16.0":
+  version "1.16.0"
+  resolved "https://registry.npmjs.org/@lxjx/utils/-/utils-1.16.0.tgz#60870c40ba8858f0cf84fc7f9682650443d310a0"
+  integrity sha512-ckpAk1vXTU1auv+kWnj2Eb4QzHgSNeQehkInM07WSAa/B7y8cJ2vV2+kqdeYD3ZvtPvB6/u2ibbVUalBFTj3Tg==
   dependencies:
     lodash "^4.17.21"
     tslib "^2.1.0"

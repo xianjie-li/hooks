@@ -1,6 +1,7 @@
 import path from 'path';
 
 export default {
+  favicon: 'https://gitee.com/llixianjie/m78/raw/master/public/logo-small.png',
   history: { type: 'hash' },
   outputPath: 'docs',
   base: '/hooks/',

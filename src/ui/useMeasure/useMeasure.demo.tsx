@@ -16,7 +16,7 @@ const UseMeasureDemo = () => {
 
   const ref = useRef<HTMLDivElement>(null!);
 
-  const [bound] = useMeasure<HTMLDivElement>(ref, 2000);
+  const [bound] = useMeasure<HTMLDivElement>(ref);
 
   return (
     <div>
