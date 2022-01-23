@@ -23,6 +23,7 @@ export * from './state/useToggle/useToggle';
 export * from './state/useDelayToggle/useDelayToggle';
 export * from './state/useMountState/useMountState';
 export * from './state/useFirstMountState/useFirstMountState';
+export * from './state/useIsUnmountState/useIsUnmountState';
 /* UI */
 export * from './ui/useLockBodyScroll/useLockBodyScroll';
 export * from './ui/useScroll/useScroll';

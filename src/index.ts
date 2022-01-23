@@ -46,6 +46,8 @@ export * from './state/useMountState/useMountState';
 
 export * from './state/useFirstMountState/useFirstMountState';
 
+export * from './state/useIsUnmountState/useIsUnmountState';
+
 /* UI */
 
 export * from './ui/useLockBodyScroll/useLockBodyScroll';

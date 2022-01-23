@@ -1,7 +1,7 @@
 import { RefObject, useEffect, useRef, useState } from 'react';
 import ResizeObserver from 'resize-observer-polyfill';
 import debounce from 'lodash/debounce';
-import { getRefDomOrDom, useFn } from '@lxjx/hooks';
+import { getRefDomOrDom, useFn, useIsUnmountState } from '@lxjx/hooks';
 
 /**
  * 实时测量一个元素的尺寸
@@ -17,6 +17,8 @@ export function useMeasure<T extends Element = HTMLElement>(
 ) {
   const ref = useRef<T>(null!);
 
+  const isUnmount = useIsUnmountState();
+
   const [bounds, set] = useState<Omit<DOMRectReadOnly, 'toJSON'>>({
     left: 0,
     top: 0,
@@ -29,7 +31,9 @@ export function useMeasure<T extends Element = HTMLElement>(
   });
 
   const cb: ResizeObserverCallback = useFn(
-    ([entry]) => set(entry.contentRect),
+    ([entry]) => {
+      !isUnmount() && set(entry.contentRect);
+    },
     fn => {
       if (debounceDelay) {
         return debounce(fn, debounceDelay);
