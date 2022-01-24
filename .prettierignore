@@ -1,6 +1,7 @@
 **/*.svg
 package.json
 .umi
+.md
 .umi-production
 /dist
 /lib

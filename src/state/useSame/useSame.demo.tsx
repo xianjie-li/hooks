@@ -16,6 +16,7 @@ function SameComponent({ flag, show = false }: SameComponentProps) {
       num,
     },
     enable: show,
+    updateDisabled: true,
     deps: [num],
   });
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { createRandString, isArray } from '@lxjx/utils';
 import { createEvent, useUpdateEffect, useUpdate } from '@lxjx/hooks';
 
@@ -10,13 +10,15 @@ interface Item<Meta = any> {
   sort: number;
   /** 该组件需要共享给其他组件的元信息 */
   meta: Meta;
+  /** 是否启用 */
+  enable: boolean;
 }
 
 interface Same {
   [key: string]: Array<Item>;
 }
 
-type Returns<Meta> = [number, Array<Item<Meta>>, string];
+type Returns<Meta> = readonly [number, Array<Item<Meta>>, string];
 
 /** 所有共享数据 */
 const sameMap: Same = {};
@@ -29,6 +31,7 @@ const events: {
 const defaultConfig = {
   deps: [],
   enable: true,
+  updateDisabled: false,
 };
 
 /** 递增值, 用于存储组件第一次挂载的时间点 */
@@ -42,6 +45,8 @@ function getEvent(key: string) {
   return events[key];
 }
 
+// 通过list来生成状态, 组件一直保持list为最新状态
+
 /**
  * 用于对同组件的不同实例进行管理，获取其他已渲染组件的共享数据以及当前处在启用实例中的顺序
  *
@@ -52,8 +57,8 @@ function getEvent(key: string) {
  * @param config - 额外配置
  * @param config.meta - 用于共享的组件源数据，可以在同组件的其他实例中获取到
  * @param config.deps - [] | 出于性能考虑, 只有index和instances变更才会通知其他组件更新, meta是不会通知的, 可以通过配置此项使deps任意一项变更后都通知其他组件
- * @param config.enable - true | 只有在enable的值为true时，该实例才算启用并被钩子接受, 通常为Modal等组件的toggle参数
- * @return state - 同类型启用组件共享的状态
+ * @param config.enable - true | 只有在enable的值为true时，该实例才算启用并被钩子接受, 通常为Modal等组件的toggle参数 * @return state - 同类型启用组件共享的状态
+ * @param config.updateDisabled - false | 发生变更时, 是否通知enable为false的组件更新
  * @return state[0] index - 该组件实例处于所有实例中的第几位，未启用的组件返回-1
  * @return state[1] instances - 所有启用状态的组件<Item>组成的数组，正序
  * @return state[2] id - 该组件实例的唯一标识
@@ -64,6 +69,7 @@ export function useSame<Meta = any>(
     meta?: Meta;
     deps?: any[];
     enable?: boolean;
+    updateDisabled?: boolean;
   },
 ): Returns<Meta> {
   const conf = {
@@ -73,19 +79,89 @@ export function useSame<Meta = any>(
 
   const id = useMemo(() => createRandString(2), []);
   const sort = useMemo(() => ++increment, []);
-  const [cIndex, setCIndex] = useState(depChangeHandel);
   /** 最后一次返回的信息, 用于对比验证是否需要更新 */
   const lastReturn = useRef<Returns<Meta> | undefined>();
 
   /* 在某个组件更新了sameMap后，需要通知其他相应的以最新状态更新组件 */
-  const update = useUpdate();
+  const update = useUpdate(true);
   const { emit, useEvent } = useMemo(() => getEvent(`${key}_same_custom_event`), []);
+
+  useMemo(() => {
+    // 创建item
+    const item: Item = {
+      id,
+      sort,
+      meta: conf.meta || {},
+      enable: conf.enable,
+    };
+
+    const [current] = getCurrent();
+
+    current.push(item);
+
+    current.sort((a, b) => a.sort - b.sort);
+  }, []);
+
+  // 将最新状态实时设置到当前的item上
+  useMemo(() => {
+    setCurrentState(conf.enable, conf.meta);
+  }, [conf.meta, conf.enable]);
+
+  // cIndex变更时，通知其他钩子进行更新
+  useUpdateEffect(() => emit(id, true), [...conf.deps]);
+
+  // enable变更时通知更新
+  useEffect(() => {
+    if (conf.enable) emit(id);
+
+    return () => {
+      const [, index] = getCurrent();
+      index !== -1 && emit(id);
+    };
+  }, [conf.enable]);
+
+  // unmount时通知其他组件并移除当前项
+  useEffect(() => {
+    return () => {
+      // 卸载时移除item
+      const [cur, index] = getCurrent();
+      if (index !== -1) {
+        cur.splice(index, 1);
+        cur[index].enable && emit(id);
+      }
+    };
+  }, []);
+
+  /** 获取过滤掉非enable项的所有item, 当前index和id */
+  function get() {
+    const [current] = getCurrent();
+
+    const filter = current.filter(item => item.enable);
+    const index = filter.findIndex(item => item.id === id);
+
+    return [index, filter, id] as const;
+  }
+
+  /** 获取当前组件在sameMap中的实例组和该组件在实例中的索引并确保sameMap[key]存在 */
+  function getCurrent() {
+    // 无实例存在时赋初始值
+    if (!isArray(sameMap[key])) {
+      sameMap[key] = [];
+    }
+
+    const index = sameMap[key].findIndex(item => item.id === id);
+
+    return [sameMap[key], index] as const;
+  }
 
   /** 接收组件更新通知 */
   useEvent((_id: string, force?: boolean) => {
-    // 触发更新的实例和未激活的不更新
-    if (_id === id || !conf.enable) return;
-    // 强制更新, 不添加额外条件, 因为主要目的是同步meta
+    // 触发更新的实例不更新
+    if (_id === id) return;
+
+    if (!conf.updateDisabled && !conf.enable) return;
+
+    // 强制更新, 不添加额外条件, 主要目的是同步meta
     if (force) {
       update();
       return;
@@ -93,99 +169,27 @@ export function useSame<Meta = any>(
 
     if (!lastReturn.current) return;
 
-    const [current, index] = getCurrent();
-    const [lastIndex, lastList] = lastReturn.current;
+    const [index, current] = get();
+    const [lastIndex, lastCurrent] = lastReturn.current;
 
-    // 索引/长度不同, 直接更新组件
-    if (index !== lastIndex || current.length !== lastList.length) {
+    if (index !== lastIndex || current.length !== lastCurrent.length) {
       update();
-      return;
-    }
-
-    // 实例组与最新的不同则更新
-    for (let i = 0; i < current.length; i++) {
-      const n = current[i];
-      const o = lastList[i];
-      if (n !== o) {
-        update();
-        return;
-      }
     }
   });
 
-  /** 保持meta最新 */
-  useMemo(() => setCurrentMeta(conf.meta), [conf.meta]);
-
-  /* enable改变时。更新索引信息 */
-  useUpdateEffect(() => setCIndex(depChangeHandel()), [conf.enable]);
-
-  /* cIndex变更时，通知其他钩子进行更新 */
-  useUpdateEffect(() => emit(id, true), [...conf.deps]);
-
-  useEffect(() => {
-    emit(id);
-    return () => emit(id);
-  });
-
-  /* 根据enable移除或添加实例并更新其meta, 根据sort排序示例数组后返回组件现在所处id */
-  function depChangeHandel() {
-    const [current, index] = getCurrent();
-
-    const item = current[index];
-
-    // 执行后续操作前，先移除已有实例
-    if (item) {
-      current.splice(index, 1);
-    }
-
-    // 当依赖值为true时才添加实例到组中
-    if (conf.enable) {
-      const eItem = item || {
-        id,
-        sort,
-        meta: conf.meta || {},
-      };
-
-      current.push(eItem);
-
-      setCurrentMeta(conf.meta);
-    }
-
-    current.sort((a, b) => a.sort - b.sort);
-
-    // 从更新后的实例组中获取当前索引
-    const [, newIndex] = getCurrent();
-
-    return newIndex;
-  }
-
-  /**
-   * 获取当前组件在sameMap中的实例组和该组件在实例中的索引并确保sameMap[key]存在
-   * @return meta[0] - 该组件实例组成的数组
-   * @return meta[1] - 当前组件在实例中的位置
-   * */
-  function getCurrent() {
-    // 无实例存在时赋初始值
-    if (!isArray(sameMap[key])) {
-      sameMap[key] = [];
-    }
-
-    // 取所在索引
-    const index = sameMap[key].findIndex(item => item.id === id);
-
-    return [sameMap[key], index] as const;
-  }
-
-  /* 设置当前实例的meta状态 */
-  function setCurrentMeta(_meta?: Meta) {
+  /* 设置当前实例的状态 */
+  function setCurrentState(_enable: boolean, _meta?: Meta) {
     const [current, index] = getCurrent();
 
     if (index !== -1) {
-      Object.assign(current[index].meta, _meta);
+      current[index].enable = _enable;
+      current[index].meta = _meta;
     }
   }
 
-  lastReturn.current = [cIndex, [...sameMap[key]] /* 保存副本 */, id];
+  const returns = get();
 
-  return [cIndex, sameMap[key], id] as Returns<Meta>;
+  lastReturn.current = [returns[0], [...returns[1]] /* 需要存储拷贝 */, returns[2]];
+
+  return returns;
 }
