@@ -18,7 +18,7 @@ export interface FormLikeWithExtra<T, Ext = any> {
     onChange?: (value: T, extra: Ext) => void;
     defaultValue?: T;
 }
-interface SetFormState<T, Ext = any> {
+export interface SetFormState<T, Ext = any> {
     (patch: T | ((prev: T) => T), extra?: Ext): void;
 }
 export interface UseFormStateConfig {

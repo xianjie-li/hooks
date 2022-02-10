@@ -1,5 +1,5 @@
 import { RefObject } from 'react';
-export interface UseVirtualListOption<Item> {
+export interface VirtualListOption<Item> {
     /** 需要进行虚拟滚动的列表 */
     list: Item[];
     /** 每项的尺寸 */
@@ -43,13 +43,13 @@ interface State<Item> {
     /** 是否处于滚动状态中 */
     scrolling: boolean;
 }
-interface RenderProps<Item> {
+export interface VirtualListRenderProps<Item> {
     children: (state: State<Item>) => JSX.Element | any;
 }
-export declare function useVirtualList<Item = any>(option: UseVirtualListOption<Item>): {
+export declare function useVirtualList<Item = any>(option: VirtualListOption<Item>): {
     containerRef: RefObject<any>;
     wrapRef: import("react").MutableRefObject<any>;
-    Render: ({ children }: RenderProps<Item>) => any;
+    Render: ({ children }: VirtualListRenderProps<Item>) => any;
 };
 export {};
 //# sourceMappingURL=useVirtualList.d.ts.map

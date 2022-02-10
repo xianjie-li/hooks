@@ -3,7 +3,7 @@ import { createRandString, isArray } from '@lxjx/utils';
 import { createEvent, useUpdateEffect, useUpdate } from '@lxjx/hooks';
 
 /** 单个组件实例 */
-interface Item<Meta = any> {
+export interface SameItem<Meta = any> {
   /** 该组件的唯一key */
   id: string;
   /** 该组件的递增值, 用于排序, 组件挂载得越早, 值越小 */
@@ -15,10 +15,10 @@ interface Item<Meta = any> {
 }
 
 interface Same {
-  [key: string]: Array<Item>;
+  [key: string]: Array<SameItem>;
 }
 
-type Returns<Meta> = readonly [number, Array<Item<Meta>>, string];
+type Returns<Meta> = readonly [number, Array<SameItem<Meta>>, string];
 
 /** 所有共享数据 */
 const sameMap: Same = {};
@@ -88,7 +88,7 @@ export function useSame<Meta = any>(
 
   useMemo(() => {
     // 创建item
-    const item: Item = {
+    const item: SameItem = {
       id,
       sort,
       meta: conf.meta || {},
@@ -126,8 +126,9 @@ export function useSame<Meta = any>(
       // 卸载时移除item
       const [cur, index] = getCurrent();
       if (index !== -1) {
+        const item = cur[index];
         cur.splice(index, 1);
-        cur[index].enable && emit(id);
+        item.enable && emit(id);
       }
     };
   }, []);

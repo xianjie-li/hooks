@@ -11,7 +11,7 @@ import {
 } from '@lxjx/hooks';
 import _debounce from 'lodash/debounce';
 
-export interface UseVirtualListOption<Item> {
+export interface VirtualListOption<Item> {
   /** 需要进行虚拟滚动的列表 */
   list: Item[];
   /** 每项的尺寸 */
@@ -59,11 +59,11 @@ interface State<Item> {
   scrolling: boolean;
 }
 
-interface RenderProps<Item> {
+export interface VirtualListRenderProps<Item> {
   children: (state: State<Item>) => JSX.Element | any;
 }
 
-export function useVirtualList<Item = any>(option: UseVirtualListOption<Item>) {
+export function useVirtualList<Item = any>(option: VirtualListOption<Item>) {
   const {
     list,
     size,
@@ -115,7 +115,7 @@ export function useVirtualList<Item = any>(option: UseVirtualListOption<Item>) {
 
   /** 使用render组件来减少hook对消费组件的频繁更新 */
   const Render = useMemo(
-    () => ({ children }: RenderProps<Item>) => {
+    () => ({ children }: VirtualListRenderProps<Item>) => {
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const [state, setState] = useSetState<State<Item>>({
         list: [],

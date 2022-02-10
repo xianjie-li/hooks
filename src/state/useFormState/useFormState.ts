@@ -24,7 +24,7 @@ export interface FormLikeWithExtra<T, Ext = any> {
   defaultValue?: T;
 }
 
-interface SetFormState<T, Ext = any> {
+export interface SetFormState<T, Ext = any> {
   (patch: T | ((prev: T) => T), extra?: Ext): void;
 }
 
